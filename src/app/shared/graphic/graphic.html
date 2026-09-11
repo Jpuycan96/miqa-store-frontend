@@ -1,0 +1,16 @@
+<div [class]="'art ' + kind()">
+ @switch (kind()) {
+  @case ('studio') {
+   <div class="plinth"></div>
+   <div class="poster"><span>Ideas<br>que dejan<br>huella.</span><i>ESTUDIO GRÁFICO — MIQA</i><b>m.</b></div>
+   <div class="sample-card"><span>HOLA,<br>MUNDO.</span><i>DALE FORMA A TU MARCA</i></div>
+   <div class="swatch swatch-one"></div><div class="swatch swatch-two"></div>
+   <div class="paper-roll"></div>
+  }
+  @case ('sign') { <div class="wall-line"></div><div class="lettering">miqa<span>ESTUDIO CREATIVO</span></div> }
+  @case ('wayfinding') { <div class="signpost"></div><div class="direction first">Estudio <span>↗</span></div><div class="direction second">Bienvenidos <span>→</span></div> }
+  @case ('print') { <div class="print-sheet"><small>PIENSA EN</small><b>GRAN<br>DE.</b><span>El espacio es tuyo. ↗</span></div><div class="print-roll"></div> }
+  @case ('merch') { <div class="bag"><div class="handles"></div><span>buena<br>idea<span class="bag-dot">.</span></span><small>HECHO PARA LLEVAR TU MARCA</small></div> }
+ }
+</div>
+

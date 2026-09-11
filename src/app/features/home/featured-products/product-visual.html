@@ -1,0 +1,27 @@
+<div [class]="'composition ' + kind()">
+  @switch (kind()) {
+    @case ('print') {
+      <div class="print-poster"><small>IMPRESIÓN / ESTUDIO MIQA</small><b>Ideas<br>en alta<br>definición.</b><div class="ink-shapes"></div><span>COLOR · DETALLE · PRECISIÓN</span></div>
+    }
+    @case ('backlit') {
+      <div class="light-word">miqa<span>LUZ PARA TU MARCA</span></div>
+    }
+    @case ('packaging') {
+      <div class="package-box"><div class="box-lid"></div><b>hecho<br>para ti.</b><small>MIQA / PACKAGING</small></div>
+    }
+    @case ('cards') {
+      <div class="business-card card-back"><b>miqa.</b><span>SOLUCIONES GRÁFICAS</span></div>
+      <div class="business-card card-front"><b>Tu próxima<br>gran idea.</b><span>DISEÑO QUE CONECTA</span><i></i></div>
+    }
+    @case ('flyers') {
+      <div class="flyer flyer-back"></div><div class="flyer flyer-middle"></div>
+      <div class="flyer flyer-front"><small>NUEVA COLECCIÓN</small><b>Haz<br>que<br>pase.</b><span>DESCUBRE · COMPARTE</span></div>
+    }
+    @case ('merch') {
+      <div class="notebook"><span>ideas<br>en marcha.</span><small>MIQA / ESTUDIO GRÁFICO</small></div>
+      <div class="bottle"><div class="lid"></div><span>m.</span></div><div class="pencil"></div>
+      <span class="material-note">06 / Tu marca, contigo</span>
+    }
+  }
+</div>
+

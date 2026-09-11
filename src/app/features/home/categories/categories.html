@@ -1,0 +1,24 @@
+<section id="categorias" class="page-shell categories" aria-labelledby="categories-title">
+ <div class="section-heading flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
+  <div><p class="eyebrow">Soluciones para tu marca</p><h2 id="categories-title">¿Qué necesitas crear?</h2></div>
+  <p class="section-intro">Dale forma a tu próxima idea.<br>Nosotros te ayudamos a hacerla visible.</p>
+ </div>
+ @if (query()) { <p class="search-status" role="status">{{ categories().length }} categorías para “{{ query() }}”</p> }
+ <div class="category-grid">
+  @for (category of categories(); track category.kind) {
+   <button [class]="'category ' + category.kind" (click)="explore.emit(category.name)" [attr.aria-label]="'Explorar ' + category.name">
+    <div class="category-image">
+     <span class="category-number">{{ category.number }} /</span>
+     @if (category.image; as image) {
+      <img [ngSrc]="image.src" [alt]="image.alt" fill sizes="(min-width: 1440px) 390px, (min-width: 1024px) 30vw, (min-width: 560px) 50vw, 100vw">
+     } @else {
+      <app-graphic [kind]="category.kind" />
+     }
+     <span class="explore-icon" aria-hidden="true"><span>↗</span></span>
+    </div>
+    <div class="category-caption"><h3>{{ category.name }}</h3><p>{{ category.detail }}</p></div>
+   </button>
+  } @empty { <p class="empty-message">No encontramos esa categoría. Prueba con “letreros”, “señalética”, “impresión” o “merchandising”.</p> }
+ </div>
+ <p class="concept-note">Imágenes conceptuales. Cada proyecto comienza con tu idea.</p>
+</section>

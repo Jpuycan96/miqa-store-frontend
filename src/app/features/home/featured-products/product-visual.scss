@@ -1,0 +1,41 @@
+:host { display: block; position: relative; width: 100%; height: 100%; container-type: inline-size; }
+.composition { position: absolute; inset: 0; overflow: hidden; }
+.backlit { background: #cecec6; }
+.light-word { position: absolute; top: 33%; left: 13%; color: #fdfcf4; font-size: 27cqw; font-weight: 600; letter-spacing: -.055em; transform: skewY(-6deg); text-shadow: 1px 2px #b8b8ab, 0 0 5px #fff, 0 0 14px #fffcec, 0 0 30px #fff9d9; }
+.light-word span { display: block; font-size: 2cqw; color: #45453e; text-shadow: none; letter-spacing: .18em; text-align: center; margin-top: 14px; }
+.merch { background: #eee9e1; }
+.notebook { position: absolute; top: 20%; left: 18%; width: 37%; height: 66%; padding: 8% 5%; border-radius: 4px 12px 12px 4px; background: #b8c5bd; box-shadow: 4px 5px #f7f4e9, 7px 9px 12px #3f46351a; transform: rotate(-12deg); color: #243e3e; }
+.notebook > span { font-size: 5cqw; line-height: 1.05; letter-spacing: -.04em; }
+.notebook small { display: block; font-size: 1cqw; margin-top: 25px; }
+.bottle { position: absolute; left: 62%; top: 25%; width: 15%; height: 57%; background: linear-gradient(90deg, #d4d3cb, #fffef5 45%, #deddd3); border-radius: 22% 22% 15% 15%; transform: rotate(12deg); box-shadow: 8px 9px 15px #353b3413; }
+.lid { position: absolute; top: -10%; left: 11%; width: 78%; height: 14%; border-radius: 5px 5px 0 0; background: #3c4b49; }
+.bottle > span { position: absolute; top: 35%; left: 20%; font-size: 7cqw; color: #274b4c; font-weight: 600; }
+.pencil { position: absolute; top: 22%; left: 54%; width: 1.2%; height: 57%; background: #6c7f73; transform: rotate(9deg); border-radius: 3px; }
+
+.material-note { position: absolute; bottom: 22px; left: 24px; color: #616773; font-size: 9px; letter-spacing: .06em; }
+.print { background: #e8e7e1; }
+.print-poster { position: absolute; top: 9%; left: 25%; width: 51%; height: 85%; padding: 5%; background: #faf9f5; transform: rotate(-7deg); color: #18394d; box-shadow: 8px 12px 18px #28352e15; overflow: hidden; }
+.print-poster small { font-size: 1.2cqw; letter-spacing: .13em; }
+.print-poster b { display: block; font-size: 6.5cqw; line-height: .97; letter-spacing: -.05em; margin-top: 15px; }
+.print-poster > span { position: absolute; bottom: 8%; font-size: 1cqw; letter-spacing: .12em; }
+.ink-shapes { position: absolute; width: 39%; aspect-ratio: 1; right: -8%; bottom: 13%; border: 15px solid #a6bcb6; border-radius: 50%; box-shadow: -25px 12px 0 #ddcbb4; }
+.packaging { background: #eee8df; }
+.package-box { position: absolute; left: 20%; top: 30%; width: 62%; height: 46%; padding: 13% 8%; background: #d7c3a6; transform: skewY(-6deg); box-shadow: 9px 11px 16px #50412d15; color: #34453c; }
+.box-lid { position: absolute; top: -22%; left: 0; height: 23%; width: 100%; background: #e8d9c1; transform: skewX(-36deg); transform-origin: bottom; border-bottom: 2px solid #c4ad8c; }
+.package-box b { font-size: 9cqw; line-height: .95; letter-spacing: -.04em; display: block; }
+.package-box small { font-size: 1.5cqw; display: block; margin-top: 14px; letter-spacing: .15em; }
+.cards { background: #e6ebe8; }
+.business-card { position: absolute; width: 74%; height: 37%; padding: 9%; border-radius: 3px; box-shadow: 5px 8px 13px #21382e12; }
+.business-card b { font-size: 8cqw; line-height: 1; display: block; letter-spacing: -.04em; }
+.business-card span { font-size: 1.5cqw; display: block; margin-top: 12px; letter-spacing: .1em; }
+.card-back { left: 16%; top: 17%; background: #203d4d; color: #fff; transform: rotate(8deg); }
+.card-front { left: 10%; top: 45%; background: #faf9f5; color: #233e48; transform: rotate(-9deg); }
+.card-front i { position: absolute; right: 9%; bottom: 18%; width: 8%; aspect-ratio: 1; border-radius: 50%; background: #a5bdb9; }
+.flyers { background: #e9edf0; }
+.flyer { position: absolute; width: 57%; height: 73%; top: 15%; left: 23%; }
+.flyer-back { background: #bdcbd0; transform: rotate(16deg); }
+.flyer-middle { background: #fafaf6; transform: rotate(-12deg); box-shadow: 4px 6px 10px #17203310; }
+.flyer-front { background: #d7e0e4; transform: rotate(3deg); padding: 9%; color: #25485b; }
+.flyer small { font-size: 1.8cqw; letter-spacing: .12em; }
+.flyer b { display: block; font-size: 14cqw; line-height: .88; letter-spacing: -.055em; margin-top: 15px; }
+.flyer span { font-size: 1.5cqw; display: block; margin-top: 16px; letter-spacing: .12em; }
