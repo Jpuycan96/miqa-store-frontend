@@ -1,0 +1,11 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "miqa-store-frontend",
+  "compatibility_date": "2026-09-11",
+  "workers_dev": true,
+  "assets": {
+    "directory": "./dist/miqa-store-frontend/browser",
+    "html_handling": "drop-trailing-slash",
+    "not_found_handling": "single-page-application"
+  }
+}

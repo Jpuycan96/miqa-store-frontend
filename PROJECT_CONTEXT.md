@@ -2,7 +2,35 @@
 
 Actualizado: 11 de septiembre de 2026. Inspección del código y validaciones locales de esta fecha. Este documento es la fuente principal de contexto de producto/diseño; distingue implementación existente de requisitos futuros. Las rutas de archivos son relativas a la raíz del frontend salvo indicación contraria.
 
-## Cierre Home V1 — primer despliegue
+## Despliegue Cloudflare Workers — configuración V1
+
+Esta estrategia reemplaza el plan anterior de servir el frontend desde VPS. Home V1 permanece intacta sobre 357dcfc. Remoto existente: https://github.com/Jpuycan96/miqa-store-frontend.git. El VPS NO participa en el frontend; el futuro api-store sí podrá vivir en VPS. El servidor SSR Node y sus scripts se conservan como alternativa local, pero no se ejecutan ni se publican en Workers. NG_ALLOWED_HOSTS y PORT no son necesarios para Static Assets.
+
+Se despliega `dist/miqa-store-frontend/browser` como Workers Static Assets, aprovechando el prerender Angular. El build sigue generando browser/ y server/ sin cambios en angular.json ni rutas. Wrangler versionado en `wrangler.jsonc`, Worker `miqa-store-frontend`, workers_dev habilitado, sin custom domain, account ID ni tokens.
+
+`assets.html_handling = drop-trailing-slash` sirve `/productos` desde productos/index.html y `/proyectos` desde proyectos/index.html, preservando las URLs actuales; las variantes con barra redirigen a la URL sin barra. Cada ruta recibe su propio HTML/SEO prerenderizado. `not_found_handling = single-page-application` habilita fallback al index para navegación sin asset coincidente; no reemplaza los HTML existentes ni añade rutas Angular. La Home contiene el ancla servicios y Angular hidrata normalmente.
+
+Archivos: nuevos wrangler.jsonc y .node-version; modificados package.json, package-lock.json, .gitignore y este contexto. Wrangler devDependency exacta 4.131.1, lockfile actualizado. Node fijado en .node-version a 22.14.0, entorno local validado; engines >=22.12.0 <23 combina el mínimo de Angular con Node >=22 exigido por Wrangler y conserva la misma rama mayor. npm local 11.3.0, packageManager conservado. Cloudflare reconoce .node-version; evitar un NODE_VERSION del dashboard que lo contradiga.
+
+Configuración Git integration en la raíz del repositorio:
+- Build command: `npm run build`.
+- Deploy command: `npx wrangler deploy` (usa la dependencia fijada y wrangler.jsonc).
+- Output de assets: `dist/miqa-store-frontend/browser`.
+- Worker: `miqa-store-frontend`.
+- Primera URL pública: la workers.dev que asigne Cloudflare; todavía no se publicó desde esta tarea.
+- Dominio futuro confirmado: `store.solucionesmicaela.com`; NO configurado aún, sin cambios DNS.
+
+Futuros despliegues: ejecutar npm ci, npm test -- --watch=false, npm run build y npx wrangler deploy --dry-run; revisar cambios y commit. Solo después de autorización, subir a la rama conectada de GitHub para activar Workers Builds. Probar workers.dev en /, /productos, /proyectos y /#servicios antes de configurar dominio. Autenticación del build gestionada por Cloudflare, nunca guardada en Git. Para emulación local: `npx wrangler dev --local` después del build.
+
+Validación local: 20/20 tests; build correcto sin warnings, tres rutas prerenderizadas; dry-run Wrangler correcto (29 archivos leídos, sin publicación). Workers local: HTTP 200 con título y H1 propios en las tres rutas; 19 assets JS/CSS/imágenes/favicon verificados; /productos/ y /proyectos/ redirigen 307 sin barra. Edge sobre Workers local: ancla Servicios y navegación Angular a productos correctas, sin errores de consola. No hay fuentes web externas: se conserva la pila de fuentes del sistema. .wrangler/, .dev.vars, .env, logs, dist y .tmp ignorados. La primera ejecución sandbox de Wrangler requirió acceso a su directorio de configuración de usuario; al ejecutarse con los permisos locales necesarios, dry-run y emulación pasaron.
+
+Referencias oficiales consultadas:
+- https://developers.cloudflare.com/workers/static-assets/routing/static-site-generation/
+- https://developers.cloudflare.com/workers/static-assets/routing/advanced/html-handling/
+- https://developers.cloudflare.com/workers/static-assets/routing/single-page-application/
+- https://developers.cloudflare.com/workers/ci-cd/builds/build-image/
+
+## Cierre Home V1 — primer despliegue (histórico SSR Node)
 
 El propietario considera Home V1 suficientemente terminada para primer despliegue y autoriza el commit `feat: complete MIQA store home v1` tras las validaciones. Esta decisión reemplaza los pendientes históricos de revisión/commit de esta etapa. No autoriza push ni configurar remoto/VPS. El primer despliegue sigue pendiente.
 
@@ -432,7 +460,7 @@ La IP usada fue **192.168.1.104**, según propietario; no es permanente ni se vo
 
 Orden decidido por el propietario, no autorización para ejecutarlo automáticamente:
 
-1. Realizar el primer despliegue de Home V1 en VPS, todavía pendiente.
+1. Realizar el primer despliegue de Home V1 en Cloudflare Workers desde GitHub, todavía pendiente.
 2. Footer implementado y aceptado para primer despliegue.
 3. Seis categorías definitivas implementadas e incluidas en Home V1.
 4. Cierre autorizado en un commit: feat: complete MIQA store home v1. No push ni remoto.

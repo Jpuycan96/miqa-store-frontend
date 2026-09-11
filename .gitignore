@@ -4,6 +4,9 @@
 /dist
 /tmp
 /.tmp/
+/.wrangler/
+.dev.vars
+.dev.vars.*
 /out-tsc
 /bazel-out
 
