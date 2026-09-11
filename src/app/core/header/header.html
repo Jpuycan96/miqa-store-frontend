@@ -13,7 +13,7 @@
    <button #searchToggle class="icon-button" aria-label="Buscar categorías" [attr.aria-expanded]="searchOpen()" aria-controls="site-search" (click)="searchOpen.set(!searchOpen())">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg>
    </button>
-   <button class="contact-button" (click)="notice.emit('Hablemos de tu proyecto')">Conversemos <span aria-hidden="true">↗</span><span class="sr-only"> por WhatsApp</span></button>
+   <a class="contact-button" [href]="contactUrl" target="_blank" rel="noopener noreferrer">Conversemos <span aria-hidden="true">↗</span><span class="sr-only"> por WhatsApp (abre una nueva pestaña)</span></a>
    <button #menu class="icon-button mobile-toggle" [attr.aria-expanded]="menuOpen()" aria-controls="mobile-nav" [attr.aria-label]="menuOpen() ? 'Cerrar menú' : 'Abrir menú'" (click)="menuOpen.set(!menuOpen())">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path [attr.d]="menuOpen() ? 'M6 6l12 12M6 18L18 6' : 'M4 8h16M4 16h16'"/></svg>
    </button>
@@ -24,7 +24,7 @@
   @for (item of ['Servicios', 'Proyectos', 'Nosotros']; track item) {
    <button (click)="closeMenu(); notice.emit(item)">{{ item }} <span aria-hidden="true">↗</span></button>
   }
-  <button (click)="closeMenu(); notice.emit('Hablemos de tu proyecto')">Conversemos por WhatsApp</button>
+  <a [href]="contactUrl" target="_blank" rel="noopener noreferrer" (click)="closeMenu()" aria-label="Conversemos por WhatsApp (abre una nueva pestaña)">Conversemos por WhatsApp</a>
  </nav>
  <div id="site-search" [hidden]="!searchOpen()" class="page-shell search-panel" (keydown.escape)="searchOpen.set(false); searchToggle.focus()">
   <label for="category-search">¿Qué necesitas crear?</label>
@@ -34,4 +34,3 @@
   </div>
  </div>
 </header>
-

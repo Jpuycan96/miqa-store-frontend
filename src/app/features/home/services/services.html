@@ -1,0 +1,48 @@
+<section id="servicios" class="page-shell services" aria-labelledby="services-title">
+  <div class="services-heading">
+    <div>
+      <p class="eyebrow">Lo que hacemos</p>
+      <h2 id="services-title">Tecnología, precisión<br> y experiencia.</h2>
+    </div>
+    <p class="services-intro">Soluciones para producir, transformar e instalar las ideas de tu negocio.</p>
+  </div>
+  <div class="services-grid">
+    @for (service of services(); track service.slug) {
+      <article class="service" [class]="'service--' + service.kind" [attr.aria-labelledby]="'service-' + service.slug">
+        <div class="service-visual">
+          @if (service.image; as image) {
+            <img [ngSrc]="image.src" [alt]="image.alt" fill sizes="(min-width: 1024px) 35vw, 80vw" loading="lazy">
+          } @else {
+            <svg viewBox="0 0 160 100" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+              @switch (service.kind) {
+                @case ('laser') {
+                  <path d="M12 77 80 50l68 27-68 20Z M64 5h32v20L80 39 64 25Z M80 39v21 M69 52l-5-6m27 6 5-6M64 63h-8m40 0h8"/>
+                  <path class="detail" d="m44 77 36-14 36 14-36 14Z"/>
+                }
+                @case ('cnc') {
+                  <path d="M20 83V16h120v67M20 30h120M65 30v22h30V30M74 52v16l6 7 6-7V52M12 83h136M36 72h20m49 0h19"/>
+                  <path class="detail" d="M42 83V61h14m48 0h14v22"/>
+                }
+                @case ('print') {
+                  <path d="M35 36V9h90v27M35 73H17V36h126v37h-18M35 59h90v34H35ZM28 47h8m7 0h4"/>
+                  <path class="detail" d="M47 80 66 65l18 13 14-9 15 12M47 86h66"/>
+                }
+                @case ('installation') {
+                  <path d="M30 16h101v51H30ZM42 67v20m77-20v20M24 87h113M17 9v20m-10-10h20M144 59v20m-10-10h20"/>
+                  <path class="detail" d="m62 42 12 12 27-28"/>
+                }
+              }
+            </svg>
+          }
+        </div>
+        <div class="service-copy">
+          <h3 [id]="'service-' + service.slug">{{ service.name }}</h3>
+          <p>{{ service.description }}</p>
+          @if (service.link; as link) {
+            <a [routerLink]="link">Conocer {{ service.name }} <span aria-hidden="true">→</span></a>
+          }
+        </div>
+      </article>
+    }
+  </div>
+</section>

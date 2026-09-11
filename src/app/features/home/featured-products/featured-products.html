@@ -1,19 +1,22 @@
 <section id="productos-destacados" class="page-shell featured-products" aria-labelledby="featured-title">
   <div class="section-heading flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
     <div>
-      <p class="eyebrow">Selección MIQA</p>
-      <h2 id="featured-title">Productos que hacen<br class="hidden md:block"> destacar tu marca.</h2>
+      <p class="eyebrow">Los más solicitados</p>
+      <h2 id="featured-title">Los favoritos de<br class="hidden md:block"> nuestros clientes.</h2>
     </div>
-    <p class="section-intro">Descubre algunas de las soluciones más solicitadas para negocios, marcas y proyectos.</p>
+    <div class="section-intro">
+      <p>Una selección de productos que nuestros clientes eligen para hacer visible su marca.</p>
+      <a class="catalog-link" routerLink="/productos">Ver todos los productos <span aria-hidden="true">→</span></a>
+    </div>
   </div>
 
   <div class="product-grid">
     @for (product of featuredProducts(); track product.id) {
       <article class="product" [attr.aria-labelledby]="'product-title-' + product.id">
-        <div class="product-media">
+        <div class="product-media" [class]="'product-media--' + product.slug">
           @if (product.image; as image) {
             <img [ngSrc]="image" [alt]="product.imageAlt || product.name" fill disableOptimizedSrcset
-              sizes="(min-width: 768px) 50vw, 100vw">
+              loading="lazy" sizes="(min-width: 768px) 50vw, 100vw">
           } @else {
             <app-product-visual [kind]="product.placeholder ?? 'print'" />
           }
@@ -36,5 +39,4 @@
       </article>
     }
   </div>
-  <p class="visual-note">Composiciones conceptuales para imaginar tu próximo proyecto.</p>
 </section>

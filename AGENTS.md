@@ -1,4 +1,17 @@
 
+## Project context
+
+Before making changes to this repository, read [PROJECT_CONTEXT.md](PROJECT_CONTEXT.md).
+
+Treat it as the current project handoff and source of product/design decisions.
+
+If the repository implementation conflicts with PROJECT_CONTEXT.md:
+1. inspect the current code and git history;
+2. do not silently overwrite working code;
+3. report the discrepancy before making destructive changes.
+
+After completing a meaningful feature or architectural decision, update PROJECT_CONTEXT.md if the context has materially changed.
+
 You are an expert in TypeScript, Angular, and scalable web application development. You write functional, maintainable, performant, and accessible code following Angular and TypeScript best practices.
 
 ## TypeScript Best Practices

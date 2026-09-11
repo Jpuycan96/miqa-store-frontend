@@ -1,0 +1,38 @@
+:host { display: block; }
+.services { padding-block: 52px 80px; border-top: 1px solid #17203312; color: var(--miqa-navy); }
+.services-heading { display: flex; flex-direction: column; gap: 22px; margin-bottom: 36px; }
+.eyebrow { font-size: 10px; color: var(--muted); }
+h2 { margin-top: 13px; font-size: clamp(32px, 3.5vw, 48px); font-weight: 500; line-height: 1.12; letter-spacing: -.05em; }
+.services-intro { max-width: 300px; font-size: 14px; line-height: 1.7; color: var(--muted); }
+.services-grid { display: grid; gap: 16px; }
+.service { min-width: 0; padding: 28px; border-radius: var(--radius-media); display: flex; flex-direction: column; justify-content: space-between; gap: 28px; overflow: hidden; }
+.service--laser { background: #d9eeeb; }
+.service--cnc { background: #e0e8f2; }
+.service--print { background: #f0e7cd; }
+.service--installation { background: #dce8df; }
+.service-visual { position: relative; min-height: 94px; }
+.service-visual svg { display: block; width: 144px; height: 90px; margin-left: auto; }
+.service-visual img { object-fit: cover; border-radius: 12px; }
+.service-visual:has(img) { min-height: 180px; }
+.detail { stroke: #24727b; }
+.service-copy { max-width: 390px; }
+h3 { font-size: clamp(25px, 2.4vw, 34px); font-weight: 500; letter-spacing: -.04em; line-height: 1.15; }
+.service-copy p { margin-top: 14px; color: #34465a; font-size: 14px; line-height: 1.7; max-width: 350px; }
+.service-copy a { display: inline-flex; align-items: center; min-height: 44px; gap: 12px; margin-top: 12px; font-size: 13px; text-decoration: underline; text-underline-offset: 4px; }
+@media (min-width: 768px) {
+  .services-heading { flex-direction: row; align-items: end; justify-content: space-between; gap: 40px; margin-bottom: 44px; }
+  .services-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+  .service { padding: 32px; min-height: 320px; }
+}
+@media (min-width: 1024px) {
+  .services { padding-block: 64px 96px; }
+  .services-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 24px; }
+  .service { grid-column: span 2; padding: 36px 40px; min-height: 310px; }
+  .service--laser, .service--installation { grid-column: span 3; }
+  .service--laser h3, .service--installation h3 { font-size: 38px; }
+  .service-visual svg { width: 168px; height: 105px; }
+}
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .service-visual svg { transition: transform 220ms var(--motion-ease); }
+  .service:hover .service-visual svg { transform: translateY(-3px); }
+}

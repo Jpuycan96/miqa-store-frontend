@@ -1,8 +1,10 @@
 import { TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
 import { FeaturedProducts } from './featured-products';
 import { FEATURED_PRODUCTS } from './featured-products.mock';
 
 describe('FeaturedProducts', () => {
+  beforeEach(() => TestBed.configureTestingModule({ providers: [provideRouter([])] }));
   it('renders the six new products without prices', async () => {
     const fixture = TestBed.createComponent(FeaturedProducts);
     fixture.componentRef.setInput('products', FEATURED_PRODUCTS);
@@ -12,7 +14,15 @@ describe('FeaturedProducts', () => {
     expect(element.querySelectorAll('.price').length).toBe(0);
     expect(Array.from(element.querySelectorAll('h3'), title => title.textContent))
       .toEqual(['Impresión en alta calidad', 'Letreros Publicitarios', 'Empaques', 'Tarjetas Personales', 'Volantes', 'Merchandising personalizado']);
-    expect(element.querySelectorAll('app-product-visual').length).toBe(6);
+    expect(element.querySelectorAll('app-product-visual').length).toBe(0);
+    const images = element.querySelectorAll('img');
+    expect(images.length).toBe(6);
+    images.forEach((image, index) => {
+      expect(image.getAttribute('src')).toBe(FEATURED_PRODUCTS[index].image);
+      expect(image.getAttribute('alt')).toBe(FEATURED_PRODUCTS[index].imageAlt);
+      expect(image.getAttribute('loading')).toBe('lazy');
+    });
+    expect(element.querySelector('.visual-note')).toBeNull();
   });
 
   it('accepts replacement data, hides nonfeatured items and supports a local image', async () => {
@@ -20,7 +30,7 @@ describe('FeaturedProducts', () => {
     fixture.componentRef.setInput('products', [
       { ...FEATURED_PRODUCTS[0], image: '/images/brand/logo-miqa3.png', imageAlt: 'Muestra local', priceFrom: null },
       { ...FEATURED_PRODUCTS[1], featured: false },
-      { ...FEATURED_PRODUCTS[2], showPrice: true, priceFrom: 100 }
+      { ...FEATURED_PRODUCTS[2], image: undefined, showPrice: true, priceFrom: 100 }
     ]);
     await fixture.whenStable();
     const element: HTMLElement = fixture.nativeElement;

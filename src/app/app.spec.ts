@@ -5,12 +5,43 @@ import { Title, Meta } from '@angular/platform-browser';
 import { routes } from './app.routes';
 import { Header } from './core/header/header';
 import { Categories } from './features/home/categories/categories';
+import { contactWhatsAppUrl } from './core/config/whatsapp';
 describe('MIQA Home', () => {
+ it('uses general WhatsApp links without contact notices and preserves product navigation', async () => {
+  TestBed.configureTestingModule({ providers: [provideRouter(routes)] });
+  const harness = await RouterTestingHarness.create('/');
+  const element = harness.routeNativeElement!;
+  const dialog = element.querySelector('dialog')!;
+  const showModal = vi.fn();
+  dialog.showModal = showModal;
+  const alert = vi.spyOn(window, 'alert');
+  const links = element.querySelectorAll<HTMLAnchorElement>('app-header a[target="_blank"], app-hero a[target="_blank"], app-contact-cta a');
+  expect(links.length).toBe(4);
+  expect(element.querySelector('.contact-button')?.textContent).toContain('Conversemos');
+  expect(element.querySelector('.text-button')?.textContent).toContain('Hablar con nosotros');
+  element.querySelector<HTMLButtonElement>('.mobile-toggle')!.click();
+  await harness.fixture.whenStable();
+  for (const link of links) {
+   expect(link.getAttribute('href')).toBe(contactWhatsAppUrl());
+   expect(link.target).toBe('_blank');
+   expect(link.rel).toBe('noopener noreferrer');
+   expect(link.textContent?.trim()).toBeTruthy();
+   link.addEventListener('click', event => event.preventDefault(), { once: true });
+   link.click();
+  }
+  await harness.fixture.whenStable();
+  expect(element.querySelector<HTMLElement>('#mobile-nav')!.hidden).toBe(true);
+  expect(showModal).not.toHaveBeenCalled();
+  expect(alert).not.toHaveBeenCalled();
+  expect(element.querySelector('app-hero .primary-button')?.getAttribute('href')).toBe('#categorias');
+  expect(element.querySelector('#categorias')).toBeTruthy();
+  vi.restoreAllMocks();
+ });
  it('renders the home route and SEO metadata', async () => {
   TestBed.configureTestingModule({ providers: [provideRouter(routes)] });
   const harness = await RouterTestingHarness.create('/');
   expect(harness.routeNativeElement?.querySelector('h1')?.textContent).toContain('Hacemos');
-  expect(harness.routeNativeElement?.querySelectorAll('.category').length).toBe(4);
+  expect(harness.routeNativeElement?.querySelectorAll('.category').length).toBe(6);
   expect(TestBed.inject(Title).getTitle()).toBe('MIQA Soluciones Gráficas | Impresión y Publicidad');
   expect(TestBed.inject(Meta).getTag('name="description"')?.content).toContain('Soluciones gráficas');
  });
@@ -42,4 +73,3 @@ describe('MIQA Home', () => {
   expect(element.querySelector('.empty-message')).toBeTruthy();
  });
 });
-
