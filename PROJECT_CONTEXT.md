@@ -6,7 +6,7 @@ Actualizado: 11 de septiembre de 2026. Inspección del código y validaciones lo
 
 Esta estrategia reemplaza el plan anterior de servir el frontend desde VPS. Home V1 permanece intacta sobre 357dcfc. Remoto existente: https://github.com/Jpuycan96/miqa-store-frontend.git. El VPS NO participa en el frontend; el futuro api-store sí podrá vivir en VPS. El servidor SSR Node y sus scripts se conservan como alternativa local, pero no se ejecutan ni se publican en Workers. NG_ALLOWED_HOSTS y PORT no son necesarios para Static Assets.
 
-Se despliega `dist/miqa-store-frontend/browser` como Workers Static Assets, aprovechando el prerender Angular. El build sigue generando browser/ y server/ sin cambios en angular.json ni rutas. Wrangler versionado en `wrangler.jsonc`, Worker `miqa-store-frontend`, workers_dev habilitado, sin custom domain, account ID ni tokens.
+Se despliega `dist/miqa-store-frontend/browser` como Workers Static Assets, aprovechando el prerender Angular. El build sigue generando browser/ y server/ sin cambios en angular.json ni rutas. Wrangler versionado en `wrangler.jsonc`, Worker `miqa-store-frontend`, workers_dev habilitado, Custom Domain de producción declarado para store.solucionesmicaela.com, sin account ID ni tokens.
 
 `assets.html_handling = drop-trailing-slash` sirve `/productos` desde productos/index.html y `/proyectos` desde proyectos/index.html, preservando las URLs actuales; las variantes con barra redirigen a la URL sin barra. Cada ruta recibe su propio HTML/SEO prerenderizado. `not_found_handling = single-page-application` habilita fallback al index para navegación sin asset coincidente; no reemplaza los HTML existentes ni añade rutas Angular. La Home contiene el ancla servicios y Angular hidrata normalmente.
 
@@ -17,12 +17,14 @@ Configuración Git integration en la raíz del repositorio:
 - Deploy command: `npx wrangler deploy` (usa la dependencia fijada y wrangler.jsonc).
 - Output de assets: `dist/miqa-store-frontend/browser`.
 - Worker: `miqa-store-frontend`.
-- Primera URL pública: la workers.dev que asigne Cloudflare; todavía no se publicó desde esta tarea.
-- Dominio futuro confirmado: `store.solucionesmicaela.com`; NO configurado aún, sin cambios DNS.
+- URL pública desplegada correctamente según el propietario: https://miqa-store-frontend.jhairthmanuelpt.workers.dev.
+- Custom Domain de producción: `store.solucionesmicaela.com`. Declarado en wrangler.jsonc mediante routes con pattern exacto y custom_domain: true; pendiente de aplicar mediante un despliegue autorizado. No es una Worker Route delante de un origen externo. Sin wildcard, zone_id ni account_id.
 
 Futuros despliegues: ejecutar npm ci, npm test -- --watch=false, npm run build y npx wrangler deploy --dry-run; revisar cambios y commit. Solo después de autorización, subir a la rama conectada de GitHub para activar Workers Builds. Probar workers.dev en /, /productos, /proyectos y /#servicios antes de configurar dominio. Autenticación del build gestionada por Cloudflare, nunca guardada en Git. Para emulación local: `npx wrangler dev --local` después del build.
 
 Validación local: 20/20 tests; build correcto sin warnings, tres rutas prerenderizadas; dry-run Wrangler correcto (29 archivos leídos, sin publicación). Workers local: HTTP 200 con título y H1 propios en las tres rutas; 19 assets JS/CSS/imágenes/favicon verificados; /productos/ y /proyectos/ redirigen 307 sin barra. Edge sobre Workers local: ancla Servicios y navegación Angular a productos correctas, sin errores de consola. No hay fuentes web externas: se conserva la pila de fuentes del sistema. .wrangler/, .dev.vars, .env, logs, dist y .tmp ignorados. La primera ejecución sandbox de Wrangler requirió acceso a su directorio de configuración de usuario; al ejecutarse con los permisos locales necesarios, dry-run y emulación pasaron.
+
+Validación del Custom Domain: Wrangler 4.131.1 deploy --dry-run correcto, 20/20 tests y build correcto con tres rutas prerenderizadas. Solo se modificaron wrangler.jsonc y este documento. No se ejecutó deploy real ni push; no se modificaron DNS, dominio raíz, www, api, laser-api, ERP ni VPS. Static Assets y la aplicación permanecen intactos. El dry-run valida la configuración local; no confirma activación del dominio ni certificado en Cloudflare.
 
 Referencias oficiales consultadas:
 - https://developers.cloudflare.com/workers/static-assets/routing/static-site-generation/
@@ -460,7 +462,7 @@ La IP usada fue **192.168.1.104**, según propietario; no es permanente ni se vo
 
 Orden decidido por el propietario, no autorización para ejecutarlo automáticamente:
 
-1. Realizar el primer despliegue de Home V1 en Cloudflare Workers desde GitHub, todavía pendiente.
+1. Despliegue workers.dev completado según el propietario; pendiente aplicar y verificar el Custom Domain de producción en un despliegue autorizado.
 2. Footer implementado y aceptado para primer despliegue.
 3. Seis categorías definitivas implementadas e incluidas en Home V1.
 4. Cierre autorizado en un commit: feat: complete MIQA store home v1. No push ni remoto.
