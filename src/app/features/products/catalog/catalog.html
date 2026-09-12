@@ -1,0 +1,45 @@
+﻿<section class="page-shell catalog" aria-labelledby="catalog-title">
+  <div class="catalog-heading">
+    <div><p class="eyebrow">PRODUCTOS MIQA</p><h1 id="catalog-title">Encuentra lo que necesitas.</h1><p class="intro">Configura tus productos y reúne todo en una sola cotización.</p></div>
+    <div class="field"><label for="product-search">Buscar producto</label><input #search id="product-search" type="search" placeholder="¿Qué necesitas crear?" [value]="query()" (input)="query.set(search.value)"></div>
+  </div>
+  <div class="category-chips" role="group" aria-label="Filtrar por categoría">
+    <button [attr.aria-pressed]="!category()" (click)="filterCategory('')">Todos</button>
+    @for (option of categories(); track option.slug) { <button [attr.aria-pressed]="category() === option.slug" (click)="filterCategory(option.slug)">{{ option.name }}</button> }
+  </div>
+  <div class="catalog-layout"><div class="catalog-main">
+  @if (!state()) { <p class="status" role="status">Cargando productos…</p> }
+  @else if (state()?.error) { <p class="status" role="alert">No pudimos cargar los productos. <a href="/productos">Volver a intentar</a></p> }
+  @else {
+    <p class="results" role="status">{{ filtered().length }} productos</p>
+    <div class="product-grid">
+      @for (product of filtered(); track product.id) {
+        <article class="catalog-card" [attr.data-product]="product.slug">
+          <a class="product-image" [routerLink]="['/productos', product.slug]" [attr.aria-label]="'Ver producto: ' + product.name">
+            <img [ngSrc]="product.image" [alt]="product.name" fill sizes="(min-width: 1280px) 24vw, (min-width: 1024px) 30vw, (min-width: 600px) 45vw, 90vw">
+          </a>
+          <p class="category-name">{{ categoryName(product.categorySlug) }}</p>
+          <h2><a [routerLink]="['/productos', product.slug]">{{ product.name }}</a></h2>
+          <div class="quick-quote">
+            @if (product.saleType === 'AREA') {
+              <button class="card-action configure" (click)="selected.set(product)" [attr.aria-label]="'Configurar ' + product.name" aria-haspopup="dialog">Configurar <span aria-hidden="true">↗</span></button>
+            } @else {
+              <p class="presentation">{{ product.saleType === 'PACK' ? '1 ' + product.packLabel : 'Por ' + product.unitLabel }}</p>
+              <div class="purchase-row"><div class="quantity-control" role="group" [attr.aria-label]="'Cantidad de ' + product.name">
+                <button [attr.aria-label]="'Reducir cantidad de ' + product.name" [disabled]="quantity(product) <= (product.minQuantity ?? 1)" (click)="change(product, -(product.step ?? 1))">−</button>
+                <output [attr.aria-label]="'Cantidad de ' + product.name">{{ quantity(product) }}</output>
+                <button [attr.aria-label]="'Aumentar cantidad de ' + product.name" (click)="change(product, product.step ?? 1)">+</button>
+              </div>
+              <button class="card-action quick-add" [disabled]="!canAdd(product)" [attr.aria-label]="'Agregar ' + product.name" (click)="add(product)">Agregar</button></div>
+            }
+          </div>
+        </article>
+      } @empty {
+        <div class="empty"><h2>No encontramos productos con esos filtros.</h2><p>Prueba otro nombre o explora todas las categorías.</p><button (click)="reset()">Ver todos los productos</button></div>
+      }
+    </div>
+    <p class="image-note">Imágenes referenciales. Los detalles de producción se confirman con nuestro equipo.</p>
+  }
+  </div><app-quote-panel /></div>
+</section>
+@if (selected(); as product) { <app-area-configurator [product]="product" (dismissed)="selected.set(null)" /> }

@@ -1,0 +1,32 @@
+<section aria-labelledby="quote-panel-title">
+  <div class="panel-heading"><h2 id="quote-panel-title">Mi cotización</h2><span class="count" aria-label="Productos configurados">{{ quote.totalItems() }}</span></div>
+  <div class="panel-items">
+    @if (quote.persistenceWarning()) { <p class="hint" role="status">{{ quote.persistenceWarning() }}</p> }
+    @if (quote.items().length) {
+      <ul>
+        @for (item of quote.items(); track item.id) {
+          <li [class.updated]="quote.highlightedItemId() === item.id">
+            <h3>{{ item.productName }}</h3>
+            <p class="configuration">{{ describe(item) }}</p>
+            <div class="item-controls">
+              <div class="quantity-control" role="group" [attr.aria-label]="'Cantidad de ' + item.productName">
+                <button [attr.aria-label]="'Reducir cantidad de ' + item.productName" [disabled]="item.quantity <= quote.quantityRules(item).minimum" (click)="quote.updateQuantity(item.id, item.quantity - quote.quantityRules(item).step)">−</button>
+                <span aria-live="polite">{{ item.quantity }}</span>
+                <button [attr.aria-label]="'Aumentar cantidad de ' + item.productName" (click)="quote.updateQuantity(item.id, item.quantity + quote.quantityRules(item).step)">+</button>
+              </div>
+              <button class="remove" [attr.aria-label]="'Eliminar ' + item.productName + ' de la cotización'" (click)="quote.removeItem(item.id)">Eliminar</button>
+            </div>
+          </li>
+        }
+      </ul>
+    } @else {
+      <p class="empty">Agrega productos y reúne aquí lo que necesitas para tu proyecto.</p>
+    }
+  </div>
+  @if (quote.items().length) {
+    <div class="panel-actions">
+      <a class="panel-whatsapp" [href]="quote.whatsappUrl()" target="_blank" rel="noopener noreferrer" aria-label="Cotizar por WhatsApp (abre una nueva pestaña)">Cotizar por WhatsApp <span aria-hidden="true">↗</span></a>
+      <button class="clear" (click)="quote.clear()">Vaciar cotización</button>
+    </div>
+  }
+</section>

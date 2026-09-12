@@ -1,4 +1,6 @@
 :host { display: block; position: sticky; top: 0; z-index: 30; }
+.quote-toggle { position: relative; color: var(--miqa-navy); }
+.quote-count { position: absolute; top: -2px; right: -3px; min-width: 18px; height: 18px; padding-inline: 3px; display: grid; place-items: center; border-radius: 99px; background: var(--miqa-navy); color: white; font-size: 10px; }
 .site-header { background: #fffffff5; border-bottom: 1px solid #1720330d; padding-block: 18px; }
 .brand { display: flex; align-items: center; width: 140px; border-radius: 4px; } .brand img { display: block; width: 100%; height: auto; }
 .desktop-nav { display: none; font-size: 13px; font-weight: 550; }

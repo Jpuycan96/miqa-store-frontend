@@ -26,7 +26,10 @@ export class Seo {
   private readonly title = inject(Title);
 
   apply(path: keyof typeof PAGE_SEO): void {
-    const page = PAGE_SEO[path];
+    this.applyPage(path, PAGE_SEO[path]);
+  }
+
+  applyPage(path: string, page: { title: string; description: string; robots: string }): void {
     const url = `https://store.solucionesmicaela.com${path}`;
     this.title.setTitle(page.title);
     for (const [name, content] of Object.entries({

@@ -4,15 +4,25 @@
    <img ngSrc="/images/brand/logo-miqa3.png" width="2048" height="768" priority alt="MIQA Soluciones Gráficas">
   </a>
   <nav aria-label="Navegación principal" class="desktop-nav items-center gap-8">
-   <a href="#categorias">Productos <span aria-hidden="true">⌄</span></a>
+   <a href="/productos">Productos <span aria-hidden="true">⌄</span></a>
+   @if (catalogMode()) {
+    <a href="/#servicios">Servicios</a><a href="/proyectos">Proyectos</a><a href="/">Inicio</a>
+   } @else {
    @for (item of ['Servicios', 'Proyectos', 'Nosotros']; track item) {
     <button (click)="notice.emit(item)">{{ item }}</button>
    }
+   }
   </nav>
   <div class="flex items-center gap-3">
+   <button class="icon-button quote-toggle" [attr.aria-label]="'Abrir cotización: ' + quote.totalItems() + ' productos configurados'" aria-controls="quote-drawer" aria-haspopup="dialog" [attr.aria-expanded]="quote.isOpen()" (click)="closeMenu(); quote.open()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M8 5H5v16h14V5h-3M8 3h8v4H8zM8 12h8M8 16h5"/></svg>
+    <span class="quote-count" aria-hidden="true">{{ quote.totalItems() }}</span>
+   </button>
+   @if (!catalogMode()) {
    <button #searchToggle class="icon-button" aria-label="Buscar categorías" [attr.aria-expanded]="searchOpen()" aria-controls="site-search" (click)="searchOpen.set(!searchOpen())">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg>
    </button>
+   }
    <a class="contact-button" [href]="contactUrl" target="_blank" rel="noopener noreferrer">Conversemos <span aria-hidden="true">↗</span><span class="sr-only"> por WhatsApp (abre una nueva pestaña)</span></a>
    <button #menu class="icon-button mobile-toggle" [attr.aria-expanded]="menuOpen()" aria-controls="mobile-nav" [attr.aria-label]="menuOpen() ? 'Cerrar menú' : 'Abrir menú'" (click)="menuOpen.set(!menuOpen())">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path [attr.d]="menuOpen() ? 'M6 6l12 12M6 18L18 6' : 'M4 8h16M4 16h16'"/></svg>
@@ -20,13 +30,17 @@
   </div>
  </div>
  <nav id="mobile-nav" aria-label="Navegación móvil" [hidden]="!menuOpen()" (keydown.escape)="closeMenu(); menu.focus()" class="mobile-nav page-shell">
-  <a href="#categorias" (click)="closeMenu()">Productos <span aria-hidden="true">↗</span></a>
+  <a href="/productos" (click)="closeMenu()">Productos <span aria-hidden="true">↗</span></a>
+  @if (catalogMode()) {
+   <a href="/#servicios" (click)="closeMenu()">Servicios</a><a href="/proyectos" (click)="closeMenu()">Proyectos</a><a href="/" (click)="closeMenu()">Inicio</a>
+  } @else {
   @for (item of ['Servicios', 'Proyectos', 'Nosotros']; track item) {
    <button (click)="closeMenu(); notice.emit(item)">{{ item }} <span aria-hidden="true">↗</span></button>
   }
+  }
   <a [href]="contactUrl" target="_blank" rel="noopener noreferrer" (click)="closeMenu()" aria-label="Conversemos por WhatsApp (abre una nueva pestaña)">Conversemos por WhatsApp</a>
  </nav>
- <div id="site-search" [hidden]="!searchOpen()" class="page-shell search-panel" (keydown.escape)="searchOpen.set(false); searchToggle.focus()">
+ <div id="site-search" [hidden]="!searchOpen()" class="page-shell search-panel" (keydown.escape)="closeSearch()">
   <label for="category-search">¿Qué necesitas crear?</label>
   <div class="flex items-center gap-3">
    <input #search id="category-search" type="search" placeholder="Buscar categorías" (input)="searchChange.emit(search.value)">

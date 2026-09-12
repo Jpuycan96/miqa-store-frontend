@@ -34,6 +34,6 @@ describe('Home services', () => {
     expect(harness.routeNativeElement?.querySelector('app-featured-products + app-services')).toBeTruthy();
     expect(harness.routeNativeElement?.querySelector('.catalog-link')?.getAttribute('href')).toBe('/productos');
     await harness.navigateByUrl('/productos');
-    expect(harness.routeNativeElement?.querySelector('h1')?.textContent).toContain('preparando nuestro catálogo');
+    expect(harness.routeNativeElement?.querySelector('#catalog-title')?.textContent).toContain('Encuentra lo que necesitas');
   });
 });

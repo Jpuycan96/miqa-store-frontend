@@ -1,0 +1,57 @@
+<section class="page-shell product-detail" aria-labelledby="product-title">
+  <nav class="breadcrumb" aria-label="Ruta de navegación"><a routerLink="/">Inicio</a><span aria-hidden="true">/</span><a routerLink="/productos">Productos</a>@if (product(); as product) { <span aria-hidden="true">/</span><span aria-current="page">{{ product.name }}</span> }</nav>
+  @if (state().loading) { <p role="status">Cargando producto…</p> }
+  @else if (product(); as product) {
+    <div class="detail-layout">
+      <div class="visual-column">
+        <div class="detail-image"><img [ngSrc]="product.image" [alt]="product.name" fill priority sizes="(min-width: 1024px) 50vw, 90vw"></div>
+        <p class="image-note">Imagen referencial. Confirmaremos los detalles de producción contigo.</p>
+      </div>
+      <div class="product-copy">
+        <p class="eyebrow">{{ category()?.name }}</p>
+        <h1 id="product-title">{{ product.name }}</h1>
+        <p class="description">{{ product.description }}</p>
+        <form [formGroup]="form" (ngSubmit)="add()">
+          @if (product.saleType === 'AREA') {
+            <fieldset><legend>Medidas de la pieza</legend>
+              <div class="dimensions">
+                <div><label for="width">Ancho (m)</label><input id="width" type="number" inputmode="decimal" min="0.01" step="0.01" formControlName="width" placeholder="2.50" aria-describedby="area-help"></div>
+                <div><label for="height">Alto (m)</label><input id="height" type="number" inputmode="decimal" min="0.01" step="0.01" formControlName="height" placeholder="1.20" aria-describedby="area-help"></div>
+              </div>
+              <p class="area" aria-live="polite">Área aproximada: {{ area().toFixed(2) }} m²</p>
+              <p class="help" id="area-help">Ingresa medidas positivas en metros, desde 0.01 m. El área corresponde a una pieza.</p>
+            </fieldset>
+          } @else {
+            @if (product.saleType === 'PACK') { <p class="presentation">Presentación: 1 {{ product.packLabel }} <span>({{ product.packSize | number:'1.0-0' }} unidades)</span></p> }
+            <label for="quantity">{{ product.saleType === 'PACK' ? 'Cantidad de presentaciones' : 'Cantidad' }}</label>
+            <div class="quantity-control">
+              <button type="button" aria-label="Reducir cantidad" [disabled]="quantity() <= (product.minQuantity ?? 1)" (click)="changeQuantity(-(product.step ?? 1))">−</button>
+              <input id="quantity" type="number" inputmode="numeric" [min]="product.minQuantity ?? 1" [step]="product.step ?? 1" formControlName="quantity" aria-describedby="quantity-help">
+              <button type="button" aria-label="Aumentar cantidad" (click)="changeQuantity(product.step ?? 1)">+</button>
+            </div>
+            <p class="help" id="quantity-help">@if (product.saleType === 'PACK') { {{ label(quantity(), product.packLabel ?? '') }} = {{ quantity() * (product.packSize ?? 1) | number:'1.0-0' }} unidades } @else { {{ label(quantity(), product.unitLabel) }} }</p>
+          }
+          @if (product.materials?.length) {
+            <fieldset><legend>Material <span>(elige uno)</span></legend><div class="options">
+              @for (material of product.materials; track material.id) {
+                <label class="option"><input type="radio" formControlName="material" [value]="material.id">{{ material.name }}</label>
+              }
+            </div></fieldset>
+          }
+          @if (product.extras?.length) {
+            <fieldset><legend>Acabados adicionales <span>(opcional)</span></legend><div class="options">
+              @for (extra of product.extras; track extra.id) {
+                <label class="option"><input #extraControl type="checkbox" [checked]="extras().includes(extra.id)" (change)="toggleExtra(extra.id, extraControl.checked)">{{ extra.name }}</label>
+              }
+            </div></fieldset>
+          }
+          <div class="notes"><label for="notes">Detalles de tu proyecto <span>(opcional)</span></label><textarea id="notes" rows="2" maxlength="1000" formControlName="notes" placeholder="Cuéntanos si necesitas algo especial."></textarea></div>
+          @if (!canAdd()) { <p class="help" role="status">{{ product.saleType === 'AREA' ? 'Completa las medidas y selecciona un material para continuar.' : 'Ingresa una cantidad válida para continuar.' }}</p> }
+          <button class="primary-button add-button" type="submit" [disabled]="!canAdd()">Agregar a cotización <span aria-hidden="true">↗</span></button>
+        </form>
+      </div>
+    </div>
+  } @else {
+    <div class="unavailable"><h1 id="product-title">{{ state().error ? 'No pudimos cargar este producto.' : 'Este producto no está disponible.' }}</h1><p>Explora las opciones disponibles para tu proyecto.</p><a class="primary-button" routerLink="/productos">Volver al catálogo</a></div>
+  }
+</section>

@@ -1,0 +1,39 @@
+<div class="quote-toast" role="status" aria-atomic="true" [class.visible]="quote.confirmation()">{{ quote.confirmation() }}</div>
+<dialog #drawer id="quote-drawer" aria-labelledby="quote-title" (cancel)="$event.preventDefault(); close()" (keydown.escape)="$event.preventDefault(); close()" (click)="backdrop($event)">
+  <div class="drawer-layout">
+    <div class="drawer-heading">
+      <div><p class="eyebrow">Tu próximo proyecto</p><h2 id="quote-title">Mi cotización <span>({{ quote.totalItems() }})</span></h2></div>
+      <button class="close-button" aria-label="Cerrar cotización" (click)="close()" autofocus>×</button>
+    </div>
+    <div class="drawer-content">
+      @if (quote.persistenceWarning()) { <p class="storage-note" role="status">{{ quote.persistenceWarning() }}</p> }
+      @if (quote.items().length) {
+        <ul>
+          @for (item of quote.items(); track item.id) {
+            <li [class.updated]="quote.highlightedItemId() === item.id">
+              <h3>{{ item.productName }}</h3>
+              <p class="configuration">{{ describe(item) }}</p>
+              <div class="item-controls">
+                <div class="quantity-control" role="group" [attr.aria-label]="'Cantidad de ' + item.productName">
+                  <button [attr.aria-label]="'Reducir cantidad de ' + item.productName" [disabled]="item.quantity <= quote.quantityRules(item).minimum" (click)="quote.updateQuantity(item.id, item.quantity - quote.quantityRules(item).step)">−</button>
+                  <span aria-live="polite">{{ item.quantity }}</span>
+                  <button [attr.aria-label]="'Aumentar cantidad de ' + item.productName" (click)="quote.updateQuantity(item.id, item.quantity + quote.quantityRules(item).step)">+</button>
+                </div>
+                <button class="remove" [attr.aria-label]="'Eliminar ' + item.productName + ' de la cotización'" (click)="quote.removeItem(item.id)">Eliminar</button>
+              </div>
+            </li>
+          }
+        </ul>
+      } @else {
+        <div class="empty"><h3>Tu idea empieza aquí.</h3><p>Explora los productos y agrega lo que necesitas para consultarlo con nuestro equipo.</p><a href="/productos" (click)="close()">Explorar productos <span aria-hidden="true">↗</span></a></div>
+      }
+    </div>
+    @if (quote.items().length) {
+      <div class="drawer-bottom">
+        <p>Revisaremos las medidas y los detalles contigo antes de producir.</p>
+        <a class="quote-action" [href]="quote.whatsappUrl()" target="_blank" rel="noopener noreferrer" aria-label="Cotizar por WhatsApp (abre una nueva pestaña)">Cotizar por WhatsApp <span aria-hidden="true">↗</span></a>
+        <button class="clear" (click)="quote.clear()">Vaciar cotización</button>
+      </div>
+    }
+  </div>
+</dialog>

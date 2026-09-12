@@ -1,6 +1,9 @@
 import { Routes } from '@angular/router';
 export const routes: Routes = [
  { path: '', loadComponent: () => import('./features/home/home').then(m => m.Home) },
- { path: 'productos', title: 'Productos | MIQA', loadComponent: () => import('./features/products/products-coming-soon').then(m => m.ProductsComingSoon) },
+ { path: 'productos', loadComponent: () => import('./features/products/product-shell').then(m => m.ProductShell), children: [
+   { path: '', pathMatch: 'full', title: 'Productos | MIQA', loadComponent: () => import('./features/products/catalog/catalog').then(m => m.Catalog) },
+   { path: ':slug', loadComponent: () => import('./features/products/detail/product-detail').then(m => m.ProductDetail) }
+ ] },
  { path: 'proyectos', title: 'Proyectos | MIQA', loadComponent: () => import('./features/projects/projects-coming-soon').then(m => m.ProjectsComingSoon) }
 ];

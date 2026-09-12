@@ -40,7 +40,10 @@ describe('MIQA Home', () => {
  it('renders the home route and SEO metadata', async () => {
   TestBed.configureTestingModule({ providers: [provideRouter(routes)] });
   const harness = await RouterTestingHarness.create('/');
-  expect(harness.routeNativeElement?.querySelector('h1')?.textContent).toContain('Hacemos');
+  const heading = harness.routeNativeElement?.querySelector('h1')?.textContent;
+  expect(heading).toContain('Tu marca');
+  expect(heading).toContain('nuestro compromiso');
+  expect(heading).not.toContain('Hacemos');
   expect(harness.routeNativeElement?.querySelectorAll('.category').length).toBe(6);
   expect(TestBed.inject(Title).getTitle()).toBe('MIQA | Impresión, publicidad y soluciones gráficas');
   expect(TestBed.inject(Meta).getTag('name="description"')?.content).toContain('hacer visible tu marca');
