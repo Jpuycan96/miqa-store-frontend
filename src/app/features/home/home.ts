@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
-import { Meta, Title } from '@angular/platform-browser';
+import { Seo } from '../../core/seo/seo';
 import { Header } from '../../core/header/header';
 import { Footer } from '../../core/footer/footer';
 import { Hero } from './hero/hero';
@@ -37,8 +37,7 @@ export class Home {
  readonly noticeTitle = signal('');
  readonly noticeText = signal('');
  constructor() {
-  inject(Title).setTitle('MIQA Soluciones Gráficas | Impresión y Publicidad');
-  inject(Meta).updateTag({ name: 'description', content: 'Soluciones gráficas, impresión, letreros, señalética y publicidad para empresas y negocios.' });
+  inject(Seo).apply('/');
  }
  openNotice(title: string, dialog: HTMLDialogElement) {
   this.noticeTitle.set(title);

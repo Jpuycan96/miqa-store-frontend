@@ -2,6 +2,28 @@
 
 Actualizado: 11 de septiembre de 2026. Inspección del código y validaciones locales de esta fecha. Este documento es la fuente principal de contexto de producto/diseño; distingue implementación existente de requisitos futuros. Las rutas de archivos son relativas a la raíz del frontend salvo indicación contraria.
 
+## Favicon y SEO técnico de producción
+
+Dominio canónico: https://store.solucionesmicaela.com. Custom Domain activo y producción operativa según el propietario. Esta sección reemplaza los pendientes históricos de favicon/canonical/metadata y activación del dominio. No hubo push ni despliegue en esta tarea.
+
+SEO centralizado en `src/app/core/seo/seo.ts`, aplicado por los tres componentes de página tanto en SSR/prerender como al navegar en cliente. `src/index.html` contiene los valores base de Home y los enlaces a iconos; el servicio actualiza etiquetas existentes sin duplicarlas. No se deriva canonical del hostname de la petición: workers.dev nunca es canónico.
+
+| Ruta | Title | Description | Canonical | Robots |
+| --- | --- | --- | --- | --- |
+| / | MIQA \| Impresión, publicidad y soluciones gráficas | Impresión, letreros publicitarios, merchandising, señalética y soluciones gráficas para hacer visible tu marca. | https://store.solucionesmicaela.com/ | index,follow |
+| /productos | Productos \| MIQA | Explora las soluciones de impresión, publicidad, señalética, merchandising y producción gráfica de MIQA. | https://store.solucionesmicaela.com/productos | noindex,follow |
+| /proyectos | Proyectos \| MIQA | Conoce proyectos de impresión, señalética, letreros e implementación desarrollados por MIQA. | https://store.solucionesmicaela.com/proyectos | noindex,follow |
+
+Decisión explicada antes de implementar: páginas de catálogo/portafolio todavía son avisos de preparación; noindex temporal evita indexar ese contenido provisional. Home sigue indexable. `public/robots.txt` permite rastreo de toda la web y declara sitemap; no bloquea páginas noindex ni assets. `public/sitemap.xml` es XML válido y contiene solo Home, sin lastmod inventado.
+
+Open Graph por ruta: title, description, type website y URL canónica. Twitter/X: summary, title y description, sin cuentas sociales. `og:image` pendiente: no existe un asset social adecuado 1200x630; no se compuso ni deformó un logo. JSON-LD Organization con nombre MIQA, URL de producción y logo horizontal original; sin teléfono temporal, dirección, horarios, redes, ratings ni datos inventados. Se conserva lang es, UTF-8 y viewport.
+
+Favicons derivados exclusivamente de `public/images/brand/miqa-logo2.png`, manteniendo proporción y canal alfa, sin modificar el original: `public/favicon.ico` (16/32/48px), `public/favicon-96x96.png` y `public/apple-touch-icon.png` (180px). Reemplazado el icono Angular. Derivación local con sharp ya disponible, sin nuevas dependencias; script temporal en .tmp/derive-favicons.cjs. La reducción conserva todo el logo, por lo que su texto pequeño no es legible en tamaños de pestaña; no se rediseñó la marca.
+
+Validación: 21/21 tests en nueve archivos (los 20 anteriores más navegación SEO entre rutas y vuelta a Home). Build sin warnings, tres rutas prerenderizadas. Inspección con parser HTML sin ejecutar JS: titles, descriptions, canonical, robots, OG/Twitter únicos y coherentes por ruta; JSON-LD válido; referencias de iconos presentes; robots y sitemap copiados al output. XML sitemap validado. Cloudflare, Angular build/rutas, WhatsApp, estilos y logos originales intactos. Sin secretos ni temporales versionados.
+
+Futuras páginas: añadir metadata específica al mapa SEO y aplicarla desde el componente; mantener canonical absoluto de producción sin query ni fragmento; habilitar indexación solo al publicar contenido útil y agregar la URL al sitemap. Al reemplazar los avisos /productos y /proyectos, retirar noindex y agregarlos al sitemap. Incluir imagen social real cuando exista, validar prerender y navegación, y ejecutar tests/build antes de un despliegue autorizado.
+
 ## Despliegue Cloudflare Workers — configuración V1
 
 Esta estrategia reemplaza el plan anterior de servir el frontend desde VPS. Home V1 permanece intacta sobre 357dcfc. Remoto existente: https://github.com/Jpuycan96/miqa-store-frontend.git. El VPS NO participa en el frontend; el futuro api-store sí podrá vivir en VPS. El servidor SSR Node y sus scripts se conservan como alternativa local, pero no se ejecutan ni se publican en Workers. NG_ALLOWED_HOSTS y PORT no son necesarios para Static Assets.
@@ -18,7 +40,7 @@ Configuración Git integration en la raíz del repositorio:
 - Output de assets: `dist/miqa-store-frontend/browser`.
 - Worker: `miqa-store-frontend`.
 - URL pública desplegada correctamente según el propietario: https://miqa-store-frontend.jhairthmanuelpt.workers.dev.
-- Custom Domain de producción: `store.solucionesmicaela.com`. Declarado en wrangler.jsonc mediante routes con pattern exacto y custom_domain: true; pendiente de aplicar mediante un despliegue autorizado. No es una Worker Route delante de un origen externo. Sin wildcard, zone_id ni account_id.
+- Custom Domain de producción: `store.solucionesmicaela.com`. Declarado en wrangler.jsonc mediante routes con pattern exacto y custom_domain: true; activo en producción según el propietario. No es una Worker Route delante de un origen externo. Sin wildcard, zone_id ni account_id.
 
 Futuros despliegues: ejecutar npm ci, npm test -- --watch=false, npm run build y npx wrangler deploy --dry-run; revisar cambios y commit. Solo después de autorización, subir a la rama conectada de GitHub para activar Workers Builds. Probar workers.dev en /, /productos, /proyectos y /#servicios antes de configurar dominio. Autenticación del build gestionada por Cloudflare, nunca guardada en Git. Para emulación local: `npx wrangler dev --local` después del build.
 
@@ -462,7 +484,7 @@ La IP usada fue **192.168.1.104**, según propietario; no es permanente ni se vo
 
 Orden decidido por el propietario, no autorización para ejecutarlo automáticamente:
 
-1. Despliegue workers.dev completado según el propietario; pendiente aplicar y verificar el Custom Domain de producción en un despliegue autorizado.
+1. Workers y Custom Domain activos según el propietario; favicon y SEO preparados en el repositorio para el siguiente despliegue autorizado.
 2. Footer implementado y aceptado para primer despliegue.
 3. Seis categorías definitivas implementadas e incluidas en Home V1.
 4. Cierre autorizado en un commit: feat: complete MIQA store home v1. No push ni remoto.

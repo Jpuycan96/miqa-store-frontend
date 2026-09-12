@@ -42,8 +42,8 @@ describe('MIQA Home', () => {
   const harness = await RouterTestingHarness.create('/');
   expect(harness.routeNativeElement?.querySelector('h1')?.textContent).toContain('Hacemos');
   expect(harness.routeNativeElement?.querySelectorAll('.category').length).toBe(6);
-  expect(TestBed.inject(Title).getTitle()).toBe('MIQA Soluciones Gráficas | Impresión y Publicidad');
-  expect(TestBed.inject(Meta).getTag('name="description"')?.content).toContain('Soluciones gráficas');
+  expect(TestBed.inject(Title).getTitle()).toBe('MIQA | Impresión, publicidad y soluciones gráficas');
+  expect(TestBed.inject(Meta).getTag('name="description"')?.content).toContain('hacer visible tu marca');
  });
  it('opens and closes the mobile navigation using Escape', async () => {
   const fixture = TestBed.createComponent(Header);
