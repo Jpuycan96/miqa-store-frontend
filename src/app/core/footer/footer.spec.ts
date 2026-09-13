@@ -1,9 +1,12 @@
+import { provideTestCatalog } from '../../testing/catalog.fixture';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
 import { routes } from '../../app.routes';
 import { contactWhatsAppUrl } from '../config/whatsapp';
 import { Footer } from './footer';
+
+beforeEach(() => TestBed.configureTestingModule({ providers: [provideTestCatalog()] }));
 
 describe('Footer', () => {
   it('renders the brand, valid navigation, general contact and current copyright', async () => {

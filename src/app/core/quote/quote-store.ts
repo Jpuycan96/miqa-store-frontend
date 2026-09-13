@@ -19,6 +19,8 @@ export class QuoteStore {
   private products = new Map<string, Product>();
   private restored = false;
   private nextId = 0;
+  private pendingSaved: readonly unknown[] = [];
+  private restoreVersion = 0;
   readonly items = this.state.asReadonly();
   readonly isOpen = this.visibility.asReadonly();
   /** Count configured lines, not incompatible units such as millares and square metres. */
@@ -77,7 +79,7 @@ export class QuoteStore {
     return { minimum: product?.minQuantity ?? 1, step: product?.step ?? 1 };
   }
 
-  clear() { this.state.set([]); this.persist(); }
+  clear() { this.restoreVersion++; this.pendingSaved = []; this.state.set([]); this.persist(); }
 
   restore(): void {
     if (!this.browser || this.restored) return;
@@ -89,13 +91,21 @@ export class QuoteStore {
       return;
     }
     if (!raw) return;
+    try {
+      const parsed: unknown = JSON.parse(raw);
+      if (!Array.isArray(parsed)) return;
+      this.pendingSaved = parsed;
+    } catch {
+      this.persistenceWarning.set('No pudimos recuperar la cotización guardada. Puedes iniciar una nueva.');
+      return;
+    }
+    const version = this.restoreVersion;
     this.catalog.list().pipe(take(1)).subscribe({
       next: products => {
+        if (version !== this.restoreVersion) return;
         for (const product of products) this.products.set(product.id, product);
         try {
-          const parsed: unknown = JSON.parse(raw!);
-          if (!Array.isArray(parsed)) return;
-          const restored = parsed.flatMap((value: unknown) => {
+          const restored = this.pendingSaved.flatMap((value: unknown) => {
             if (!value || typeof value !== 'object') return [];
             const saved = value as Record<string, unknown>;
             const product = products.find(product => product.id === saved['productId']);
@@ -112,6 +122,7 @@ export class QuoteStore {
             }, `quote-${++this.nextId}`);
             return item ? [item] : [];
           });
+          this.pendingSaved = [];
           this.state.update(current => mergeQuoteItems([...restored, ...current]));
           this.persist();
         } catch {
@@ -125,7 +136,7 @@ export class QuoteStore {
   private persist(): void {
     if (!this.browser) return;
     try {
-      this.document.defaultView?.localStorage.setItem(QUOTE_STORAGE_KEY, JSON.stringify(this.items()));
+      this.document.defaultView?.localStorage.setItem(QUOTE_STORAGE_KEY, JSON.stringify([...this.pendingSaved, ...this.items()]));
     } catch {
       this.persistenceWarning.set('Tu cotización funciona en esta sesión, pero no pudo guardarse en este dispositivo.');
     }

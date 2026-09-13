@@ -1,0 +1,53 @@
+﻿import { Product, ProductCategory, ProductSaleType } from '../../shared/models/product';
+
+export interface CategoryDto {
+  readonly id?: string | number;
+  readonly slug: string;
+  readonly name: string;
+  readonly displayOrder?: number;
+}
+interface OptionDto { readonly id: string | number; readonly name: string; }
+export interface ProductDto {
+  readonly id: string | number;
+  readonly slug: string;
+  readonly name: string;
+  readonly shortDescription: string;
+  readonly description: string;
+  readonly categorySlug?: string;
+  readonly category: CategoryDto;
+  readonly image: string | null;
+  readonly gallery?: readonly string[] | null;
+  readonly featured: boolean;
+  readonly published: boolean;
+  readonly saleType: ProductSaleType;
+  readonly unitLabel: string;
+  readonly packSize?: number | null;
+  readonly packLabel?: string | null;
+  readonly minQuantity?: number | null;
+  readonly step?: number | null;
+  readonly materials?: readonly OptionDto[] | null;
+  readonly extras?: readonly OptionDto[] | null;
+}
+
+export function resolveProductImage(reference: string | null, mediaBaseUrl = ''): string {
+  if (!reference) return '';
+  if (/^https?:\/\//i.test(reference)) return reference;
+  if (/^(?:[a-z][a-z0-9+.-]*:|\/\/)/i.test(reference)) return '';
+  return mediaBaseUrl ? `${mediaBaseUrl.replace(/\/+$/, '')}/${reference.replace(/^\/+/, '')}` : reference;
+}
+export function mapCategory(dto: CategoryDto): ProductCategory {
+  return { slug: dto.slug, name: dto.name };
+}
+export function mapProduct(dto: ProductDto, mediaBaseUrl = ''): Product {
+  return {
+    id: String(dto.id), slug: dto.slug, name: dto.name, shortDescription: dto.shortDescription,
+    description: dto.description, categorySlug: dto.categorySlug ?? dto.category.slug,
+    image: resolveProductImage(dto.image, mediaBaseUrl),
+    gallery: (dto.gallery ?? []).map(image => resolveProductImage(image, mediaBaseUrl)),
+    featured: dto.featured, published: dto.published, saleType: dto.saleType, unitLabel: dto.unitLabel,
+    packSize: dto.packSize ?? undefined, packLabel: dto.packLabel ?? undefined,
+    minQuantity: dto.minQuantity ?? undefined, step: dto.step ?? undefined,
+    materials: (dto.materials ?? []).map(option => ({ id: String(option.id), name: option.name })),
+    extras: (dto.extras ?? []).map(option => ({ id: String(option.id), name: option.name }))
+  };
+}

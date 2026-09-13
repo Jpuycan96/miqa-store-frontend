@@ -1,9 +1,12 @@
+import { provideTestCatalog } from '../../testing/catalog.fixture';
 import { DOCUMENT } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
 import { routes } from '../../app.routes';
 import { PAGE_SEO } from './seo';
+
+beforeEach(() => TestBed.configureTestingModule({ providers: [provideTestCatalog()] }));
 
 describe('Route SEO', () => {
   it('updates unique canonical and social metadata and restores indexability on returning home', async () => {

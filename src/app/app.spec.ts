@@ -1,3 +1,4 @@
+import { provideTestCatalog } from './testing/catalog.fixture';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
@@ -6,6 +7,8 @@ import { routes } from './app.routes';
 import { Header } from './core/header/header';
 import { Categories } from './features/home/categories/categories';
 import { contactWhatsAppUrl } from './core/config/whatsapp';
+
+beforeEach(() => TestBed.configureTestingModule({ providers: [provideTestCatalog()] }));
 describe('MIQA Home', () => {
  it('uses general WhatsApp links without contact notices and preserves product navigation', async () => {
   TestBed.configureTestingModule({ providers: [provideRouter(routes)] });

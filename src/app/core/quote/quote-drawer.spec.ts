@@ -1,7 +1,10 @@
+import { provideTestCatalog } from '../../testing/catalog.fixture';
 import { TestBed } from '@angular/core/testing';
 import { QuoteDrawer } from './quote-drawer';
 import { QuoteStore, QUOTE_STORAGE_KEY } from './quote-store';
 import { PRODUCTS } from '../data/products.mock';
+
+beforeEach(() => TestBed.configureTestingModule({ providers: [provideTestCatalog()] }));
 
 describe('Quote drawer', () => {
   it('opens as a dialog, closes with Escape and releases body scrolling', async () => {

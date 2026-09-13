@@ -4,7 +4,7 @@
   @else if (product(); as product) {
     <div class="detail-layout">
       <div class="visual-column">
-        <div class="detail-image"><img [ngSrc]="product.image" [alt]="product.name" fill priority sizes="(min-width: 1024px) 50vw, 90vw"></div>
+        <div class="detail-image">@if (product.image) { <img [ngSrc]="product.image" [alt]="product.name" fill priority sizes="(min-width: 1024px) 50vw, 90vw"> }</div>
         <p class="image-note">Imagen referencial. Confirmaremos los detalles de producción contigo.</p>
       </div>
       <div class="product-copy">
@@ -52,6 +52,6 @@
       </div>
     </div>
   } @else {
-    <div class="unavailable"><h1 id="product-title">{{ state().error ? 'No pudimos cargar este producto.' : 'Este producto no está disponible.' }}</h1><p>Explora las opciones disponibles para tu proyecto.</p><a class="primary-button" routerLink="/productos">Volver al catálogo</a></div>
+    <div class="unavailable"><h1 id="product-title">{{ state().error ? 'No pudimos cargar este producto.' : 'Este producto no está disponible.' }}</h1><p>Explora las opciones disponibles para tu proyecto.</p>@if (state().error) { <button class="primary-button" type="button" (click)="retry()">Reintentar</button> } <a class="primary-button" routerLink="/productos">Volver al catálogo</a></div>
   }
 </section>

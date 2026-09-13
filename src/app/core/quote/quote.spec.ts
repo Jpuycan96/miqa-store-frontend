@@ -1,9 +1,12 @@
+import { provideTestCatalog } from '../../testing/catalog.fixture';
 import { PLATFORM_ID } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { PRODUCTS } from '../data/products.mock';
 import { WHATSAPP_NUMBER } from '../config/whatsapp';
 import { QuoteStore, QUOTE_STORAGE_KEY } from './quote-store';
 import { buildQuoteMessage, calculateArea, createQuoteItem, getQuoteItemIdentity } from './quote-utils';
+
+beforeEach(() => TestBed.configureTestingModule({ providers: [provideTestCatalog()] }));
 
 describe('Quote calculations and message', () => {
   it('calculates area and rejects invalid dimensions', () => {

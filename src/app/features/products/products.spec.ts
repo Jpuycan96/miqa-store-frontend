@@ -1,8 +1,11 @@
+import { provideTestCatalog } from '../../testing/catalog.fixture';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
 import { routes } from '../../app.routes';
 import { QuoteStore, QUOTE_STORAGE_KEY } from '../../core/quote/quote-store';
+
+beforeEach(() => TestBed.configureTestingModule({ providers: [provideTestCatalog()] }));
 
 describe('Local catalog and configurator', () => {
   beforeEach(() => {
@@ -17,10 +20,14 @@ describe('Local catalog and configurator', () => {
     expect(element.querySelectorAll('.catalog-card').length).toBe(2);
     const input = element.querySelector<HTMLInputElement>('#product-search')!;
     input.value = 'VOLANTES'; input.dispatchEvent(new Event('input'));
+    TestBed.tick();
+    await new Promise(resolve => setTimeout(resolve, 320));
     await harness.fixture.whenStable();
     expect(element.querySelectorAll('.catalog-card').length).toBe(1);
     expect(element.querySelector('.product-image')?.getAttribute('href')).toBe('/productos/volantes-a5');
     input.value = 'no existe'; input.dispatchEvent(new Event('input'));
+    TestBed.tick();
+    await new Promise(resolve => setTimeout(resolve, 320));
     await harness.fixture.whenStable();
     expect(element.querySelector('.empty')).toBeTruthy();
   });
@@ -33,6 +40,8 @@ describe('Local catalog and configurator', () => {
     for (const [id, value] of [['width', '2.5'], ['height', '1.2']]) {
       const input = element.querySelector<HTMLInputElement>('#' + id)!;
       input.value = value; input.dispatchEvent(new Event('input'));
+    TestBed.tick();
+    await new Promise(resolve => setTimeout(resolve, 320));
     }
     await harness.fixture.whenStable();
     expect(add.disabled).toBe(true);

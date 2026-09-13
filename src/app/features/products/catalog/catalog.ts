@@ -1,8 +1,8 @@
 import { NgOptimizedImage } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
+import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { catchError, map, of } from 'rxjs';
+import { catchError, combineLatest, debounceTime, distinctUntilChanged, map, of, startWith, Subject, switchMap } from 'rxjs';
 import { ProductCatalog } from '../../../core/data/product-catalog';
 import { Product } from '../../../shared/models/product';
 import { QuoteStore } from '../../../core/quote/quote-store';
@@ -21,10 +21,29 @@ export class Catalog {
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly params = toSignal(this.route.queryParamMap, { initialValue: this.route.snapshot.queryParamMap });
-  readonly state = toSignal(this.source.list().pipe(
-    map(products => ({ products, error: false })), catchError(() => of({ products: [], error: true }))
-  ));
-  readonly categories = toSignal(this.source.categories().pipe(catchError(() => of([]))), { initialValue: [] });
+  private readonly refresh = new Subject<void>();
+  readonly query = signal('');
+  readonly category = computed(() => this.params().get('categoria') ?? '');
+  private readonly search = toObservable(this.query).pipe(
+    map(value => value.trim()), distinctUntilChanged(), debounceTime(300), startWith(''), distinctUntilChanged()
+  );
+  readonly state = toSignal(combineLatest([
+    this.route.queryParamMap.pipe(map(params => params.get('categoria') ?? ''), distinctUntilChanged()),
+    this.search, this.refresh.pipe(startWith(undefined))
+  ]).pipe(switchMap(([category, search]) => this.source.list({ category, search }).pipe(
+    map(products => ({ products, loading: false, error: false })),
+    startWith({ products: [], loading: true, error: false }),
+    catchError(() => of({ products: [], loading: false, error: true }))
+  ))), { initialValue: { products: [], loading: true, error: false } });
+  readonly categoryState = toSignal(this.refresh.pipe(startWith(undefined), switchMap(() =>
+    this.source.categories().pipe(
+      map(categories => ({ categories, error: false })),
+      catchError(() => of({ categories: [], error: true }))
+    )
+  )), { initialValue: { categories: [], error: false } });
+  readonly categories = computed(() => this.categoryState().categories);
+  readonly filtered = computed(() => this.state().products);
+  retry() { this.refresh.next(); }
   readonly quote = inject(QuoteStore);
   readonly selected = signal<Product | null>(null);
   readonly quantities = signal<Record<string, number>>({});
@@ -32,15 +51,6 @@ export class Catalog {
   change(product: Product, delta: number) { this.quantities.update(values => ({ ...values, [product.id]: Math.max(product.minQuantity ?? 1, this.quantity(product) + delta) })); }
   canAdd(product: Product) { return !!createQuoteItem(product, { quantity: this.quantity(product) }, 'preview'); }
   add(product: Product) { this.quote.addItem(product, { quantity: this.quantity(product) }); }
-  readonly query = signal('');
-  readonly category = computed(() => this.params().get('categoria') ?? '');
-  readonly filtered = computed(() => {
-    const normalize = (text: string) => text.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
-    const query = normalize(this.query().trim());
-    return (this.state()?.products ?? []).filter(product => product.published
-      && (!this.category() || product.categorySlug === this.category()) && normalize(product.name).includes(query));
-  });
-
   constructor() { inject(Seo).apply('/productos'); }
   categoryName(slug: string) { return this.categories().find(category => category.slug === slug)?.name ?? slug; }
   filterCategory(category: string) {

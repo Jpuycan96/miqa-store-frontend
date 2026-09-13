@@ -3,14 +3,14 @@ import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } 
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { catchError, distinctUntilChanged, map, of, startWith, switchMap } from 'rxjs';
+import { catchError, combineLatest, Subject, distinctUntilChanged, map, of, startWith, switchMap } from 'rxjs';
 import { ProductCatalog } from '../../../core/data/product-catalog';
 import { QuoteStore } from '../../../core/quote/quote-store';
 import { calculateArea, createQuoteItem, quantityLabel } from '../../../core/quote/quote-utils';
 import { Seo } from '../../../core/seo/seo';
 import { Product } from '../../../shared/models/product';
 
-interface ProductState { product?: Product; loading: boolean; error: boolean; }
+interface ProductState { slug?: string; product?: Product; loading: boolean; error: boolean; }
 
 @Component({
   selector: 'app-product-detail', imports: [NgOptimizedImage, RouterLink, ReactiveFormsModule, DecimalPipe],
@@ -22,12 +22,14 @@ export class ProductDetail {
   private readonly route = inject(ActivatedRoute);
   private readonly seo = inject(Seo);
   readonly quote = inject(QuoteStore);
-  readonly state = toSignal(this.route.paramMap.pipe(
-    map(params => params.get('slug') ?? ''), distinctUntilChanged(),
-    switchMap(slug => this.catalog.findBySlug(slug).pipe(
-      map(product => ({ product, loading: false, error: false } as ProductState)),
-      startWith({ loading: true, error: false } as ProductState),
-      catchError(() => of({ loading: false, error: true } as ProductState))
+  private readonly refresh = new Subject<void>();
+  retry() { this.refresh.next(); }
+  readonly state = toSignal(combineLatest([this.route.paramMap.pipe(
+    map(params => params.get('slug') ?? ''), distinctUntilChanged()), this.refresh.pipe(startWith(undefined))]).pipe(
+    switchMap(([slug]) => this.catalog.findBySlug(slug).pipe(
+      map(product => ({ slug, product, loading: false, error: false } as ProductState)),
+      startWith({ slug, loading: true, error: false } as ProductState),
+      catchError(() => of({ slug, loading: false, error: true } as ProductState))
     ))
   ), { initialValue: { loading: true, error: false } as ProductState });
   readonly product = computed(() => this.state().product);
@@ -60,7 +62,7 @@ export class ProductDetail {
       const product = this.product();
       this.form.reset({ quantity: product?.minQuantity ?? 1, width: null, height: null, material: '', notes: '' });
       this.extras.set([]);
-      const path = `/productos/${encodeURIComponent(this.route.snapshot.paramMap.get('slug') ?? '')}`;
+      const path = `/productos/${encodeURIComponent(this.state().slug ?? this.route.snapshot.paramMap.get('slug') ?? '')}`;
       this.seo.applyPage(path, {
         title: product ? `${product.name} | MIQA` : 'Producto no disponible | MIQA',
         description: product?.shortDescription ?? 'Explora los productos disponibles de MIQA.',

@@ -1,8 +1,11 @@
+import { provideTestCatalog } from '../../testing/catalog.fixture';
 ﻿import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
 import { routes } from '../../app.routes';
 import { QuoteStore, QUOTE_STORAGE_KEY } from '../../core/quote/quote-store';
+
+beforeEach(() => TestBed.configureTestingModule({ providers: [provideTestCatalog()] }));
 
 describe('Quick catalog quoting', () => {
   beforeEach(() => {
@@ -19,6 +22,8 @@ describe('Quick catalog quoting', () => {
     const el = h.routeNativeElement!;
     const search = el.querySelector<HTMLInputElement>('#product-search')!;
     search.value = 'tarjetas'; search.dispatchEvent(new Event('input'));
+    TestBed.tick();
+    await new Promise(resolve => setTimeout(resolve, 320));
     const chips = Array.from(el.querySelectorAll<HTMLButtonElement>('.category-chips button'));
     chips.find(b => b.textContent?.includes('Imprenta'))!.click();
     await h.fixture.whenStable();
@@ -73,6 +78,8 @@ describe('Quick catalog quoting', () => {
     for (const [id, value] of [['area-width', '2.5'], ['area-height', '1.2']]) {
       const input = el.querySelector<HTMLInputElement>('#' + id)!;
       input.value = value; input.dispatchEvent(new Event('input'));
+    TestBed.tick();
+    await new Promise(resolve => setTimeout(resolve, 320));
     }
     await h.fixture.whenStable();
     expect(add.disabled).toBe(true);

@@ -1,5 +1,50 @@
 # MIQA Store — contexto y traspaso
 
+## Integración local Store API — 13 de septiembre de 2026
+
+Esta es la fuente vigente para el catálogo y reemplaza las referencias históricas a LocalProductCatalog/mocks y a ocho rutas prerenderizadas. Trabajo LOCAL, sin commit, push, deploy, cambios en Cloudflare/ERP/producción ni modificaciones del backend. Al comenzar, frontend estaba limpio en b8d6387.
+
+- ProductCatalog resuelve CatalogApiService (HttpClient con withFetch). STORE_API_CONFIG en src/app/core/config/store-api.ts centraliza baseUrl = http://127.0.0.1:8081 y mediaBaseUrl vacío. Se puede sustituir el token mediante providers cuando se autorice otro entorno; https://api-store.solucionesmicaela.com es solo la arquitectura futura, NO está configurado para producción.
+- Backend existente: D:\MIQA-STORE\miqa-store-backend, Spring Boot/Java 21 y PostgreSQL aislado en 127.0.0.1:55432, miqa_store_db. No hubo incompatibilidades que requirieran cambios backend. Su documento histórico aún describe Angular desconectado; esta sección registra la integración actual sin modificar ese proyecto.
+- GET /api/public/categories mantiene orden del backend y añade Todos solo en UI; categorías compartidas en memoria, errores recuperables. GET /api/public/products envía category/search/featured; búsqueda 300 ms debounce, trim, cancelación con switchMap y máximo 120 caracteres conforme al contrato. La búsqueda sigue la semántica del servidor: case-insensitive, acentos significativos. GET /api/public/products/{slug} trae detalles; solo HTTP 404 representa producto no disponible, los demás errores permiten Reintentar. Timeout HTTP de 8 segundos. Sin fallback a mocks.
+- Mapper centralizado normaliza IDs a string, opcionales null a undefined/arrays vacíos, categoría y opciones. URLs de imágenes HTTP(S) absolutas se conservan; referencias relativas pueden resolverse con mediaBaseUrl. /images/... del seed siguen siendo referencias TEMPORALES servidas por Angular; arquitectura definitiva de media en VPS propio, sin upload ni proveedores externos implementados.
+- products.mock.ts permanece claramente marcado TEST FIXTURE ONLY, importado exclusivamente por tests y testing/catalog.fixture.ts. Ni ProductCatalog, rutas server, catálogo ni detalle lo importan. Los ejemplos comerciales de Featured Products en Home no forman parte de este cambio.
+- UX/CSS aprobados intactos: chips, cards, PACK/QUANTITY rápidos, AREA modal, detalle, panel desde 1280 y drawer. Estados discretos loading/error/empty, reintentos sin recargar página, imágenes ausentes sin ngSrc vacío. Primeras seis imágenes con prioridad de carga para cubrir filas visibles y evitar NG02955. No se cambió tamaño, imagen, copy comercial ni WhatsApp.
+- QuoteStore conserva cantidades, identidad/agrupación y mensajes. La restauración asíncrona revalida con catálogo completo; conserva datos guardados durante carga/error y combina nuevas adiciones una sola vez. Vaciar invalida una respuesta pendiente para que no reaparezcan artículos.
+
+SSR/prerender: el servicio espera afterNextRender antes de hacer HTTP, nunca consulta API durante render de servidor ni antes de hidratación. /productos prerenderiza una estructura de carga con noindex,follow; /productos/:slug usa RenderMode.Client y no enumera slugs ni consulta DB en build. / y /proyectos conservan prerender. Tres rutas estáticas, bundles browser/server generados. Detalle aplica noindex,follow al ejecutarse el cliente; al ser CSR no entrega HTML de ficha ni un HTTP 404 de documento (el 404 corresponde a API y estado amigable de la app). Cloudflare Static Assets, sitemap y Search Console intactos. No desplegar esta configuración local sin una tarea posterior que configure API/CORS de producción.
+
+Validación: 52/52 tests en 16 archivos, incluyendo HttpTestingController (categorías, filtros combinados con featured true/false, DTO/null/media, detalle, 404/500, loading/error/retry/empty, debounce/cancelación y producto exclusivo de respuesta HTTP), regresiones de cotización y restauración tardía. npm.cmd run build correcto sin warnings, primero comprobado con API 8081 apagada: tres rutas prerenderizadas. Tests frontend no requieren backend real. Maven no se reejecutó: backend no cambió.
+
+Prueba integrada: helper de PostgreSQL reconoció clúster existente; JAR Java 21 arrancó en 127.0.0.1:8081. Angular en http://localhost:4200 (usar localhost, NO 127.0.0.1:4200: CORS backend local autoriza exactamente localhost:4200). Edge confirmó seis categorías/cinco productos reales, categoría imprenta-papeleria y búsqueda tarjetas vía Network, cinco detalles, materiales/extras, PACK/QUANTITY/AREA, agregación, persistencia al recargar, panel/drawer, enlace WhatsApp con cinco líneas y reintento tras bloqueo de API. Se inspeccionó el href/mensaje; no se envió ningún mensaje externo. 404 desconocido permanece en la app. Sin errores inesperados de consola; errores provocados por la prueba de indisponibilidad se registran aparte.
+
+Responsive de catálogo: 360/390/430/768/1024/1440/1920, sin overflow de documento ni imágenes rotas, panel únicamente desde 1280. Cinco detalles sin overflow a 390. Axe: cero infracciones en catálogo a 390/1440; no es certificación total de accesibilidad. Capturas de catálogo desktop/mobile y drawer revisadas. Evidencias locales ignoradas en .tmp/check-api.cjs, api-browser-check.json, api-catalog-390.png, api-catalog-1440.png, api-quote-desktop.png, api-quote-mobile.png, api-tests.log y api-build.log.
+
+Para repetir (terminales separadas):
+
+```powershell
+# Terminal backend; política solo para esta sesión si bloquea los helpers revisados.
+cd D:\MIQA-STORE\miqa-store-backend
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+.\scripts\Start-LocalPostgres.ps1
+.\scripts\Use-LocalDatabase.ps1
+$env:JAVA_HOME = (Resolve-Path '.tmp\jdk21\jdk-21.0.12.1+1').Path
+& "$env:JAVA_HOME\bin\java.exe" -jar target/miqa-store-backend-0.0.1-SNAPSHOT.jar
+
+# Terminal frontend
+cd D:\MIQA-STORE\miqa-store-frontend
+npm.cmd start -- --host localhost --port 4200
+# Abrir http://localhost:4200/productos
+
+# Validación frontend sin backend
+npm.cmd test -- --watch=false
+npm.cmd run build
+```
+
+Al finalizar esta integración se dejan los procesos locales de API/frontend y PostgreSQL disponibles para revisión. Si ya están escuchando, no arrancar otra instancia. Revisión del propietario: chips y búsqueda, cantidades y agrupación, AREA con material/extras, detalle por slug y cotización en móvil/desktop. Base localhost solo sirve desde este PC; no se configuró acceso LAN/celular real ni producción.
+
+
+
 ## Agrupación de cotización y Hero compacto — 12 de septiembre de 2026
 
 Trabajo LOCAL sin commit, push ni deploy. Se conservaron los cambios pendientes anteriores; no se modificaron Cloudflare, backend, SEO/indexación ni otras secciones de Home. Esta actualización reemplaza la decisión histórica de mantener cada agregado como una línea independiente.

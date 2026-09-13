@@ -1,15 +1,8 @@
-import { PrerenderFallback, RenderMode, ServerRoute } from '@angular/ssr';
-import { PRODUCTS } from './core/data/products.mock';
+﻿import { RenderMode, ServerRoute } from '@angular/ssr';
 
 export const serverRoutes: ServerRoute[] = [
-  {
-    path: 'productos/:slug',
-    renderMode: RenderMode.Prerender,
-    getPrerenderParams: async () => PRODUCTS.filter(product => product.published).map(product => ({ slug: product.slug })),
-    fallback: PrerenderFallback.Client
-  },
-  {
-    path: '**',
-    renderMode: RenderMode.Prerender
-  }
+  // API-owned slugs are not available at build time. Static Assets handles client navigation.
+  { path: 'productos/:slug', renderMode: RenderMode.Client },
+  // /productos prerenders its noindex loading shell; data starts after client hydration.
+  { path: '**', renderMode: RenderMode.Prerender }
 ];

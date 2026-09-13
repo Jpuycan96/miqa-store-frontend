@@ -1,9 +1,12 @@
+import { provideTestCatalog } from '../../../testing/catalog.fixture';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
 import { WHATSAPP_NUMBER } from '../../../core/config/whatsapp';
 import { routes } from '../../../app.routes';
 import { ContactCta } from './contact-cta';
+
+beforeEach(() => TestBed.configureTestingModule({ providers: [provideTestCatalog()] }));
 
 describe('Contact CTA', () => {
   it('renders a direct WhatsApp link with the centralized number and advice message', async () => {

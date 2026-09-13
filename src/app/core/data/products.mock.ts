@@ -9,7 +9,7 @@ export const PRODUCT_CATEGORIES: readonly ProductCategory[] = [
   { slug: 'branding-instalaciones', name: 'Branding e Instalaciones' }
 ];
 
-/** Local examples. Images are existing brand/product references, not new product photography. */
+/** TEST FIXTURE ONLY. Never imported by the application. Local examples. Images are existing brand/product references, not new product photography. */
 export const PRODUCTS: readonly Product[] = [
   {
     id: 'tarjetas-personales', slug: 'tarjetas-personales', name: 'Tarjetas personales',
