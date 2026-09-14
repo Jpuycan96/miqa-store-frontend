@@ -6,7 +6,7 @@ import { AdminProductForm } from './product-form';
 import { AdminProductList } from './product-list';
 import { AdminCategories } from './categories';
 import { AdminProduct } from './admin.models';
-const base='http://127.0.0.1:8081/api/admin';
+const base='https://api-store.solucionesmicaela.com/api/admin';
 const category={id:'c1',name:'Categoría',slug:'categoria',description:'',active:true,displayOrder:0};
 const product:AdminProduct={id:'p1',categoryId:'c1',category,name:'Producto',slug:'producto',shortDescription:'',description:'',saleType:'QUANTITY',unitLabel:'unidad',packSize:null,packLabel:null,minQuantity:1,quantityStep:1,published:false,featured:false,displayOrder:0,seoTitle:'',seoDescription:'',image:'',materials:[],extras:[],images:[]};
 describe('Admin catalog forms',()=>{

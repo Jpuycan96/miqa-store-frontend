@@ -5,7 +5,7 @@ import { ActivatedRouteSnapshot, provideRouter, Router, RouterStateSnapshot, Url
 import { firstValueFrom, isObservable } from 'rxjs';
 import { AdminAuth, ADMIN_STORAGE_KEY, adminGuard, adminInterceptor } from './admin-auth';
 import { AdminLogin } from './login';
-const base='http://127.0.0.1:8081/api/admin';
+const base='https://api-store.solucionesmicaela.com/api/admin';
 describe('Admin authentication',()=>{
  let http:HttpTestingController;
  beforeEach(()=>{localStorage.removeItem(ADMIN_STORAGE_KEY);TestBed.configureTestingModule({providers:[provideRouter([]),provideHttpClient(withInterceptors([adminInterceptor])),provideHttpClientTesting()]});http=TestBed.inject(HttpTestingController);});
@@ -20,7 +20,7 @@ describe('Admin authentication',()=>{
  });
  it('does not send credentials to public API or another origin',()=>{
   session();const client=TestBed.inject(HttpClient);
-  for(const url of [base+'/products','http://127.0.0.1:8081/api/public/products','https://external.example/api/admin/products']){client.get(url).subscribe();const req=http.expectOne(url);expect(req.request.headers.get('Authorization')).toBe(url===base+'/products'?'Bearer test-token':null);req.flush([]);}
+  for(const url of [base+'/products','https://api-store.solucionesmicaela.com/api/public/products','https://external.example/api/admin/products']){client.get(url).subscribe();const req=http.expectOne(url);expect(req.request.headers.get('Authorization')).toBe(url===base+'/products'?'Bearer test-token':null);req.flush([]);}
  });
  it('clears a rejected session and redirects on 401',()=>{
   const auth=session();const nav=vi.spyOn(TestBed.inject(Router),'navigateByUrl').mockResolvedValue(true);

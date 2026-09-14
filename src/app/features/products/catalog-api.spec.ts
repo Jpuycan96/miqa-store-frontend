@@ -7,7 +7,7 @@ import { routes } from '../../app.routes';
 import { QUOTE_STORAGE_KEY } from '../../core/quote/quote-store';
 import { ProductDto } from '../../core/data/catalog-mapper';
 
-const base = 'http://127.0.0.1:8081/api/public';
+const base = 'https://api-store.solucionesmicaela.com/api/public';
 const product: ProductDto = {
   id: 'api-only', slug: 'api-only', name: 'API only product', shortDescription: '', description: '',
   category: { slug: 'imprenta-papeleria', name: 'Imprenta' }, image: '/images/products/volantes.png',

@@ -15,7 +15,7 @@ export const API_PRODUCT: ProductDto = {
   saleType: 'PACK', unitLabel: 'unidad', packSize: 1000, packLabel: 'millar',
   minQuantity: null, step: null, materials: null, extras: null
 };
-const base = 'http://127.0.0.1:8081/api/public';
+const base = 'https://api-store.solucionesmicaela.com/api/public';
 describe('Catalog API', () => {
   let api: CatalogApiService;
   let http: HttpTestingController;
