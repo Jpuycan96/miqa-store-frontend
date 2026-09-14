@@ -1,7 +1,6 @@
 ﻿<section class="page-shell catalog" aria-labelledby="catalog-title">
   <div class="catalog-heading">
     <div><p class="eyebrow">PRODUCTOS MIQA</p><h1 id="catalog-title">Encuentra lo que necesitas.</h1><p class="intro">Configura tus productos y reúne todo en una sola cotización.</p></div>
-    <div class="field"><label for="product-search">Buscar producto</label><input #search id="product-search" type="search" maxlength="120" placeholder="¿Qué necesitas crear?" [value]="query()" (input)="query.set(search.value)"></div>
   </div>
   <div class="category-chips" role="group" aria-label="Filtrar por categoría">
     <button [attr.aria-pressed]="!category()" (click)="filterCategory('')">Todos</button>

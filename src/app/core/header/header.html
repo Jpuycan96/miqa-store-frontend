@@ -1,11 +1,24 @@
 <header class="site-header">
  <div class="top-strip"><nav class="header-shell" aria-label="Navegación superior"><a routerLink="/" (click)="navigate()">INICIO</a><span aria-disabled="true" title="Próximamente">NOSOTROS <small>Próximamente</small></span><span aria-disabled="true" title="Próximamente">UBÍCANOS <small>Próximamente</small></span></nav></div>
- <div class="header-shell main-bar">
+ <div class="header-shell main-bar" [class.searching]="searchOpen()">
   <a routerLink="/" aria-label="MIQA Soluciones Gráficas, inicio" class="brand" (click)="navigate()"><img ngSrc="/images/brand/logo-miqa3.png" width="2048" height="768" priority alt="MIQA Soluciones Gráficas"></a>
   <nav aria-label="Categorías de productos" class="desktop-nav">
-   @for(c of categories();track c.slug){<a routerLink="/productos" [queryParams]="{categoria:c.slug}" (click)="navigate()">{{c.name}}</a>}
+   @for(c of categories();track c.slug){<a class="category-link" routerLink="/productos" [queryParams]="{categoria:c.slug}" (click)="navigate()">{{c.name}}</a>}
    <a class="all" href="/productos">TODOS</a>
   </nav>
+  <div id="site-search" class="inline-search" [hidden]="!searchOpen()" (keydown.escape)="closeSearch()" role="search">
+   <input #searchInput id="header-product-search" type="search" maxlength="120" aria-label="Buscar productos" placeholder="Buscar productos" [formControl]="search">
+   @if(!catalogMode() && search.value.trim()){
+    <div class="search-results">
+     @if(results().loading){<p role="status">Buscando...</p>}
+     @else if(results().error){<p role="alert">No pudimos buscar productos.</p>}
+     @else{
+      @for(product of results().products;track product.id){<a [routerLink]="['/productos',product.slug]" (click)="navigate()">{{product.name}}</a>}
+      @empty{<p role="status">Sin resultados.</p>}
+     }
+    </div>
+   }
+  </div>
   <div class="controls">
    <button class="icon-button quote-toggle" [attr.aria-label]="'Abrir cotización: ' + quote.totalItems() + ' productos configurados'" aria-controls="quote-drawer" aria-haspopup="dialog" [attr.aria-expanded]="quote.isOpen()" (click)="navigate(); quote.open()"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5H5v16h14V5h-3M8 3h8v4H8zM8 12h8M8 16h5"/></svg><span class="quote-count" aria-hidden="true">{{quote.totalItems()}}</span></button>
    <button #searchToggle class="icon-button search-toggle" aria-label="Buscar productos" [attr.aria-expanded]="searchOpen()" aria-controls="site-search" (click)="toggleSearch()"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg></button>
@@ -19,8 +32,6 @@
   <a href="/productos">TODOS</a>
   <button (click)="toggleSearch()">Buscar productos</button><button (click)="navigate();quote.open()">Abrir cotización</button>
  </nav>
- <form id="site-search" class="search-panel header-shell" [hidden]="!searchOpen()" (submit)="$event.preventDefault();submitSearch()" (keydown.escape)="closeSearch()" role="search">
-  <label for="header-product-search">Buscar productos</label><div class="search-field"><input #searchInput id="header-product-search" type="search" maxlength="120" placeholder="¿Qué necesitas crear?" [formControl]="search"><button type="submit">Ver resultados</button></div>
- </form>
+
 </header>
 <app-floating-whatsapp />

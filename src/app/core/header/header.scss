@@ -23,12 +23,14 @@
 .mobile-nav button{background:none;border:0;padding:0;color:inherit}
 .mobile-nav small{font-size:11px;color:#536077}
 .menu-label{margin:12px 0 4px;font-size:11px;letter-spacing:.12em;color:#087e8a;border-top:1px solid #d4e7e9;padding-top:16px}
-.search-panel{padding-block:16px 20px;border-top:1px solid #d4e7e9}
-.search-panel label{display:block;font-size:13px;margin-bottom:8px}
-.search-field{display:flex;gap:8px;max-width:680px;margin-left:auto}
-.search-panel label{text-align:right}
-.search-field input{min-width:0;flex:1;padding:12px;border:1px solid #8b9bae;border-radius:6px;min-height:44px}
-.search-field button{border:0;border-radius:6px;background:#061b4f;color:white;padding:10px 16px;font-size:13px}
+ .inline-search{position:relative;flex:1;min-width:0}
+.inline-search input{width:100%;min-width:0;min-height:44px;padding:10px 12px;border:1px solid #8b9bae;border-radius:6px}
+.search-results{position:absolute;top:calc(100% + 8px);left:0;right:0;background:white;border:1px solid #d4e7e9;border-radius:6px;max-height:60dvh;overflow:auto;box-shadow:0 4px 12px #061b4f12}
+.search-results a,.search-results p{display:block;padding:12px 16px;margin:0;font-size:15px}
+.search-results a:hover{background:#e6f7f8}
+.searching .desktop-nav{flex:0 0 auto;grid-template-columns:auto}
+.searching .category-link{display:none}
+@media(max-width:767px){.searching .brand{flex-basis:70px}.searching .mobile-toggle{display:none}.searching .main-bar{gap:6px}}
 a:focus-visible,button:focus-visible,input:focus-visible{outline:3px solid #16b8c4;outline-offset:3px}
 @media(min-width:1280px){.desktop-nav{display:grid;grid-template-columns:repeat(6,minmax(0,1fr)) auto}
 .mobile-toggle,.mobile-nav:not([hidden]){display:none}
@@ -39,5 +41,5 @@ a:focus-visible,button:focus-visible,input:focus-visible{outline:3px solid #16b8
 .brand{flex-basis:124px}
 .controls{gap:2px}
 .mobile-nav:not([hidden]){max-height:calc(100dvh - 78px)}
-.search-panel label{text-align:left}
+
 }

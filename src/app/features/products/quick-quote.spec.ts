@@ -20,10 +20,10 @@ describe('Quick catalog quoting', () => {
   it('filters using category chips and preserves name search', async () => {
     const h = await RouterTestingHarness.create('/productos');
     const el = h.routeNativeElement!;
-    const search = el.querySelector<HTMLInputElement>('#product-search')!;
+    const search = el.querySelector<HTMLInputElement>('#header-product-search')!;
     search.value = 'tarjetas'; search.dispatchEvent(new Event('input'));
     TestBed.tick();
-    await new Promise(resolve => setTimeout(resolve, 320));
+    await new Promise(resolve => setTimeout(resolve, 650));
     const chips = Array.from(el.querySelectorAll<HTMLButtonElement>('.category-chips button'));
     chips.find(b => b.textContent?.includes('Imprenta'))!.click();
     await h.fixture.whenStable();

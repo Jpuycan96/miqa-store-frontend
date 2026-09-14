@@ -57,5 +57,5 @@ export class Catalog {
   filterCategory(category: string) {
     void this.router.navigate([], { relativeTo: this.route, queryParams: { categoria: category || null }, queryParamsHandling: 'merge' });
   }
-  reset() { this.query.set(''); this.filterCategory(''); }
+  reset() { this.query.set('');void this.router.navigate([], {relativeTo:this.route,queryParams:{categoria:null,buscar:null},queryParamsHandling:'merge'}); }
 }

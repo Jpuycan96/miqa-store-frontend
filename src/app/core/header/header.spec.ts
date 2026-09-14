@@ -27,8 +27,8 @@ describe('Public header',()=>{
  it('submits the header search to the existing catalog and opens quotation',async()=>{
   const f=TestBed.createComponent(Header);await f.whenStable();
   const nav=vi.spyOn(TestBed.inject(Router),'navigate').mockResolvedValue(true);
-  f.componentInstance.search.setValue('  tarjetas  ');f.componentInstance.submitSearch();
-  expect(nav).toHaveBeenCalledWith(['/productos'],{queryParams:{buscar:'tarjetas'}});
+  f.componentRef.setInput('catalogMode',true);f.componentInstance.search.setValue('  tarjetas  ');await new Promise(resolve=>setTimeout(resolve,300));
+  expect(nav).toHaveBeenCalledWith(['/productos'],{queryParams:{buscar:'tarjetas'},replaceUrl:true});
   const open=vi.spyOn(f.componentInstance.quote,'open');f.nativeElement.querySelector('.quote-toggle').click();expect(open).toHaveBeenCalledOnce();
  });
  it('renders asynchronously received categories rather than fixed category names',async()=>{
@@ -47,9 +47,19 @@ describe('Public header',()=>{
  it('filters products through the search URL and clears filters with Todos',async()=>{
   const h=await RouterTestingHarness.create('/productos?buscar=tarjetas');
   await new Promise(resolve=>setTimeout(resolve,350));await h.fixture.whenStable();
-  expect(h.routeNativeElement!.querySelector<HTMLInputElement>('#product-search')!.value).toBe('tarjetas');
+  expect(h.routeNativeElement!.querySelector<HTMLInputElement>('#header-product-search')!.value).toBe('tarjetas');
   expect(h.routeNativeElement!.querySelectorAll('.catalog-card')).toHaveLength(1);
   await h.navigateByUrl('/productos');await new Promise(resolve=>setTimeout(resolve,350));await h.fixture.whenStable();
   expect(h.routeNativeElement!.querySelectorAll('.catalog-card').length).toBeGreaterThan(1);
+ });
+ it('shows automatic product links in the header without a submit button',async()=>{
+  const f=TestBed.createComponent(Header);await f.whenStable();
+  f.componentInstance.toggleSearch();f.componentInstance.search.setValue('tarjetas');
+  await new Promise(resolve=>setTimeout(resolve,300));await f.whenStable();
+  expect(f.nativeElement.querySelector('.main-bar #site-search')).not.toBeNull();
+  expect(f.nativeElement.querySelector('#site-search button[type=submit]')).toBeNull();
+  expect(f.nativeElement.querySelector('.search-results a').getAttribute('href')).toBe('/productos/tarjetas-personales');
+  f.nativeElement.querySelector('#site-search').dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true}));
+  await f.whenStable();expect(f.componentInstance.searchOpen()).toBe(false);
  });
 });

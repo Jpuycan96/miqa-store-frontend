@@ -37,15 +37,15 @@ describe('Catalog HTTP integration without backend', () => {
     await h.fixture.whenStable();
     expect(el.querySelectorAll('.catalog-card')).toHaveLength(1);
     expect(el.querySelector('.catalog-card')?.textContent).toContain('API only product');
-    const search = el.querySelector<HTMLInputElement>('#product-search')!;
+    const search = el.querySelector<HTMLInputElement>('#header-product-search')!;
     search.value = 'first'; search.dispatchEvent(new Event('input')); TestBed.tick();
     await new Promise(resolve => setTimeout(resolve, 150));
     http.expectNone(r => r.params.has('search'));
     search.value = 'latest'; search.dispatchEvent(new Event('input')); TestBed.tick();
-    await new Promise(resolve => setTimeout(resolve, 320));
+    await new Promise(resolve => setTimeout(resolve, 650));
     const stale = http.expectOne(r => r.params.get('search') === 'latest');
     search.value = 'empty'; search.dispatchEvent(new Event('input')); TestBed.tick();
-    await new Promise(resolve => setTimeout(resolve, 320));
+    await new Promise(resolve => setTimeout(resolve, 650));
     expect(stale.cancelled).toBe(true);
     http.expectOne(r => r.params.get('search') === 'empty').flush([]);
     await h.fixture.whenStable();
