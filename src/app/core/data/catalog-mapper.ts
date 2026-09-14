@@ -49,8 +49,8 @@ export function mapCategory(dto: CategoryDto): ProductCategory {
 }
 export function mapProduct(dto: ProductDto, mediaBaseUrl = ''): Product {
   return {
-    id: String(dto.id), slug: dto.slug, name: dto.name, shortDescription: dto.shortDescription,
-    description: dto.description, categorySlug: dto.categorySlug ?? dto.category.slug,
+    id: String(dto.id), slug: dto.slug, name: dto.name, shortDescription: dto.shortDescription || dto.description,
+    description: dto.description || dto.shortDescription, categorySlug: dto.categorySlug ?? dto.category.slug,
     image: resolveProductImage(dto.image, mediaBaseUrl),
     gallery: (dto.gallery ?? []).map(image => resolveProductImage(image, mediaBaseUrl)),
     images: dto.images?.map(image => ({ ...image, id: String(image.id), url: resolveProductImage(image.url, mediaBaseUrl) })),

@@ -18,6 +18,19 @@ describe('Admin catalog forms',()=>{
   const f=TestBed.createComponent(AdminProductList);http.expectOne(base+'/categories').flush([category]);http.expectOne(base+'/products').flush([product]);f.detectChanges();expect(f.nativeElement.textContent).toContain('Producto');
   f.componentInstance.toggle(product,'published');const patch=http.expectOne(base+'/products/p1/published');expect(patch.request.body).toEqual({published:true});patch.flush({...product,published:true});http.expectOne(base+'/products').flush([{...product,published:true}]);expect(f.componentInstance.state().products[0].published).toBe(true);
  });
+ it('sorts products and toggles featured through the star independently of publication',()=>{
+  const f=TestBed.createComponent(AdminProductList);http.expectOne(base+'/categories').flush([category]);http.expectOne(base+'/products').flush([{...product,id:'p2',name:'Zeta'},{...product,name:'Álbum'}]);f.detectChanges();
+  expect(f.componentInstance.state().products.map(p=>p.name)).toEqual(['Álbum','Zeta']);
+  const star=f.nativeElement.querySelector('button.star') as HTMLButtonElement;expect(star.getAttribute('aria-pressed')).toBe('false');star.click();
+  const req=http.expectOne(base+'/products/p1/featured');expect(req.request.body).toEqual({featured:true});req.flush({...product,featured:true});http.expectOne(base+'/products').flush([{...product,featured:true}]);f.detectChanges();
+  expect(f.nativeElement.querySelector('button.star').getAttribute('aria-pressed')).toBe('true');expect(f.componentInstance.state().products[0].published).toBe(false);
+ });
+ it('uses a single description and preserves internal order when editing legacy products',()=>{
+  route.snapshot.paramMap=convertToParamMap({id:'p1'});const f=TestBed.createComponent(AdminProductForm);http.expectOne(base+'/categories').flush([category]);http.expectOne(base+'/products/p1').flush({...product,shortDescription:'Legacy text',displayOrder:17});f.detectChanges();
+  expect(f.nativeElement.querySelector('[formControlName=shortDescription]')).toBeNull();expect(f.nativeElement.querySelector('app-admin-product-form > form [formControlName=displayOrder]')).toBeNull();
+  expect(f.componentInstance.form.controls.description.value).toBe('Legacy text');
+  f.componentInstance.form.controls.description.setValue('a'.repeat(600));f.componentInstance.save();const req=http.expectOne(base+'/products/p1');expect(req.request.body).toMatchObject({description:'a'.repeat(600),shortDescription:'a'.repeat(500),displayOrder:17});req.flush(product);
+ });
  it('creates a product, preserves manual slug and enforces PACK fields',()=>{
   const f=TestBed.createComponent(AdminProductForm);http.expectOne(base+'/categories').flush([category]);const c=f.componentInstance;
   c.form.patchValue({name:'Producto nuevo',categoryId:'c1'});c.nameChanged();expect(c.form.controls.slug.value).toBe('producto-nuevo');c.form.controls.slug.setValue('manual');c.slugChanged();c.form.controls.name.setValue('Otro nombre');c.nameChanged();expect(c.form.controls.slug.value).toBe('manual');

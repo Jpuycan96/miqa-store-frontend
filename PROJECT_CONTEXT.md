@@ -1,5 +1,18 @@
 # MIQA Store — contexto y traspaso
 
+## Simplificación UX/UI del catálogo y admin — 14 de septiembre de 2026
+
+Trabajo exclusivamente frontend, local, sobre 39cdfec. Sin commit, push, deploy, cambios backend ni migraciones. Esta sección reemplaza las decisiones de interfaz anteriores sobre orden manual, dos descripciones, Extras y metadata de imágenes.
+
+- Productos alfabéticos en catálogo público y listado administrativo mediante comparador compartido Intl.Collator('es'), sin distinguir mayúsculas/acentos y con orden numérico natural. Se ordena una copia de la respuesta completa actual; si la API incorpora paginación, trasladar el orden al servidor. Categorías y Home conservan su orden.
+- Formulario con una sola Descripción visible. Al guardar, shortDescription se deriva de sus primeros 500 caracteres tras trim; description conserva el texto completo. Productos legacy sin description recuperan shortDescription en formulario y detalle. displayOrder permanece interno: se conserva al editar y se envía 0 al crear. Sin cambios de columnas.
+- Extras fuera del V1 visible: retirado su editor administrativo y los selectores del detalle/configurador AREA. Materiales intactos. Modelos, endpoints y soporte de cotizaciones guardadas previamente se conservan; no se modifica WhatsApp ni se descartan extras de cotizaciones históricas.
+- Upload compacto: seleccionar archivo, preview de 64px, flecha de upload de 44px, loading, refresco y limpieza del selector/blob. Alt automático igual al nombre del producto guardado. displayOrder se omite para usar el cálculo automático existente del backend; primera imagen solicita principal, las siguientes no. Conservados JPG/PNG/WebP, 5 MB y máximo tres.
+- Tarjetas de imágenes: thumbnail, estrella principal y Quitar. Eliminados alt/order visibles, checkbox, badge y edición de metadata. Estrella con aria-pressed y nombre accesible por imagen; PATCH principal y refresco de GET existentes, sin recarga de página. Producto destacado también usa estrella en listado; Publicar/Despublicar mantiene su control independiente.
+- Galería: puntos de 8px sin cápsula, botones de 24×32px juntos, centrados al pie, doble contraste claro/oscuro. Visor centrado de min(75vw,1000px) por 75dvh; móvil hasta 520px usa 94vw. Flechas sin círculos, área de 48×56px. Conservados contain, contador, puntos, teclado, Escape, X, backdrop y foco.
+
+Validación: npx ng test --watch=false: 80/80 tests en 20 archivos. npm run build correcto, sin warnings, tres rutas prerenderizadas. Edge headless local con API/media interceptadas: 360/390/768/1024/1440/1920 sin overflow; ocho auditorías axe sin infracciones en catálogo/visor/fallback/admin a 390/1440. Verificados dimensiones, puntos transparentes, flechas sin bordes, foco, Escape/X/backdrop, preview/upload, tres imágenes, estrella principal y quitar. Tests HTTP cubren orden alfabético, estrella destacado/publicación independiente, descripción única/legacy y compatibilidad de campos. No prueba contra producción ni certificación integral WCAG. Evidencias ignoradas: .tmp/ux-tests.log, ux-build.log, ux-gallery-browser.json, check-ux-gallery.cjs y ux-gallery-*.png.
+
 ## Upload y galería de producto — 14 de septiembre de 2026
 
 Trabajo LOCAL, sin commit, push, deploy ni acceso a producción. Ambos repositorios estaban limpios al comenzar; el cambio de API de producción ya estaba versionado en 14fb9fb. STORE_API_CONFIG.baseUrl sigue en https://api-store.solucionesmicaela.com y mediaBaseUrl sigue vacío. El estado de producción comunicado por el propietario reemplaza las referencias históricas a API solo local; la nueva funcionalidad de esta sección todavía NO se ha desplegado.

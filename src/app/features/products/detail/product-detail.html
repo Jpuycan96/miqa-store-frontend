@@ -38,13 +38,6 @@
               }
             </div></fieldset>
           }
-          @if (product.extras?.length) {
-            <fieldset><legend>Acabados adicionales <span>(opcional)</span></legend><div class="options">
-              @for (extra of product.extras; track extra.id) {
-                <label class="option"><input #extraControl type="checkbox" [checked]="extras().includes(extra.id)" (change)="toggleExtra(extra.id, extraControl.checked)">{{ extra.name }}</label>
-              }
-            </div></fieldset>
-          }
           <div class="notes"><label for="notes">Detalles de tu proyecto <span>(opcional)</span></label><textarea id="notes" rows="2" maxlength="1000" formControlName="notes" placeholder="Cuéntanos si necesitas algo especial."></textarea></div>
           @if (!canAdd()) { <p class="help" role="status">{{ product.saleType === 'AREA' ? 'Completa las medidas y selecciona un material para continuar.' : 'Ingresa una cantidad válida para continuar.' }}</p> }
           <button class="primary-button add-button" type="submit" [disabled]="!canAdd()">Agregar a cotización <span aria-hidden="true">↗</span></button>

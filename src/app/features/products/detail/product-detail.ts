@@ -1,6 +1,6 @@
 import { DecimalPipe } from '@angular/common';
 import { ProductImageGallery } from '../../../shared/product-images/product-image-gallery';
-import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
@@ -44,14 +44,13 @@ export class ProductDetail {
     notes: new FormControl('', { nonNullable: true, validators: [Validators.maxLength(1000)] })
   });
   private readonly values = toSignal(this.form.valueChanges, { initialValue: this.form.getRawValue() });
-  readonly extras = signal<readonly string[]>([]);
   readonly area = computed(() => calculateArea(this.values().width ?? 0, this.values().height ?? 0));
   readonly quantity = computed(() => this.values().quantity ?? 0);
   readonly label = quantityLabel;
   readonly configuration = computed(() => ({
     quantity: this.quantity(), widthMeters: this.values().width ?? undefined,
     heightMeters: this.values().height ?? undefined, materialId: this.values().material ?? '',
-    extraIds: this.extras(), notes: this.values().notes ?? ''
+    notes: this.values().notes ?? ''
   }));
   readonly canAdd = computed(() => {
     const product = this.product();
@@ -62,7 +61,6 @@ export class ProductDetail {
     effect(() => {
       const product = this.product();
       this.form.reset({ quantity: product?.minQuantity ?? 1, width: null, height: null, material: '', notes: '' });
-      this.extras.set([]);
       const path = `/productos/${encodeURIComponent(this.state().slug ?? this.route.snapshot.paramMap.get('slug') ?? '')}`;
       this.seo.applyPage(path, {
         title: product ? `${product.name} | MIQA` : 'Producto no disponible | MIQA',
@@ -74,9 +72,6 @@ export class ProductDetail {
 
   changeQuantity(delta: number) {
     this.form.controls.quantity.setValue(Math.max(this.product()?.minQuantity ?? 1, this.quantity() + delta));
-  }
-  toggleExtra(id: string, checked: boolean) {
-    this.extras.update(extras => checked ? [...new Set([...extras, id])] : extras.filter(extra => extra !== id));
   }
   add() {
     const product = this.product();

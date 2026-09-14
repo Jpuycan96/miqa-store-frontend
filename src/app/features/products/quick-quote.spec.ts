@@ -84,14 +84,14 @@ describe('Quick catalog quoting', () => {
     await h.fixture.whenStable();
     expect(add.disabled).toBe(true);
     dialog.querySelector<HTMLInputElement>('input[type=radio]')!.click();
-    dialog.querySelector<HTMLInputElement>('input[type=checkbox]')!.click();
+    expect(dialog.querySelector('input[type=checkbox]')).toBeNull();
     await h.fixture.whenStable();
     expect(add.disabled).toBe(false);
     add.click(); await h.fixture.whenStable();
     const store = TestBed.inject(QuoteStore);
     expect(store.items()[0].areaSquareMeters).toBe(3);
     expect(store.isOpen()).toBe(false);
-    expect(new URL(store.whatsappUrl()).searchParams.get('text')).toContain('2.50 m x 1.20 m = 3.00 m² — Material: Vinil blanco — Extras: Laminado');
+    expect(new URL(store.whatsappUrl()).searchParams.get('text')).toContain('2.50 m x 1.20 m = 3.00 m² — Material: Vinil blanco');
     expect(el.querySelector('dialog')).toBeNull();
     expect(el.querySelector('#catalog-title')).toBeTruthy();
     expect(document.body.style.overflow).not.toBe('hidden');

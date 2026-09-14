@@ -1,18 +1,19 @@
 :host { --product-image-padding:0; --product-image-scale:1; }
-dialog { position:fixed; inset:0; width:100%; max-width:100%; height:100dvh; max-height:100dvh; margin:0; padding:72px 16px 24px; border:0; background:transparent; color:#fff; box-sizing:border-box; }
+dialog { position:fixed; inset:0; width:100%; max-width:100%; height:100dvh; max-height:100dvh; margin:0; padding:0 3vw; border:0; background:transparent; color:#fff; box-sizing:border-box; }
 dialog[open] { display:grid; place-items:center; }
 dialog::backdrop { background:rgb(3 12 31 / 92%); }
-figure { position:relative; margin:0; width:min(1100px, 90vw); max-width:100%; height:100%; max-height:850px; display:grid; grid-template-rows:minmax(0,1fr) auto auto; gap:8px; }
+figure { position:relative; margin:0; width:min(75vw, 1000px); max-width:100%; height:75vh; height:75dvh; display:grid; grid-template-rows:minmax(0,1fr) auto auto; gap:8px; }
 app-product-image { min-height:0; }
 figcaption { text-align:center; font-size:14px; line-height:1.5; overflow-wrap:anywhere; }
 button { display:grid; place-items:center; width:44px; height:44px; padding:0; border:1px solid #8994a5; border-radius:50%; color:#fff; background:#061b4f; font:inherit; font-size:32px; cursor:pointer; }
 button:hover { background:#163765; }
 button:focus-visible { outline:3px solid #00d9e8; outline-offset:3px; }
 .close { position:absolute; top:16px; right:16px; z-index:1; }
-.previous,.next { position:absolute; top:calc(50% - 44px); }
+.previous,.next { position:absolute; top:calc(50% - 44px); width:48px; height:56px; border:0; border-radius:4px; background:transparent; font-size:48px; text-shadow:0 1px 4px #000, 0 0 2px #000; }
+.previous:hover,.next:hover { background:rgb(255 255 255 / 8%); }
 .previous { left:0; } .next { right:0; }
 .dots { display:flex; justify-content:center; }
-.dots button { border:0; background:transparent; }
+.dots button { width:24px; height:32px; border:0; border-radius:4px; background:transparent; }
 .dots span { width:10px; height:10px; border:2px solid #fff; border-radius:50%; }
 .dots [aria-pressed=true] span { background:#00d9e8; border-color:#00d9e8; }
-@media(max-width:520px) { figure { width:100%; } }
+@media(max-width:520px) { figure { width:94vw; } }

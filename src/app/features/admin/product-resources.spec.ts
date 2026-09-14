@@ -28,16 +28,26 @@ describe('Product image upload admin',()=>{
   const f=await create();choose(f.nativeElement,new File(['image'],name,{type}));await f.whenStable();
   expect(f.nativeElement.querySelector('img.preview')?.getAttribute('src')).toBe('blob:preview');
   http.expectNone(base+'/upload');
-  f.componentInstance.form.patchValue({altText:'Frente',primaryImage:true,displayOrder:2});f.componentInstance.save();
+  f.componentInstance.save();
   const req=http.expectOne(base+'/upload');
   expect(req.request.method).toBe('POST');expect(req.request.headers.has('Content-Type')).toBe(false);
   const body:FormData=req.request.body;expect(body).toBeInstanceOf(FormData);
-  expect((body.get('file') as File).name).toBe(name);expect(body.get('altText')).toBe('Frente');
-  expect(body.get('primaryImage')).toBe('true');expect(body.get('displayOrder')).toBe('2');
+  expect((body.get('file') as File).name).toBe(name);expect(body.get('altText')).toBe(product.name);
+  expect(body.get('primaryImage')).toBe('true');expect(body.has('displayOrder')).toBe(false);
   req.flush(image);http.expectOne(base).flush([image]);await f.whenStable();
   expect(f.componentInstance.images()).toEqual([image]);expect(f.componentInstance.file()).toBeNull();
   expect(f.componentInstance.preview()).toBe('');expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:preview');
   expect(f.nativeElement.textContent).toContain('Imagen subida.');
+ });
+ it('shows only materials and image actions, and switches the primary star',async()=>{
+  const f=await create([image,{...image,id:'i2',primaryImage:false}]);
+  expect(f.nativeElement.querySelectorAll('app-option-editor')).toHaveLength(1);
+  expect(f.nativeElement.querySelector('app-option-editor').textContent).toContain('Materiales');
+  expect(f.nativeElement.querySelector('[formControlName=altText]')).toBeNull();
+  const stars=f.nativeElement.querySelectorAll('.image-card button.star');expect(stars[0].getAttribute('aria-pressed')).toBe('true');stars[1].click();
+  http.expectOne(base+'/i2/primary').flush({...image,id:'i2',primaryImage:true});http.expectOne(base).flush([{...image,primaryImage:false},{...image,id:'i2',primaryImage:true}]);await f.whenStable();
+  expect(stars[0].getAttribute('aria-pressed')).toBe('false');expect(stars[1].getAttribute('aria-pressed')).toBe('true');
+  choose(f.nativeElement,new File(['image'],'next.png',{type:'image/png'}));f.componentInstance.save();const req=http.expectOne(base+'/upload');expect(req.request.body.get('primaryImage')).toBe('false');expect(req.request.body.get('altText')).toBe(product.name);req.flush(image);http.expectOne(base).flush([image]);
  });
  it('rejects incorrect type, extension, empty files and sizes over 5 MB before sending',async()=>{
   const f=await create();

@@ -26,9 +26,9 @@ import { ProductImageLightbox } from './product-image-lightbox';
     .open-image { display:block; width:100%; height:100%; border:0; padding:0; background:transparent; cursor:zoom-in; border-radius:inherit; }
     .open-image:disabled { cursor:default; }
     button:focus-visible { outline:3px solid #087e8a; outline-offset:-4px; }
-    .dots { position:absolute; bottom:6px; left:50%; transform:translateX(-50%); display:flex; border-radius:24px; background:#fff; }
-    .dots button { display:grid; place-items:center; width:44px; height:44px; border:0; border-radius:50%; background:transparent; cursor:pointer; padding:0; }
-    .dots span { width:10px; height:10px; border-radius:50%; border:2px solid #061b4f; box-sizing:border-box; }
+    .dots { position:absolute; bottom:6px; left:50%; transform:translateX(-50%); display:flex; }
+    .dots button { display:grid; place-items:center; width:24px; height:32px; border:0; border-radius:4px; background:transparent; cursor:pointer; padding:0; }
+    .dots span { width:8px; height:8px; border-radius:50%; border:2px solid #061b4f; background:#fff; box-shadow:0 0 0 1px #fff; box-sizing:border-box; }
     .dots [aria-pressed=true] span { background:#061b4f; }
   `
 })

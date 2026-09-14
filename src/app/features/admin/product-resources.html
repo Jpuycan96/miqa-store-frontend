@@ -1,43 +1,28 @@
 <app-option-editor [productId]="product().id" kind="materials" [initial]="product().materials" />
-<app-option-editor [productId]="product().id" kind="extras" [initial]="product().extras" />
 <section class="section" aria-labelledby="product-images-title">
   <h2 id="product-images-title">Imágenes del producto</h2>
-  <p class="muted">Puedes subir hasta 3 imágenes</p>
-  <p class="muted">JPG, PNG o WebP. Máximo 5 MB por imagen.</p>
+  <p class="muted">Puedes subir hasta 3 imágenes. JPG, PNG o WebP. Máximo 5 MB por imagen.</p>
   @if(full()){<p role="status">Este producto ya tiene el máximo de 3 imágenes.</p>}
   <ul class="list image-list">
-    @for(image of images();track image.id){
+    @for(image of images();track image.id;let i=$index){
       <li class="image-card">
-        <div class="image-thumbnail"><app-product-image [src]="image.publicUrl" [alt]="image.altText || product().name" sizes="(min-width: 768px) 25vw, 90vw" /></div>
-        <p>{{image.altText || 'Sin texto alternativo'}}</p>
-        <p class="muted">Orden {{image.displayOrder}} @if(image.primaryImage){<span class="tag">Principal</span>}</p>
+        <div class="image-thumbnail"><app-product-image [src]="image.publicUrl" [alt]="product().name" sizes="(min-width: 768px) 25vw, 90vw" /></div>
         <div class="actions">
-          @if(!image.primaryImage){<button type="button" (click)="primary(image)" [disabled]="busy()">Hacer principal</button>}
-          <button type="button" (click)="edit(image)" [disabled]="busy()">Editar imagen</button>
-          <button type="button" (click)="remove(image)" [disabled]="busy()" [attr.aria-label]="'Quitar imagen: ' + (image.altText || product().name)">Quitar</button>
+          <button class="star" type="button" (click)="primary(image)" [disabled]="busy()" [attr.aria-pressed]="image.primaryImage" [attr.aria-label]="'Imagen principal: imagen ' + (i + 1) + ' de ' + product().name"><span aria-hidden="true">{{image.primaryImage ? '★' : '☆'}}</span></button>
+          <button type="button" (click)="remove(image)" [disabled]="busy()" [attr.aria-label]="'Quitar imagen ' + (i + 1) + ' de ' + product().name">Quitar</button>
         </div>
       </li>
     } @empty {<li class="muted">Todavía no hay imágenes.</li>}
   </ul>
   @if(error()){<p class="feedback error" role="alert">{{error()}}</p><button type="button" (click)="refresh()" [disabled]="busy()">Actualizar imágenes</button>}
   @if(message()){<p class="feedback" role="status">{{message()}}</p>}
-  <form class="section" [formGroup]="form" (ngSubmit)="save()">
-    <h3>{{id() ? 'Editar imagen' : 'Subir imagen'}}</h3>
-    @if(!id()){
-      <label>Seleccionar imagen
-        <input #inputFile type="file" accept="image/jpeg,image/png,image/webp" [disabled]="busy() || full()" (change)="selectFile($event)">
-      </label>
-      @if(preview()){<img class="preview" [src]="preview()" [alt]="form.controls.altText.value || 'Vista previa de la imagen seleccionada'" (error)="previewFailed()">}
-    }
-    <div class="fields">
-      <label>Texto alternativo<input formControlName="altText" maxlength="300"></label>
-      <label>Orden<input formControlName="displayOrder" type="number" min="0" max="2147483647" step="1" placeholder="Automático"></label>
-      <label class="check"><input type="checkbox" formControlName="primaryImage">Imagen principal</label>
-    </div>
-    <p class="muted">Al marcarla como principal, reemplazará a la principal anterior.</p>
-    <div class="actions">
-      <button class="primary" [disabled]="busy() || form.invalid || (!id() && (!file() || full()))">{{busy() ? 'Guardando…' : id() ? 'Guardar imagen' : 'Subir imagen'}}</button>
-      @if(id() || file()){<button type="button" (click)="clear()" [disabled]="busy()">Cancelar</button>}
-    </div>
-  </form>
+  <div class="upload" [attr.aria-busy]="busy()">
+    <label class="file-select">Seleccionar imagen
+      <input #inputFile type="file" accept="image/jpeg,image/png,image/webp" [disabled]="busy() || full()" (change)="selectFile($event)">
+    </label>
+    <button type="button" class="primary upload-button" aria-label="Subir imagen" [disabled]="busy() || !file() || full()" (click)="save()"><span aria-hidden="true">{{busy() ? '…' : '↑'}}</span></button>
+    @if(file()){<button type="button" (click)="clear()" [disabled]="busy()">Cancelar</button>}
+    @if(preview()){<img class="preview" [src]="preview()" [alt]="product().name" (error)="previewFailed()">}
+  </div>
+  @if(busy()){<p role="status">Guardando cambios…</p>}
 </section>

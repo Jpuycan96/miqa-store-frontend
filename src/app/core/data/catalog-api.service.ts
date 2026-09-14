@@ -1,3 +1,4 @@
+import { sortProductsByName } from '../../shared/models/product-order';
 ﻿import { afterNextRender, inject, Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
 import { BehaviorSubject, catchError, filter, map, Observable, of, switchMap, take, throwError, timeout } from 'rxjs';
@@ -29,7 +30,7 @@ export class CatalogApiService implements ProductCatalog {
     if (filters.search?.trim()) params = params.set('search', filters.search.trim());
     if (filters.featured !== undefined) params = params.set('featured', filters.featured);
     return this.get<readonly ProductDto[]>('/products', params).pipe(
-      map(products => products.map(product => mapProduct(product, this.config.mediaBaseUrl))));
+      map(products => sortProductsByName(products.map(product => mapProduct(product, this.config.mediaBaseUrl)))));
   }
   findBySlug(slug: string) {
     return this.get<ProductDto>('/products/' + encodeURIComponent(slug)).pipe(

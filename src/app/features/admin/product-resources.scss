@@ -1,6 +1,11 @@
 .image-list { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr)); gap:20px; }
-.image-card { border:1px solid #d9dfe7; border-radius:12px; padding:16px; min-width:0; overflow-wrap:anywhere; }
+.image-card { border:1px solid #d9dfe7; border-radius:12px; padding:12px; min-width:0; }
 .image-thumbnail { width:100%; height:120px; background:#e2e7e9; border-radius:8px; overflow:hidden; }
-.image-card p { margin:10px 0; }
-.tag { color:#061b4f; background:#d7f7f5; padding:4px 8px; border-radius:4px; }
-form .fields { margin-top:20px; }
+.image-card .actions { margin-top:8px; justify-content:space-between; }
+.upload { display:flex; flex-wrap:wrap; align-items:center; gap:12px; margin-top:20px; }
+.file-select { position:relative; display:inline-flex; justify-content:center; min-height:44px; padding:10px 14px; border:1px solid #aeb9ca; border-radius:8px; cursor:pointer; }
+.file-select input { position:absolute; inset:0; opacity:0; cursor:pointer; }
+.file-select:focus-within { outline:3px solid #157d98; outline-offset:3px; }
+.file-select:has(input:disabled) { opacity:.55; cursor:default; }
+button.upload-button { width:44px; padding:0; font-size:24px; }
+.upload .preview { width:64px; height:64px; margin:0; border-radius:6px; }

@@ -33,6 +33,13 @@ describe('Catalog API', () => {
     api.categories().subscribe(result => expect(result.map(c => c.slug)).toEqual(['z', 'a']));
     http.expectOne(base + '/categories').flush(categories);
   });
+  it('sorts the full API list alphabetically in Spanish', () => {
+    api.list().subscribe(products => expect(products.map(p => p.name)).toEqual(['Álbum', 'banner', 'Volantes']));
+    http.expectOne(base + '/products').flush(['Volantes', 'banner', 'Álbum'].map((name, id) => ({...API_PRODUCT, id, name})));
+  });
+  it('keeps legacy descriptions visible', () => {
+    expect(mapProduct({...API_PRODUCT, description: '', shortDescription: 'Legacy'}).description).toBe('Legacy');
+  });
   it('gets and maps products including nullable fields', () => {
     api.list().subscribe(products => {
       expect(products).toHaveLength(1);

@@ -1,4 +1,4 @@
-﻿import { afterNextRender, ChangeDetectionStrategy, Component, computed, DOCUMENT, ElementRef, inject, input, OnDestroy, output, signal, viewChild } from '@angular/core';
+﻿import { afterNextRender, ChangeDetectionStrategy, Component, computed, DOCUMENT, ElementRef, inject, input, OnDestroy, output, viewChild } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { Product } from '../../../shared/models/product';
@@ -25,11 +25,10 @@ export class AreaConfigurator implements OnDestroy {
     material: new FormControl('', { nonNullable: true }), notes: new FormControl('', { nonNullable: true })
   });
   private readonly values = toSignal(this.form.valueChanges, { initialValue: this.form.getRawValue() });
-  readonly extras = signal<readonly string[]>([]);
   readonly area = computed(() => calculateArea(this.values().width ?? 0, this.values().height ?? 0));
   readonly configuration = computed(() => ({ quantity: this.product().minQuantity ?? 1,
     widthMeters: this.values().width ?? undefined, heightMeters: this.values().height ?? undefined,
-    materialId: this.values().material, extraIds: this.extras(), notes: this.values().notes }));
+    materialId: this.values().material, notes: this.values().notes }));
   readonly canAdd = computed(() => !!createQuoteItem(this.product(), this.configuration(), 'preview'));
 
   constructor() {
@@ -42,7 +41,6 @@ export class AreaConfigurator implements OnDestroy {
       this.dialog().nativeElement.showModal();
     });
   }
-  toggle(id: string, checked: boolean) { this.extras.update(values => checked ? [...new Set([...values, id])] : values.filter(value => value !== id)); }
   add() { if (this.quote.addItem(this.product(), this.configuration())) this.close(); }
   close() { this.dialog().nativeElement.close(); this.dismissed.emit(); }
   backdrop(event: MouseEvent) {

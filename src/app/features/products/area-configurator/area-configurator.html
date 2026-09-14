@@ -10,11 +10,6 @@
         @for (material of product().materials; track material.id) { <label class="option"><input type="radio" formControlName="material" [value]="material.id">{{ material.name }}</label> }
       </div></fieldset>
     }
-    @if (product().extras?.length) {
-      <fieldset><legend>Acabados adicionales <span>(opcional)</span></legend><div class="options">
-        @for (extra of product().extras; track extra.id) { <label class="option"><input #extraControl type="checkbox" [checked]="extras().includes(extra.id)" (change)="toggle(extra.id, extraControl.checked)">{{ extra.name }}</label> }
-      </div></fieldset>
-    }
     <label for="area-notes">Detalles de tu proyecto <span>(opcional)</span></label><textarea id="area-notes" rows="2" maxlength="1000" formControlName="notes"></textarea>
     <p class="help">Completa las medidas y elige el material para agregar tu producto.</p>
     <button class="area-add" type="submit" [disabled]="!canAdd()">Agregar a cotización <span aria-hidden="true">+</span></button>

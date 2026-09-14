@@ -46,14 +46,14 @@ describe('Local catalog and configurator', () => {
     await harness.fixture.whenStable();
     expect(add.disabled).toBe(true);
     element.querySelector<HTMLInputElement>('input[type=radio]')!.click();
-    element.querySelector<HTMLInputElement>('input[type=checkbox]')!.click();
+    expect(element.querySelector('input[type=checkbox]')).toBeNull();
     await harness.fixture.whenStable();
     expect(add.disabled).toBe(false);
     expect(element.querySelector('.area')?.textContent).toContain('3.00 m²');
     add.click(); await harness.fixture.whenStable();
     const store = TestBed.inject(QuoteStore);
     expect(store.items()[0].selectedMaterial?.name).toBe('Vinil blanco');
-    expect(store.items()[0].selectedExtras?.[0].name).toBe('Laminado');
+    expect(store.items()[0].selectedExtras ?? []).toEqual([]);
     expect(store.isOpen()).toBe(false);
     await harness.navigateByUrl('/productos/banner');
     expect(element.querySelector<HTMLInputElement>('#width')!.value).toBe('');
