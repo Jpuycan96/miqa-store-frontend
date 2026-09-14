@@ -1,3 +1,43 @@
-<app-option-editor [productId]="product().id" kind="materials" [initial]="product().materials" /><app-option-editor [productId]="product().id" kind="extras" [initial]="product().extras" />
-<section class="section"><h2>Imágenes</h2><p class="muted">Agrega una URL o referencia de imagen existente. La subida de archivos estará disponible más adelante.</p><ul class="list">@for(i of images();track i.id){<li class="edit-box"><img class="preview" [src]="i.publicUrl" [alt]="i.altText"><p class="reference">{{i.url}}</p><div class="actions"><span>Orden {{i.displayOrder}} · {{i.primaryImage?'Principal':'Secundaria'}}</span><button (click)="edit(i)" [disabled]="busy()">Editar imagen</button></div></li>}@empty{<li class="muted">Sin referencias de imagen.</li>}</ul>
-<form class="section" [formGroup]="form" (ngSubmit)="save()"><h3>{{id()?'Editar referencia':'Agregar imagen'}}</h3><div class="fields"><label class="wide">URL o path<input formControlName="url" maxlength="2048" required></label><label>Texto alternativo<input formControlName="altText" maxlength="300"></label><label>Orden<input formControlName="displayOrder" type="number" min="0" step="1" required></label><label class="check"><input type="checkbox" formControlName="primaryImage">Imagen principal</label></div><p class="muted">Al marcarla como principal, reemplazará a la principal anterior.</p>@if(error()){<p class="feedback error" role="alert">{{error()}}</p>}@if(message()){<p class="feedback" role="status">{{message()}}</p>}<div class="actions"><button class="primary" [disabled]="busy()||form.invalid">{{busy()?'Guardando…':id()?'Guardar referencia':'Agregar imagen'}}</button>@if(id()){<button type="button" (click)="edit()">Cancelar edición</button>}</div></form></section>
+<app-option-editor [productId]="product().id" kind="materials" [initial]="product().materials" />
+<app-option-editor [productId]="product().id" kind="extras" [initial]="product().extras" />
+<section class="section" aria-labelledby="product-images-title">
+  <h2 id="product-images-title">Imágenes del producto</h2>
+  <p class="muted">Puedes subir hasta 3 imágenes</p>
+  <p class="muted">JPG, PNG o WebP. Máximo 5 MB por imagen.</p>
+  @if(full()){<p role="status">Este producto ya tiene el máximo de 3 imágenes.</p>}
+  <ul class="list image-list">
+    @for(image of images();track image.id){
+      <li class="image-card">
+        <div class="image-thumbnail"><app-product-image [src]="image.publicUrl" [alt]="image.altText || product().name" sizes="(min-width: 768px) 25vw, 90vw" /></div>
+        <p>{{image.altText || 'Sin texto alternativo'}}</p>
+        <p class="muted">Orden {{image.displayOrder}} @if(image.primaryImage){<span class="tag">Principal</span>}</p>
+        <div class="actions">
+          @if(!image.primaryImage){<button type="button" (click)="primary(image)" [disabled]="busy()">Hacer principal</button>}
+          <button type="button" (click)="edit(image)" [disabled]="busy()">Editar imagen</button>
+          <button type="button" (click)="remove(image)" [disabled]="busy()" [attr.aria-label]="'Quitar imagen: ' + (image.altText || product().name)">Quitar</button>
+        </div>
+      </li>
+    } @empty {<li class="muted">Todavía no hay imágenes.</li>}
+  </ul>
+  @if(error()){<p class="feedback error" role="alert">{{error()}}</p><button type="button" (click)="refresh()" [disabled]="busy()">Actualizar imágenes</button>}
+  @if(message()){<p class="feedback" role="status">{{message()}}</p>}
+  <form class="section" [formGroup]="form" (ngSubmit)="save()">
+    <h3>{{id() ? 'Editar imagen' : 'Subir imagen'}}</h3>
+    @if(!id()){
+      <label>Seleccionar imagen
+        <input #inputFile type="file" accept="image/jpeg,image/png,image/webp" [disabled]="busy() || full()" (change)="selectFile($event)">
+      </label>
+      @if(preview()){<img class="preview" [src]="preview()" [alt]="form.controls.altText.value || 'Vista previa de la imagen seleccionada'" (error)="previewFailed()">}
+    }
+    <div class="fields">
+      <label>Texto alternativo<input formControlName="altText" maxlength="300"></label>
+      <label>Orden<input formControlName="displayOrder" type="number" min="0" max="2147483647" step="1" placeholder="Automático"></label>
+      <label class="check"><input type="checkbox" formControlName="primaryImage">Imagen principal</label>
+    </div>
+    <p class="muted">Al marcarla como principal, reemplazará a la principal anterior.</p>
+    <div class="actions">
+      <button class="primary" [disabled]="busy() || form.invalid || (!id() && (!file() || full()))">{{busy() ? 'Guardando…' : id() ? 'Guardar imagen' : 'Subir imagen'}}</button>
+      @if(id() || file()){<button type="button" (click)="clear()" [disabled]="busy()">Cancelar</button>}
+    </div>
+  </form>
+</section>

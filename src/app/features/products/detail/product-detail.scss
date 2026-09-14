@@ -1,7 +1,7 @@
 .product-detail { padding-block: 20px 48px; }
 .breadcrumb { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; color: var(--muted); font-size: 12px; margin-bottom: 16px; } .breadcrumb a { display: inline-flex; align-items: center; min-height: 44px; } .breadcrumb a:hover { text-decoration: underline; }
 .detail-layout { display: grid; gap: 24px; } .visual-column, .product-copy { min-width: 0; }
-.detail-image { position: relative; height: 256px; border-radius: var(--radius-media); overflow: hidden; background: #e2e7e9; } .detail-image img { object-fit: contain; padding: 20px; }
+.detail-image { position: relative; height: 256px; border-radius: var(--radius-media); overflow: hidden; background: #e2e7e9; } .detail-image { --product-image-padding:20px; }
 .image-note { color: var(--muted); font-size: 11px; line-height: 1.7; margin-top: 10px; }
 .eyebrow { color: var(--muted); font-size: 10px; }
 h1 { color: var(--miqa-navy); font-size: clamp(30px, 3.2vw, 46px); line-height: 1.08; letter-spacing: -.045em; font-weight: 500; margin-top: 12px; }

@@ -16,9 +16,9 @@
     <div class="product-grid">
       @for (product of filtered(); track product.id; let index = $index) {
         <article class="catalog-card" [attr.data-product]="product.slug">
-          <a class="product-image" [routerLink]="['/productos', product.slug]" [attr.aria-label]="'Ver producto: ' + product.name">
-            @if (product.image) { <img [ngSrc]="product.image" [priority]="index < 6" [alt]="product.name" fill sizes="(min-width: 1280px) 24vw, (min-width: 1024px) 30vw, (min-width: 600px) 45vw, 90vw"> }
-          </a>
+          <div class="product-image">
+            <app-product-image-gallery [product]="product" [priority]="index < 6" sizes="(min-width: 1280px) 24vw, (min-width: 1024px) 30vw, (min-width: 600px) 45vw, 90vw" />
+          </div>
           <p class="category-name">{{ categoryName(product.categorySlug) }}</p>
           <h2><a [routerLink]="['/productos', product.slug]">{{ product.name }}</a></h2>
           <div class="quick-quote">

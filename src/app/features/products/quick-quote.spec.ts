@@ -103,15 +103,18 @@ describe('Quick catalog quoting', () => {
     expect(el.querySelector('dialog')).toBeNull();
   });
 
-  it('navigates from accessible image and product name links', async () => {
+  it('opens an accessible image viewer and navigates from the product name', async () => {
     const h = await RouterTestingHarness.create('/productos');
-    const image = h.routeNativeElement!.querySelector<HTMLAnchorElement>('.product-image')!;
+    const image = h.routeNativeElement!.querySelector<HTMLButtonElement>('.product-image .open-image')!;
     expect(image.getAttribute('tabindex')).not.toBe('-1');
     expect(image.getAttribute('aria-hidden')).not.toBe('true');
     image.click();
     await h.fixture.whenStable();
-    expect(h.routeNativeElement!.querySelector('#product-title')?.textContent).toContain('Tarjetas personales');
-    await h.navigateByUrl('/productos');
+    expect(h.routeNativeElement!.querySelector('app-product-image-lightbox dialog[open]')).toBeTruthy();
+    expect(h.routeNativeElement!.querySelector('#catalog-title')).toBeTruthy();
+    expect(TestBed.inject(QuoteStore).totalItems()).toBe(0);
+    h.routeNativeElement!.querySelector<HTMLButtonElement>('[aria-label="Cerrar visor"]')!.click();
+    await h.fixture.whenStable();
     h.routeNativeElement!.querySelector<HTMLAnchorElement>('[data-product="roll-up"] h2 a')!.click();
     await h.fixture.whenStable();
     expect(h.routeNativeElement!.querySelector('#product-title')?.textContent).toContain('Roll Up');

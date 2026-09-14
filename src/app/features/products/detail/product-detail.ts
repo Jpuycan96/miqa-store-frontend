@@ -1,4 +1,5 @@
-import { DecimalPipe, NgOptimizedImage } from '@angular/common';
+import { DecimalPipe } from '@angular/common';
+import { ProductImageGallery } from '../../../shared/product-images/product-image-gallery';
 import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -13,7 +14,7 @@ import { Product } from '../../../shared/models/product';
 interface ProductState { slug?: string; product?: Product; loading: boolean; error: boolean; }
 
 @Component({
-  selector: 'app-product-detail', imports: [NgOptimizedImage, RouterLink, ReactiveFormsModule, DecimalPipe],
+  selector: 'app-product-detail', imports: [ProductImageGallery, RouterLink, ReactiveFormsModule, DecimalPipe],
   templateUrl: './product-detail.html', styleUrl: './product-detail.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
 })

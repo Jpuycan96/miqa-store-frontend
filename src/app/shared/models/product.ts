@@ -15,6 +15,14 @@ export interface ProductExtraOption {
   readonly name: string;
 }
 
+export interface ProductImage {
+  readonly id: string;
+  readonly url: string;
+  readonly altText: string;
+  readonly primaryImage: boolean;
+  readonly displayOrder: number;
+}
+
 export interface Product {
   readonly id: string;
   readonly slug: string;
@@ -24,6 +32,7 @@ export interface Product {
   readonly categorySlug: string;
   readonly image: string;
   readonly gallery?: readonly string[];
+  readonly images?: readonly ProductImage[];
   readonly featured: boolean;
   readonly published: boolean;
   readonly saleType: ProductSaleType;

@@ -7,6 +7,13 @@ export interface CategoryDto {
   readonly displayOrder?: number;
 }
 interface OptionDto { readonly id: string | number; readonly name: string; }
+export interface ImageDto {
+  readonly id: string | number;
+  readonly url: string;
+  readonly altText: string;
+  readonly primaryImage: boolean;
+  readonly displayOrder: number;
+}
 export interface ProductDto {
   readonly id: string | number;
   readonly slug: string;
@@ -17,6 +24,7 @@ export interface ProductDto {
   readonly category: CategoryDto;
   readonly image: string | null;
   readonly gallery?: readonly string[] | null;
+  readonly images?: readonly ImageDto[] | null;
   readonly featured: boolean;
   readonly published: boolean;
   readonly saleType: ProductSaleType;
@@ -33,6 +41,7 @@ export function resolveProductImage(reference: string | null, mediaBaseUrl = '')
   if (!reference) return '';
   if (/^https?:\/\//i.test(reference)) return reference;
   if (/^(?:[a-z][a-z0-9+.-]*:|\/\/)/i.test(reference)) return '';
+  if (reference.startsWith('/images/')) return reference;
   return mediaBaseUrl ? `${mediaBaseUrl.replace(/\/+$/, '')}/${reference.replace(/^\/+/, '')}` : reference;
 }
 export function mapCategory(dto: CategoryDto): ProductCategory {
@@ -44,6 +53,7 @@ export function mapProduct(dto: ProductDto, mediaBaseUrl = ''): Product {
     description: dto.description, categorySlug: dto.categorySlug ?? dto.category.slug,
     image: resolveProductImage(dto.image, mediaBaseUrl),
     gallery: (dto.gallery ?? []).map(image => resolveProductImage(image, mediaBaseUrl)),
+    images: dto.images?.map(image => ({ ...image, id: String(image.id), url: resolveProductImage(image.url, mediaBaseUrl) })),
     featured: dto.featured, published: dto.published, saleType: dto.saleType, unitLabel: dto.unitLabel,
     packSize: dto.packSize ?? undefined, packLabel: dto.packLabel ?? undefined,
     minQuantity: dto.minQuantity ?? undefined, step: dto.step ?? undefined,

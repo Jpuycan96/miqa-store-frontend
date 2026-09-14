@@ -14,9 +14,8 @@
     @for (product of featuredProducts(); track product.id) {
       <article class="product" [attr.aria-labelledby]="'product-title-' + product.id">
         <div class="product-media" [class]="'product-media--' + product.slug">
-          @if (product.image; as image) {
-            <img [ngSrc]="image" [alt]="product.imageAlt || product.name" fill disableOptimizedSrcset
-              loading="lazy" sizes="(min-width: 768px) 50vw, 100vw">
+          @if (product.image || product.images?.length || product.gallery?.length) {
+            <app-product-image-gallery [product]="product" sizes="(min-width: 768px) 50vw, 100vw" />
           } @else {
             <app-product-visual [kind]="product.placeholder ?? 'print'" />
           }

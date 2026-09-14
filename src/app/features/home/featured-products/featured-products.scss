@@ -8,14 +8,14 @@ h2 { margin-top: 13px; color: var(--miqa-navy); font-size: clamp(30px, 3.3vw, 46
 .product-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 38px 24px; align-items: start; }
 .product { min-width: 0; }
 .product-media { position: relative; height: 280px; border-radius: var(--radius-media); overflow: hidden; background: #e2e7e9; }
-.product-media img { object-fit: contain; scale: .9; }
-.product-media--impresion-alta-calidad img,
-.product-media--merchandising-personalizado img { scale: .837; }
-.product-media--letreros-publicitarios img,
-.product-media--empaques img,
-.product-media--tarjetas-personales img,
-.product-media--volantes img { padding: 12px; }
-.product-media img, app-product-visual { transition: transform 240ms var(--motion-ease); }
+.product-media { --product-image-scale:.9; }
+.product-media--impresion-alta-calidad,
+.product-media--merchandising-personalizado { --product-image-scale:.837; }
+.product-media--letreros-publicitarios,
+.product-media--empaques,
+.product-media--tarjetas-personales,
+.product-media--volantes { --product-image-padding:12px; }
+.product-media app-product-image-gallery, app-product-visual { transition: transform 240ms var(--motion-ease); }
 .product-copy { padding: 20px 2px 0; }
 .product-category { color: var(--muted); font-size: 10px; letter-spacing: .1em; text-transform: uppercase; }
 h3 { margin-top: 8px; color: var(--miqa-navy); font-size: 21px; font-weight: 550; line-height: 1.25; letter-spacing: -.035em; }
@@ -41,7 +41,7 @@ h3 { margin-top: 8px; color: var(--miqa-navy); font-size: 21px; font-weight: 550
   .product:nth-child(6n + 1) h3, .product:nth-child(6n) h3 { font-size: 26px; }
 }
 @media (hover: hover) and (prefers-reduced-motion: no-preference) {
-  .product:hover :is(app-product-visual, img) { transform: scale(1.018); }
+  .product:hover :is(app-product-visual, app-product-image-gallery) { transform: scale(1.018); }
   .quote-link:hover span { transform: translate(2px, -2px); }
 }
 

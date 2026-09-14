@@ -1,5 +1,26 @@
 # MIQA Store — contexto y traspaso
 
+## Upload y galería de producto — 14 de septiembre de 2026
+
+Trabajo LOCAL, sin commit, push, deploy ni acceso a producción. Ambos repositorios estaban limpios al comenzar; el cambio de API de producción ya estaba versionado en 14fb9fb. STORE_API_CONFIG.baseUrl sigue en https://api-store.solucionesmicaela.com y mediaBaseUrl sigue vacío. El estado de producción comunicado por el propietario reemplaza las referencias históricas a API solo local; la nueva funcionalidad de esta sección todavía NO se ha desplegado.
+
+Admin ProductResources: flujo principal seleccionar archivo desde PC, preview blob temporal (URL revocada al cambiar/cancelar/subir/destruir), JPG/JPEG/PNG/WebP, hasta 5 MiB (5 MB en UI), error local de tipo/extensión/vacío/tamaño. Máximo tres imágenes activas incluyendo legacy; selector/upload se deshabilitan al alcanzar el máximo. AltText, orden opcional automático y principal. Tarjetas con thumbnail/fallback, alt, orden, badge Principal, Hacer principal, Editar metadata y Quitar. Después de mutación se refresca GET de imágenes sin recargar página; muestra errores/confirmación y permite reintentar la actualización si la escritura terminó pero falló la lectura. No URL manual en el flujo visible; imágenes antiguas pueden editar metadata conservando su referencia.
+
+AdminApi incorpora POST /api/admin/products/{pid}/images/upload con FormData (file, altText, displayOrder opcional, primaryImage), GET /images, PATCH /images/{id}/primary y POST /images/{id}/remove (204). Mantiene interceptor Bearer existente, sin Content-Type manual en multipart. El backend aplica límite transaccional de tres incluso con concurrencia y con POST manual; es la autoridad.
+
+Backend local: V4 agrega active/storage_key, baja lógica y cleanup de archivos administrados; primera imagen sin principal se vuelve principal, principal nueva desmarca anterior y baja de principal promueve primera por orden. MEDIA_STORAGE_PATH/products/{id}/{uuid}.jpg|png|webp; producción usa /opt/miqa-store/media. URL absoluta de MEDIA_BASE_URL=https://api-store.solucionesmicaela.com/media. Se conservan /images/products/... y /images/hero/... sin anteponer base de medios, migrar ni intentar borrar archivos frontend. No conversión a WebP, blobs en DB ni servicio externo.
+
+Modelos Product/FeaturedProduct admiten images con id/url/altText/primaryImage/displayOrder. Mapper conserva metadata y URLs legacy/absolutas. productImages prioriza principal, luego displayOrder/id, elimina URLs duplicadas y limita a tres; admite respuestas antiguas image/gallery. shared/product-images contiene ProductImageGallery, ProductImageLightbox y ProductImageView con fallback sin icono roto.
+
+Tarjetas de /productos, destacados de Home y detalle usan la galería compartida. Una imagen no muestra puntos; dos/tres muestran botones centrados dentro de la zona inferior, con aria-label y aria-pressed. Sin autoplay ni swipe. Click en imagen abre visor, no navega ni agrega a cotización; el título de catálogo sigue enlazando al detalle. Se conservan dimensiones, proporciones, padding/escala de destacados y max-width.
+
+Visor: dialog nativo en top layer, fondo oscuro, imagen contain, anterior/siguiente/puntos/contador; flechas de teclado, Escape, X y backdrop. No cierra al pulsar imagen. Foco inicial en X, contención nativa, restauración al disparador y restauración de overflow al cerrar/destruir. Renderizado browser-only de showModal mediante afterNextRender. No Angular Material, dependencias nuevas, cambios a WhatsApp, cotización, rutas, categorías, seed, SEO ni diseño global.
+
+Validación: npx ng test --watch=false, 75/75 tests en 20 archivos; npm run build correcto, sin advertencias, bundles browser/server y tres rutas prerenderizadas. Backend: 45 tests aprobados y package Java 21. Edge headless con build local, respuestas API/media interceptadas y sesión ficticia que nunca sale a producción: seis anchos 360/390/768/1024/1440/1920 sin overflow; ocho auditorías axe sin infracciones (catálogo, visor, fallback y admin a 390/1440). Verificados teclado/foco, navegación del detalle, preview de archivo real local, multipart simulado, máximo tres, refresco, principal y quitar; sin errores JavaScript. No certificación integral de WCAG ni validación contra API productiva.
+
+Evidencias ignoradas: .tmp/image-gallery-tests.log, image-gallery-build.log, image-gallery-browser.json, check-image-gallery.cjs y image-gallery-*.png. Ningún mock se agregó a producción. Nginx/media productivos no se modificaron. La entrega física local requiere configurar un servidor de media y MEDIA_BASE_URL; la prueba de navegador utiliza interceptación, mientras los tests backend prueban HTTP, PostgreSQL y escritura real en storage temporal.
+
+
 ## Cierre de versionado local ? 13 de septiembre de 2026
 
 Cierre Git LOCAL: se conserva main y origin existente. Store API ya estaba versionada en 67502d7; el commit de esta etapa incluye solamente el panel administrativo y cambios/documentaci?n pendientes. Validaci?n: 61 tests, build correcto y tres rutas prerenderizadas. Sin push, deploy ni cambios funcionales nuevos durante el cierre.

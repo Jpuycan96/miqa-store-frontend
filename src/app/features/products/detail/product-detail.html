@@ -4,7 +4,7 @@
   @else if (product(); as product) {
     <div class="detail-layout">
       <div class="visual-column">
-        <div class="detail-image">@if (product.image) { <img [ngSrc]="product.image" [alt]="product.name" fill priority sizes="(min-width: 1024px) 50vw, 90vw"> }</div>
+        <div class="detail-image"><app-product-image-gallery [product]="product" [priority]="true" sizes="(min-width: 1024px) 50vw, 90vw" /></div>
         <p class="image-note">Imagen referencial. Confirmaremos los detalles de producción contigo.</p>
       </div>
       <div class="product-copy">

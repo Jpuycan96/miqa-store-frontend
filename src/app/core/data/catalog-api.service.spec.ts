@@ -60,6 +60,15 @@ describe('Catalog API', () => {
     http.expectOne(base + '/products/broken').flush({}, { status: 503, statusText: 'Unavailable' });
     expect(error).toBe(true);
   });
+  it('maps image metadata and preserves frontend legacy paths even with a media base', () => {
+    const result = mapProduct({...API_PRODUCT, images: [
+      {id: 1, url: '/images/hero/sample.png', altText: 'Legacy', primaryImage: true, displayOrder: 2},
+      {id: 2, url: 'https://api-store.solucionesmicaela.com/media/products/p/file.png', altText: 'Nueva', primaryImage: false, displayOrder: 3}
+    ]}, 'https://api.example.com/media');
+    expect(result.images?.[0]).toEqual({id: '1', url: '/images/hero/sample.png', altText: 'Legacy', primaryImage: true, displayOrder: 2});
+    expect(result.images?.[1].url).toBe('https://api-store.solucionesmicaela.com/media/products/p/file.png');
+    expect(result.image).toBe(API_PRODUCT.image);
+  });
   it('keeps absolute VPS images and supports configurable relative media', () => {
     expect(resolveProductImage('https://media.example.com/p.png', 'https://api.example.com/media')).toBe('https://media.example.com/p.png');
     expect(resolveProductImage('/p.png', 'https://api.example.com/media/')).toBe('https://api.example.com/media/p.png');

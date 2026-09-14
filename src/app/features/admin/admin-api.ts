@@ -15,11 +15,19 @@ export class AdminApi {
  saveProduct(id:string|null,input:ProductInput){return id?this.http.put<AdminProduct>(this.base+'/products/'+encodeURIComponent(id),input):this.http.post<AdminProduct>(this.base+'/products',input);}
  flag(id:string,flag:'published'|'featured',value:boolean){return this.http.patch<AdminProduct>(this.base+'/products/'+encodeURIComponent(id)+'/'+flag,{[flag]:value});}
  saveOption(pid:string,kind:'materials'|'extras',id:string|null,input:OptionInput){const url=this.base+'/products/'+encodeURIComponent(pid)+'/'+kind;return id?this.http.put<AdminOption>(url+'/'+encodeURIComponent(id),input):this.http.post<AdminOption>(url,input);}
+ images(pid:string){return this.http.get<AdminImage[]>(this.base+'/products/'+encodeURIComponent(pid)+'/images');}
+ uploadImage(pid:string,file:File,altText:string,displayOrder:number|null,primaryImage:boolean){
+  const form=new FormData();form.append('file',file);form.append('altText',altText);form.append('primaryImage',String(primaryImage));
+  if(displayOrder!==null)form.append('displayOrder',String(displayOrder));
+  return this.http.post<AdminImage>(this.base+'/products/'+encodeURIComponent(pid)+'/images/upload',form);
+ }
+ primaryImage(pid:string,id:string){return this.http.patch<AdminImage>(this.base+'/products/'+encodeURIComponent(pid)+'/images/'+encodeURIComponent(id)+'/primary',{primaryImage:true});}
+ removeImage(pid:string,id:string){return this.http.post<void>(this.base+'/products/'+encodeURIComponent(pid)+'/images/'+encodeURIComponent(id)+'/remove',{});}
  saveImage(pid:string,id:string|null,input:ImageInput){const url=this.base+'/products/'+encodeURIComponent(pid)+'/images';return id?this.http.put<AdminImage>(url+'/'+encodeURIComponent(id),input):this.http.post<AdminImage>(url,input);}
 }
 export function adminError(error:unknown):string {
  if(error instanceof HttpErrorResponse){
-  if([400,409,429].includes(error.status)&&typeof error.error?.message==='string')return error.error.message;
+  if([400,409,413,429].includes(error.status)&&typeof error.error?.message==='string')return error.error.message;
   if(error.status===401)return 'Usuario o contraseña incorrectos, o sesión vencida.';
   if(error.status===404)return 'El registro ya no está disponible.';
  }

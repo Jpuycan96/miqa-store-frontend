@@ -1,4 +1,4 @@
-import { NgOptimizedImage } from '@angular/common';
+import { ProductImageGallery } from '../../../shared/product-images/product-image-gallery';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -12,7 +12,7 @@ import { QuotePanel } from '../../../core/quote/quote-panel/quote-panel';
 import { Seo } from '../../../core/seo/seo';
 
 @Component({
-  selector: 'app-catalog', imports: [RouterLink, NgOptimizedImage, AreaConfigurator, QuotePanel],
+  selector: 'app-catalog', imports: [RouterLink, ProductImageGallery, AreaConfigurator, QuotePanel],
   templateUrl: './catalog.html', styleUrl: './catalog.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
 })

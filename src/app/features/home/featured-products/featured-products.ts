@@ -1,4 +1,4 @@
-import { NgOptimizedImage } from '@angular/common';
+import { ProductImageGallery } from '../../../shared/product-images/product-image-gallery';
 import { RouterLink } from '@angular/router';
 import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
 import { productWhatsAppUrl } from '../../../core/config/whatsapp';
@@ -7,7 +7,7 @@ import { ProductVisual } from './product-visual';
 
 @Component({
   selector: 'app-featured-products',
-  imports: [NgOptimizedImage, ProductVisual, RouterLink],
+  imports: [ProductImageGallery, ProductVisual, RouterLink],
   templateUrl: './featured-products.html',
   styleUrl: './featured-products.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
