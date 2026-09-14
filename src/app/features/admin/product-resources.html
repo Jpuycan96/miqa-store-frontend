@@ -6,23 +6,21 @@
   <ul class="list image-list">
     @for(image of images();track image.id;let i=$index){
       <li class="image-card">
-        <div class="image-thumbnail"><app-product-image [src]="image.publicUrl" [alt]="product().name" sizes="(min-width: 768px) 25vw, 90vw" /></div>
+        <div class="image-thumbnail"><app-product-image [src]="image.publicUrl" [alt]="product().name" sizes="(min-width: 768px) 15vw, 40vw" /></div>
         <div class="actions">
           <button class="star" type="button" (click)="primary(image)" [disabled]="busy()" [attr.aria-pressed]="image.primaryImage" [attr.aria-label]="'Imagen principal: imagen ' + (i + 1) + ' de ' + product().name"><span aria-hidden="true">{{image.primaryImage ? '★' : '☆'}}</span></button>
           <button type="button" (click)="remove(image)" [disabled]="busy()" [attr.aria-label]="'Quitar imagen ' + (i + 1) + ' de ' + product().name">Quitar</button>
         </div>
       </li>
-    } @empty {<li class="muted">Todavía no hay imágenes.</li>}
+    }
+    <li class="upload" [attr.aria-busy]="uploading()">
+      <input #inputFile type="file" hidden accept="image/jpeg,image/png,image/webp" [disabled]="busy() || full()" (change)="selectFile($event)">
+      <button type="button" class="upload-button" [attr.aria-label]="uploading() ? 'Subiendo imagen' : 'Subir imagen'" [disabled]="busy() || full()" (click)="inputFile.click()">
+        @if(uploading()){<span class="spinner" aria-hidden="true"></span>}@else{<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 16V3m-5 5 5-5 5 5M4 16v5h16v-5" /></svg>}
+      </button>
+    </li>
   </ul>
   @if(error()){<p class="feedback error" role="alert">{{error()}}</p><button type="button" (click)="refresh()" [disabled]="busy()">Actualizar imágenes</button>}
   @if(message()){<p class="feedback" role="status">{{message()}}</p>}
-  <div class="upload" [attr.aria-busy]="busy()">
-    <label class="file-select">Seleccionar imagen
-      <input #inputFile type="file" accept="image/jpeg,image/png,image/webp" [disabled]="busy() || full()" (change)="selectFile($event)">
-    </label>
-    <button type="button" class="primary upload-button" aria-label="Subir imagen" [disabled]="busy() || !file() || full()" (click)="save()"><span aria-hidden="true">{{busy() ? '…' : '↑'}}</span></button>
-    @if(file()){<button type="button" (click)="clear()" [disabled]="busy()">Cancelar</button>}
-    @if(preview()){<img class="preview" [src]="preview()" [alt]="product().name" (error)="previewFailed()">}
-  </div>
   @if(busy()){<p role="status">Guardando cambios…</p>}
 </section>

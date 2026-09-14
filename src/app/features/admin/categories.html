@@ -1,4 +1,16 @@
 <div class="heading"><div><p class="eyebrow">ORGANIZACIÓN</p><h1>Categorías</h1></div><button class="primary" (click)="edit()">Nueva categoría</button></div>
 @if(error()){<p class="feedback error" role="alert">{{error()}} <button (click)="load()">Reintentar</button></p>}@if(message()){<p class="feedback" role="status">{{message()}}</p>}
-@if(editing()){<form class="section" [formGroup]="form" (ngSubmit)="save()"><h2>{{id()?'Editar categoría':'Nueva categoría'}}</h2><div class="fields"><label>Nombre<input formControlName="name" maxlength="160" (input)="nameChanged()" required></label><label>Slug<input formControlName="slug" maxlength="160" (input)="slugChanged()" required pattern="[a-z0-9]+(-[a-z0-9]+)*"><small>Minúsculas, números y guiones.</small></label><label class="wide">Descripción<textarea formControlName="description" rows="2" maxlength="10000"></textarea></label><label>Orden<input type="number" min="0" step="1" formControlName="displayOrder"></label><label class="check"><input type="checkbox" formControlName="active">Activa</label></div><p class="muted">Desactivar una categoría oculta sus productos del catálogo público.</p><div class="actions"><button class="primary" [disabled]="form.invalid||busy()">{{busy()?'Guardando…':'Guardar categoría'}}</button><button type="button" (click)="editing.set(false)" [disabled]="busy()">Cancelar</button></div></form>}
-@if(loading()){<p role="status">Cargando categorías…</p>}@else{<ul class="list">@for(c of items();track c.id){<li class="edit-box"><div class="heading"><div><strong>{{c.name}}</strong><p class="muted">{{c.slug}} · Orden {{c.displayOrder}} · {{c.active?'Activa':'Inactiva'}}</p></div><div class="actions"><button (click)="edit(c)">Editar</button><button [disabled]="busy()" (click)="toggle(c)">{{c.active?'Desactivar':'Activar'}}</button></div></div></li>}@empty{<li>No hay categorías. Crea la primera.</li>}</ul>}
+@if(editing()){<form class="section compact-form" [formGroup]="form" (ngSubmit)="save()"><h2>{{id()?'Editar categoría':'Nueva categoría'}}</h2><div class="fields"><label>Nombre<input formControlName="name" maxlength="160" (input)="nameChanged()" required></label><label>Slug<input formControlName="slug" maxlength="160" (input)="slugChanged()" required pattern="[a-z0-9]+(-[a-z0-9]+)*"><small>Minúsculas, números y guiones.</small></label><label class="wide">Descripción<textarea formControlName="description" rows="2" maxlength="10000"></textarea></label><label class="check"><input type="checkbox" formControlName="active">Activa</label></div><p class="muted">Desactivar una categoría oculta sus productos del catálogo público.</p><div class="actions"><button class="primary" [disabled]="form.invalid||busy()">{{busy()?'Guardando…':'Guardar categoría'}}</button><button type="button" (click)="editing.set(false)" [disabled]="busy()">Cancelar</button></div></form>}
+@if(loading()){<p role="status">Cargando categorías…</p>}@else{
+  <ul class="list">
+    @for(c of items();track c.id){
+      <li class="compact-row">
+        <strong>{{c.name}}</strong><span class="status">{{c.active?'Activa':'Inactiva'}}</span>
+        <div class="actions">
+          <button [disabled]="busy()" (click)="edit(c)" [attr.aria-label]="'Editar ' + c.name">Editar</button>
+          <button [disabled]="busy()" (click)="toggle(c)" [attr.aria-label]="(c.active?'Desactivar ':'Activar ') + c.name">{{c.active?'Desactivar':'Activar'}}</button>
+        </div>
+      </li>
+    }@empty{<li>No hay categorías. Crea la primera.</li>}
+  </ul>
+}

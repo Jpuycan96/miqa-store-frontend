@@ -1,5 +1,12 @@
 # MIQA Store — contexto y traspaso
 
+## Refinamiento del admin — 14 de septiembre de 2026
+
+- Materiales y categorías administrativos se muestran alfabéticamente por nombre con el comparador español existente, sin campos ni textos de Orden. Se ordenan copias de las colecciones únicamente en estas vistas; al editar se conserva displayOrder y al crear se asigna 0 internamente. El orden público de categorías/Home permanece intacto, sin cambios de API ni esquema.
+- Listados de materiales y categorías con filas y acciones compactas. El formulario de materiales muestra Nombre, Activo y Guardar/Cancelar.
+- Upload inmediato: el único icono abre el selector y elegir un archivo válido inicia la subida, con loading en el mismo control. Sin preview temporal ni segundo paso de confirmación; se puede quitar la imagen al terminar. Se conservan JPG/PNG/WebP, 5 MB, tres imágenes, alt igual al nombre guardado y orden automático del backend.
+- Galería administrativa con thumbnails de 128 × 96 px, estrella principal y Quitar, junto al control de upload; wrap natural en móvil.
+
 ## Simplificación UX/UI del catálogo y admin — 14 de septiembre de 2026
 
 Trabajo exclusivamente frontend, local, sobre 39cdfec. Sin commit, push, deploy, cambios backend ni migraciones. Esta sección reemplaza las decisiones de interfaz anteriores sobre orden manual, dos descripciones, Extras y metadata de imágenes.

@@ -24,19 +24,30 @@ describe('Product image upload admin',()=>{
   const input=el.querySelector<HTMLInputElement>('input[type=file]')!;
   Object.defineProperty(input,'files',{value:[file],configurable:true});input.dispatchEvent(new Event('change'));
  }
- it.each([['image/jpeg','a.jpg'],['image/png','a.png'],['image/webp','a.webp']])('accepts %s and previews before sending multipart',async(type,name)=>{
+ it('opens the file picker from the upload icon',async()=>{
+  const f=await create();
+  const input=f.nativeElement.querySelector('input[type=file]') as HTMLInputElement;
+  const open=vi.spyOn(input,'click').mockImplementation(()=>{});
+  f.nativeElement.querySelector('.upload-button').click();
+  expect(open).toHaveBeenCalledOnce();http.expectNone(base+'/upload');
+ });
+ it.each([['image/jpeg','a.jpg'],['image/png','a.png'],['image/webp','a.webp']])('uploads %s immediately on selection with a single control',async(type,name)=>{
   const f=await create();choose(f.nativeElement,new File(['image'],name,{type}));await f.whenStable();
-  expect(f.nativeElement.querySelector('img.preview')?.getAttribute('src')).toBe('blob:preview');
-  http.expectNone(base+'/upload');
-  f.componentInstance.save();
+  expect(f.nativeElement.querySelector('img.preview')).toBeNull();
+  expect(f.nativeElement.querySelectorAll('.upload-button')).toHaveLength(1);
+  expect(f.nativeElement.querySelector('.upload-button').disabled).toBe(true);
+  expect(f.nativeElement.querySelector('.upload-button .spinner')).not.toBeNull();
+  expect(f.nativeElement.querySelector('.upload').textContent.trim()).toBe('');
   const req=http.expectOne(base+'/upload');
   expect(req.request.method).toBe('POST');expect(req.request.headers.has('Content-Type')).toBe(false);
   const body:FormData=req.request.body;expect(body).toBeInstanceOf(FormData);
   expect((body.get('file') as File).name).toBe(name);expect(body.get('altText')).toBe(product.name);
   expect(body.get('primaryImage')).toBe('true');expect(body.has('displayOrder')).toBe(false);
   req.flush(image);http.expectOne(base).flush([image]);await f.whenStable();
-  expect(f.componentInstance.images()).toEqual([image]);expect(f.componentInstance.file()).toBeNull();
-  expect(f.componentInstance.preview()).toBe('');expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:preview');
+  expect(f.componentInstance.images()).toEqual([image]);
+  expect(f.nativeElement.querySelector('input[type=file]').value).toBe('');
+  expect(URL.createObjectURL).not.toHaveBeenCalled();
+  expect(f.nativeElement.querySelector('.upload-button').disabled).toBe(false);
   expect(f.nativeElement.textContent).toContain('Imagen subida.');
  });
  it('shows only materials and image actions, and switches the primary star',async()=>{
@@ -47,13 +58,13 @@ describe('Product image upload admin',()=>{
   const stars=f.nativeElement.querySelectorAll('.image-card button.star');expect(stars[0].getAttribute('aria-pressed')).toBe('true');stars[1].click();
   http.expectOne(base+'/i2/primary').flush({...image,id:'i2',primaryImage:true});http.expectOne(base).flush([{...image,primaryImage:false},{...image,id:'i2',primaryImage:true}]);await f.whenStable();
   expect(stars[0].getAttribute('aria-pressed')).toBe('false');expect(stars[1].getAttribute('aria-pressed')).toBe('true');
-  choose(f.nativeElement,new File(['image'],'next.png',{type:'image/png'}));f.componentInstance.save();const req=http.expectOne(base+'/upload');expect(req.request.body.get('primaryImage')).toBe('false');expect(req.request.body.get('altText')).toBe(product.name);req.flush(image);http.expectOne(base).flush([image]);
+  choose(f.nativeElement,new File(['image'],'next.png',{type:'image/png'}));const req=http.expectOne(base+'/upload');expect(req.request.body.get('primaryImage')).toBe('false');expect(req.request.body.get('altText')).toBe(product.name);req.flush(image);http.expectOne(base).flush([image]);
  });
  it('rejects incorrect type, extension, empty files and sizes over 5 MB before sending',async()=>{
   const f=await create();
   for(const file of [new File(['x'],'a.gif',{type:'image/gif'}),new File(['x'],'a.jpg',{type:'image/png'}),new File([],'a.png',{type:'image/png'}),new File([new Uint8Array(5*1024*1024+1)],'a.png',{type:'image/png'})]){
-   choose(f.nativeElement,file);await f.whenStable();f.componentInstance.save();
-   expect(f.componentInstance.error()).not.toBe('');expect(f.componentInstance.file()).toBeNull();
+   choose(f.nativeElement,file);await f.whenStable();
+   expect(f.componentInstance.error()).not.toBe('');expect(f.nativeElement.querySelector('input[type=file]').value).toBe('');
    http.expectNone(base+'/upload');
   }
  });
@@ -61,19 +72,21 @@ describe('Product image upload admin',()=>{
   const f=await create([image,{...image,id:'i2'},{...image,id:'i3'}]);
   expect(f.nativeElement.querySelector('input[type=file]').disabled).toBe(true);
   expect(f.nativeElement.textContent).toContain('Este producto ya tiene el máximo de 3 imágenes.');
-  expect(f.nativeElement.querySelector('section[aria-labelledby="product-images-title"] button.primary').disabled).toBe(true);
+  expect(f.nativeElement.querySelector('.upload-button').disabled).toBe(true);
  });
- it('displays backend errors and allows retry without clearing the selected file',async()=>{
+ it('displays backend errors and allows reselecting the same file to retry',async()=>{
   const f=await create();choose(f.nativeElement,new File(['x'],'a.png',{type:'image/png'}));
-  f.componentInstance.save();http.expectOne(base+'/upload').flush({message:'Este producto ya tiene el máximo de 3 imágenes.'},{status:409,statusText:'Conflict'});
-  await f.whenStable();expect(f.componentInstance.error()).toContain('máximo de 3');expect(f.componentInstance.busy()).toBe(false);expect(f.componentInstance.file()).not.toBeNull();
+  http.expectOne(base+'/upload').flush({message:'Este producto ya tiene el máximo de 3 imágenes.'},{status:409,statusText:'Conflict'});
+  await f.whenStable();expect(f.componentInstance.error()).toContain('máximo de 3');expect(f.componentInstance.busy()).toBe(false);expect(f.nativeElement.querySelector('input[type=file]').value).toBe('');
+  choose(f.nativeElement,new File(['x'],'a.png',{type:'image/png'}));
+  http.expectOne(base+'/upload').flush(image);http.expectOne(base).flush([image]);
  });
  it('uses automatic order when omitted and refreshes primary/removal without reloading',async()=>{
   const f=await create([image]);f.componentInstance.primary(image);
   http.expectOne(base+'/i1/primary').flush(image);http.expectOne(base).flush([image]);
   f.componentInstance.remove(image);http.expectOne(base+'/i1/remove').flush(null);http.expectOne(base).flush([]);
   expect(f.componentInstance.images()).toEqual([]);
-  choose(f.nativeElement,new File(['x'],'a.png',{type:'image/png'}));f.componentInstance.save();
+  choose(f.nativeElement,new File(['x'],'a.png',{type:'image/png'}));
   const req=http.expectOne(base+'/upload');expect((req.request.body as FormData).has('displayOrder')).toBe(false);
   req.flush(image);http.expectOne(base).flush([image]);
  });

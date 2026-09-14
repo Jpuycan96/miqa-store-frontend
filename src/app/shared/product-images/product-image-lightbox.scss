@@ -5,12 +5,13 @@ dialog::backdrop { background:rgb(3 12 31 / 92%); }
 figure { position:relative; margin:0; width:min(75vw, 1000px); max-width:100%; height:75vh; height:75dvh; display:grid; grid-template-rows:minmax(0,1fr) auto auto; gap:8px; }
 app-product-image { min-height:0; }
 figcaption { text-align:center; font-size:14px; line-height:1.5; overflow-wrap:anywhere; }
-button { display:grid; place-items:center; width:44px; height:44px; padding:0; border:1px solid #8994a5; border-radius:50%; color:#fff; background:#061b4f; font:inherit; font-size:32px; cursor:pointer; }
-button:hover { background:#163765; }
-button:focus-visible { outline:3px solid #00d9e8; outline-offset:3px; }
+button { display:grid; place-items:center; width:44px; height:44px; padding:0; border:0; border-radius:4px; color:#fff; background:transparent; box-shadow:none; font:inherit; cursor:pointer; }
+button:hover { background:transparent; box-shadow:none; opacity:.75; }
+button:focus-visible { outline:2px solid #00d9e8; outline-offset:2px; }
+button svg { display:block; width:28px; height:28px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; pointer-events:none; }
 .close { position:absolute; top:16px; right:16px; z-index:1; }
-.previous,.next { position:absolute; top:calc(50% - 44px); width:48px; height:56px; border:0; border-radius:4px; background:transparent; font-size:48px; text-shadow:0 1px 4px #000, 0 0 2px #000; }
-.previous:hover,.next:hover { background:rgb(255 255 255 / 8%); }
+.previous,.next { position:absolute; top:50%; transform:translateY(-50%); width:48px; height:56px; }
+.previous svg,.next svg { width:32px; height:32px; }
 .previous { left:0; } .next { right:0; }
 .dots { display:flex; justify-content:center; }
 .dots button { width:24px; height:32px; border:0; border-radius:4px; background:transparent; }

@@ -1,13 +1,13 @@
 <dialog #dialog role="dialog" aria-modal="true" [attr.aria-label]="'Imágenes de ' + name()" (click)="backdrop($event)" (keydown)="keydown($event)" (cancel)="$event.preventDefault(); close()">
-  <button #closeButton class="close" type="button" aria-label="Cerrar visor" (click)="close()">×</button>
+  <button #closeButton class="close" type="button" aria-label="Cerrar visor" (click)="close()"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m6 6 12 12M18 6 6 18" /></svg></button>
   <figure>
     @if (images()[index()]; as image) {
       <app-product-image [src]="image.url" [alt]="image.altText || name()" sizes="90vw" [priority]="true" />
     }
     <figcaption aria-live="polite">{{name()}} · {{index() + 1}} / {{images().length}}</figcaption>
     @if (images().length > 1) {
-      <button class="previous" type="button" aria-label="Imagen anterior" (click)="move(-1)">‹</button>
-      <button class="next" type="button" aria-label="Imagen siguiente" (click)="move(1)">›</button>
+      <button class="previous" type="button" aria-label="Imagen anterior" (click)="move(-1)"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m15 5-7 7 7 7" /></svg></button>
+      <button class="next" type="button" aria-label="Imagen siguiente" (click)="move(1)"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m9 5 7 7-7 7" /></svg></button>
       <div class="dots" role="group" aria-label="Elegir imagen">
         @for (image of images(); track image.id; let i = $index) {
           <button type="button" [attr.aria-label]="'Ver imagen ' + (i + 1) + ' de ' + images().length" [attr.aria-pressed]="i === index()" (click)="indexChange.emit(i)"><span></span></button>

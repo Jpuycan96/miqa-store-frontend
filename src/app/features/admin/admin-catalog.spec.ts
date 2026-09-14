@@ -45,4 +45,21 @@ describe('Admin catalog forms',()=>{
  it('creates and deactivates categories through API',()=>{
   const f=TestBed.createComponent(AdminCategories);http.expectOne(base+'/categories').flush([]);const c=f.componentInstance;c.edit();c.form.controls.name.setValue('Nueva categoría');c.nameChanged();expect(c.form.controls.slug.value).toBe('nueva-categoria');c.save();const req=http.expectOne(base+'/categories');expect(req.request.method).toBe('POST');req.flush(category);http.expectOne(base+'/categories').flush([category]);c.toggle(category);http.expectOne(base+'/categories/c1/active').flush({...category,active:false});http.expectOne(base+'/categories').flush([{...category,active:false}]);expect(c.items()[0].active).toBe(false);
  });
+ it('sorts categories only in admin and preserves their public order when editing',()=>{
+  const f=TestBed.createComponent(AdminCategories);
+  const categories=[{...category,name:'Zeta',displayOrder:3},{...category,id:'c2',name:'Álbum',displayOrder:9}];
+  http.expectOne(base+'/categories').flush(categories);f.detectChanges();
+  expect(f.componentInstance.items().map(c=>c.name)).toEqual(['Álbum','Zeta']);
+  expect(categories.map(c=>c.name)).toEqual(['Zeta','Álbum']);
+  f.componentInstance.edit(categories[0]);f.detectChanges();
+  expect(f.nativeElement.querySelector('[formControlName=displayOrder]')).toBeNull();
+  expect(f.nativeElement.textContent).not.toContain('Orden');
+  f.componentInstance.form.controls.name.setValue('Nueva Zeta');f.componentInstance.save();
+  const req=http.expectOne(base+'/categories/c1');
+  expect(req.request.body).toMatchObject({name:'Nueva Zeta',displayOrder:3});
+  req.flush(categories[0]);http.expectOne(base+'/categories').flush(categories);
+  f.componentInstance.edit();f.componentInstance.form.patchValue({name:'Nueva',slug:'nueva'});f.componentInstance.save();
+  const create=http.expectOne(base+'/categories');expect(create.request.body.displayOrder).toBe(0);
+  create.flush(category);http.expectOne(base+'/categories').flush(categories);
+ });
 });

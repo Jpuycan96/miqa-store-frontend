@@ -5,11 +5,21 @@ import { productImages } from './product-images';
 
 const images: ProductImage[] = [1,2,3].map((n)=>({id:String(n),url:'/images/'+n+'.png',altText:'Imagen '+n,primaryImage:n===1,displayOrder:n-1}));
 describe('Product image gallery',()=>{
+ let showModal:PropertyDescriptor|undefined;
+ let close:PropertyDescriptor|undefined;
  beforeEach(()=>{
-  Object.defineProperty(HTMLDialogElement.prototype,'showModal',{configurable:true,value:function(this:HTMLDialogElement){this.open=true;}});
-  Object.defineProperty(HTMLDialogElement.prototype,'close',{configurable:true,value:function(this:HTMLDialogElement){this.open=false;}});
+  showModal=Object.getOwnPropertyDescriptor(HTMLDialogElement.prototype,'showModal');
+  close=Object.getOwnPropertyDescriptor(HTMLDialogElement.prototype,'close');
+  Object.defineProperty(HTMLDialogElement.prototype,'showModal',{configurable:true,writable:true,value:function(this:HTMLDialogElement){this.open=true;}});
+  Object.defineProperty(HTMLDialogElement.prototype,'close',{configurable:true,writable:true,value:function(this:HTMLDialogElement){this.open=false;}});
  });
- afterEach(()=>vi.restoreAllMocks());
+ afterEach(()=>{
+  vi.restoreAllMocks();
+  if(showModal)Object.defineProperty(HTMLDialogElement.prototype,'showModal',showModal);
+  else Reflect.deleteProperty(HTMLDialogElement.prototype,'showModal');
+  if(close)Object.defineProperty(HTMLDialogElement.prototype,'close',close);
+  else Reflect.deleteProperty(HTMLDialogElement.prototype,'close');
+ });
  async function create(count=3){
   const fixture=TestBed.createComponent(ProductImageGallery);
   fixture.componentRef.setInput('product',{name:'Producto',images:images.slice(0,count)});
