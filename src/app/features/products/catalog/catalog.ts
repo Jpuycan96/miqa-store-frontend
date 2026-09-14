@@ -1,5 +1,5 @@
 import { ProductImageGallery } from '../../../shared/product-images/product-image-gallery';
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { catchError, combineLatest, debounceTime, distinctUntilChanged, map, of, startWith, Subject, switchMap } from 'rxjs';
@@ -22,6 +22,7 @@ export class Catalog {
   private readonly route = inject(ActivatedRoute);
   private readonly params = toSignal(this.route.queryParamMap, { initialValue: this.route.snapshot.queryParamMap });
   private readonly refresh = new Subject<void>();
+  private readonly requestedSearch = computed(()=>(this.params().get('buscar')??'').slice(0,120));
   readonly query = signal('');
   readonly category = computed(() => this.params().get('categoria') ?? '');
   private readonly search = toObservable(this.query).pipe(
@@ -51,7 +52,7 @@ export class Catalog {
   change(product: Product, delta: number) { this.quantities.update(values => ({ ...values, [product.id]: Math.max(product.minQuantity ?? 1, this.quantity(product) + delta) })); }
   canAdd(product: Product) { return !!createQuoteItem(product, { quantity: this.quantity(product) }, 'preview'); }
   add(product: Product) { this.quote.addItem(product, { quantity: this.quantity(product) }); }
-  constructor() { inject(Seo).apply('/productos'); }
+  constructor() { inject(Seo).apply('/productos');effect(()=>this.query.set(this.requestedSearch())); }
   categoryName(slug: string) { return this.categories().find(category => category.slug === slug)?.name ?? slug; }
   filterCategory(category: string) {
     void this.router.navigate([], { relativeTo: this.route, queryParams: { categoria: category || null }, queryParamsHandling: 'merge' });

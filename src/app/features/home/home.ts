@@ -13,7 +13,7 @@ import { ContactCta } from './contact-cta/contact-cta';
  selector: 'app-home', imports: [Header, Footer, Hero, Categories, FeaturedProducts, Services, Projects, ContactCta],
  template: `
   <a class="skip-link" href="#contenido">Saltar al contenido</a>
-  <app-header (searchChange)="query.set($event)" (notice)="openNotice($event, info)" />
+  <app-header />
   <main id="contenido" tabindex="-1">
    <app-hero />
    <app-categories [query]="query()" (explore)="openNotice($event, info)" />

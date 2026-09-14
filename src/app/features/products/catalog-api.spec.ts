@@ -26,7 +26,8 @@ describe('Catalog HTTP integration without backend', () => {
     const el = h.routeNativeElement!;
     expect(el.textContent).toContain('Cargando productos');
     expect(el.querySelectorAll('.catalog-card')).toHaveLength(0);
-    http.expectOne(base + '/categories').flush([product.category]);
+    const categories=http.match(base + '/categories');expect(categories).toHaveLength(2);
+    categories.forEach(request=>request.flush([product.category]));
     http.expectOne(base + '/products').flush({}, { status: 503, statusText: 'Unavailable' });
     await h.fixture.whenStable();
     expect(el.querySelector('[role=alert]')?.textContent).toContain('No pudimos cargar');
@@ -53,7 +54,7 @@ describe('Catalog HTTP integration without backend', () => {
   it('keeps an unknown slug in place and allows retry after a detail failure', async () => {
     const h = await RouterTestingHarness.create('/productos/missing');
     expect(h.routeNativeElement!.textContent).toContain('Cargando producto');
-    http.expectOne(base + '/categories').flush([]);
+    http.match(base + '/categories').forEach(request=>request.flush([]));
     http.expectOne(base + '/products/missing').flush({}, { status: 404, statusText: 'Not Found' });
     await h.fixture.whenStable();
     expect(h.routeNativeElement!.querySelector('h1')?.textContent).toContain('no está disponible');

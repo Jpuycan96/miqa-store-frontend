@@ -9,15 +9,15 @@
   </div>
   <p class="hero-note"><span aria-hidden="true">✳</span> Tu idea. Nuestro oficio. Una marca que se ve.</p>
  </div>
- <figure class="hero-visual" aria-label="Productos gráficos MIQA">
+ <figure class="hero-visual" [class.ready]="ready()" aria-label="Productos gráficos MIQA">
   <div class="hero-product hero-rollup">
-   <img ngSrc="/images/hero/rollo-up.png" width="1024" height="1536" priority alt="Roll-up publicitario MIQA">
+   <img #heroImage ngSrc="/images/hero/rollo-up.png" width="1024" height="1536" priority (load)="imagesLoaded()" (error)="imagesLoaded()" alt="Roll-up publicitario MIQA">
   </div>
   <div class="hero-product hero-cards">
-   <img ngSrc="/images/hero/tarjetas-personales.png" width="1385" height="1136" loading="eager" alt="Tarjetas personales MIQA">
+   <img #heroImage ngSrc="/images/hero/tarjetas-personales.png" width="1385" height="1136" priority (load)="imagesLoaded()" (error)="imagesLoaded()" alt="Tarjetas personales MIQA">
   </div>
   <div class="hero-product hero-signage">
-   <img ngSrc="/images/hero/senaletica.png" width="1536" height="1024" loading="eager" alt="Señalética impresa">
+   <img #heroImage ngSrc="/images/hero/senaletica.png" width="1536" height="1024" priority (load)="imagesLoaded()" (error)="imagesLoaded()" alt="Señalética impresa">
   </div>
  </figure>
 </section>

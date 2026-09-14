@@ -1,5 +1,12 @@
 # MIQA Store — contexto y traspaso
 
+## Navegación pública y hero — 14 de septiembre de 2026
+
+- Header de dos niveles: franja navy con Inicio/Nosotros/Ubícanos; estos dos últimos se muestran como Próximamente, sin enlace mientras no exista destino real. No se inventan datos de ubicación.
+- Desde 1360 px, hasta seis categorías públicas de ProductCatalog en el orden de la API y TODOS enlazan al catálogo existente mediante categoria. Contenedor local del header de hasta 1720 px para acomodar navegación; max-width global intacto. Bajo ese ancho, hamburguesa con enlaces superiores, categorías, Todos, búsqueda y cotización; franja superior oculta bajo 768 px.
+- Búsqueda integrada bajo el header, con foco y Escape; envía buscar a /productos y reutiliza el filtrado de productos existente. TODOS elimina filtros. Se retira Conversemos del header y se incorpora WhatsApp flotante en las vistas con header público, usando contactWhatsAppUrl y el número actual sin cambios.
+- Hero conserva copy, assets y keyframes originales de entrada arriba/izquierda/derecha (historial 357dcfc), con duración vigente de 1400 ms y delays 0/120/240 ms. La entrada espera la carga de las tres imágenes para que no transcurra antes de verlas. Composición reposicionada en desktop/móvil con las tres piezas visibles; reduced motion presenta directamente su estado final. Superficies claras cyan y divisores refuerzan la marca sin rehacer secciones inferiores.
+
 ## Refinamiento del admin — 14 de septiembre de 2026
 
 - Materiales y categorías administrativos se muestran alfabéticamente por nombre con el comparador español existente, sin campos ni textos de Orden. Se ordenan copias de las colecciones únicamente en estas vistas; al editar se conserva displayOrder y al crear se asigna 0 internamente. El orden público de categorías/Home permanece intacto, sin cambios de API ni esquema.

@@ -19,16 +19,16 @@ describe('MIQA Home', () => {
   dialog.showModal = showModal;
   const alert = vi.spyOn(window, 'alert');
   const links = element.querySelectorAll<HTMLAnchorElement>('app-header a[target="_blank"], app-hero a[target="_blank"], app-contact-cta a');
-  expect(links.length).toBe(4);
-  expect(element.querySelector('.contact-button')?.textContent).toContain('Conversemos');
+  expect(links.length).toBe(3);
+  expect(element.querySelector('.contact-button')).toBeNull();
   expect(element.querySelector('.text-button')?.textContent).toContain('Hablar con nosotros');
-  element.querySelector<HTMLButtonElement>('.mobile-toggle')!.click();
+
   await harness.fixture.whenStable();
   for (const link of links) {
    expect(link.getAttribute('href')).toBe(contactWhatsAppUrl());
    expect(link.target).toBe('_blank');
    expect(link.rel).toBe('noopener noreferrer');
-   expect(link.textContent?.trim()).toBeTruthy();
+   expect(link.getAttribute('aria-label') || link.textContent?.trim()).toBeTruthy();
    link.addEventListener('click', event => event.preventDefault(), { once: true });
    link.click();
   }
@@ -52,6 +52,7 @@ describe('MIQA Home', () => {
   expect(TestBed.inject(Meta).getTag('name="description"')?.content).toContain('hacer visible tu marca');
  });
  it('opens and closes the mobile navigation using Escape', async () => {
+  TestBed.configureTestingModule({providers:[provideRouter(routes)]});
   const fixture = TestBed.createComponent(Header);
   await fixture.whenStable();
   const element: HTMLElement = fixture.nativeElement;

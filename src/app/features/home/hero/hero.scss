@@ -1,3 +1,4 @@
+:host { display:block; background:#f3f8f9; border-bottom:1px solid #d6eaed; }
 .hero { display: grid; gap: 22px; padding-top: 26px; padding-bottom: 44px; }
 .brand-dot { width: 7px; height: 7px; border-radius: 50%; background: #0eabb6; }
 .hero-copy > .eyebrow { color: var(--muted); font-size: 10px; }
@@ -12,24 +13,25 @@ h1 { color: var(--miqa-navy); font-size: clamp(36px, 4.4vw, 64px); line-height: 
 
 .hero-visual {
  position: relative; min-width: 0; min-height: 320px; margin: 0;
- background: #eeede9;
+ background: #dceff1;
  border-radius: 90px var(--radius-media) var(--radius-media) var(--radius-media);
  overflow: hidden; isolation: isolate;
 }
 .hero-product { position: absolute; }
 .hero-product img { display: block; width: 100%; height: 100%; object-fit: contain; }
 .hero-rollup { z-index: 2; width: 55.76%; height: 72.16%; left: 22.12%; top: 14%; }
-.hero-cards { z-index: 3; width: 39.36%; left: 14%; bottom: 16%; transform: rotate(-7deg); }
-.hero-signage { z-index: 1; width: 41.82%; right: 14%; top: 46%; transform: rotate(6deg); }
+.hero-cards { z-index: 3; width: 43%; left: 4%; bottom: 12%; transform: rotate(-7deg); }
+.hero-signage { z-index: 3; width: 43%; right: 3%; top: 48%; transform: rotate(6deg); }
 @media (min-width: 768px) {
  .hero-rollup { width: 52.48%; left: 23.76%; }
- .hero-cards { width: 38.54%; bottom: 17.2%; }
- .hero-signage { width: 40.18%; top: 44.3%; }
+ .hero-cards { width: 38.54%; left:7%; bottom: 17.2%; }
+ .hero-signage { width: 40.18%; right:5%; top: 44.3%; }
 }
 @media (prefers-reduced-motion: no-preference) {
- .hero-rollup { animation: rollup-enter 1400ms var(--motion-ease) both; }
- .hero-cards { animation: cards-enter 1400ms var(--motion-ease) 120ms both; }
- .hero-signage { animation: signage-enter 1400ms var(--motion-ease) 240ms both; }
+ .hero-visual:not(.ready) .hero-product { opacity:0; }
+ .ready .hero-rollup { animation: rollup-enter 1400ms var(--motion-ease) both; }
+ .ready .hero-cards { animation: cards-enter 1400ms var(--motion-ease) 120ms both; }
+ .ready .hero-signage { animation: signage-enter 1400ms var(--motion-ease) 240ms both; }
 }
 @keyframes rollup-enter {
  from { opacity: 0; transform: translateY(-40px) scale(.98); }
