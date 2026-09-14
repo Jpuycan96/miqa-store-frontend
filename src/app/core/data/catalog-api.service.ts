@@ -1,6 +1,6 @@
 ﻿import { afterNextRender, inject, Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
-import { BehaviorSubject, catchError, filter, map, Observable, of, shareReplay, switchMap, take, throwError, timeout } from 'rxjs';
+import { BehaviorSubject, catchError, filter, map, Observable, of, switchMap, take, throwError, timeout } from 'rxjs';
 import { STORE_API_CONFIG } from '../config/store-api';
 import { CategoryDto, mapCategory, mapProduct, ProductDto } from './catalog-mapper';
 import type { CatalogFilters, ProductCatalog } from './product-catalog';
@@ -12,7 +12,7 @@ export class CatalogApiService implements ProductCatalog {
   private readonly ready = new BehaviorSubject(false);
   private readonly baseUrl = this.config.baseUrl.replace(/\/+$/, '') + '/api/public';
   private readonly categoryRequest = this.get<readonly CategoryDto[]>('/categories').pipe(
-    map(categories => categories.map(mapCategory)), shareReplay({ bufferSize: 1, refCount: true })
+    map(categories => categories.map(mapCategory))
   );
   constructor() {
     // No requests while prerendering or before hydration. Builds never need a running local API.

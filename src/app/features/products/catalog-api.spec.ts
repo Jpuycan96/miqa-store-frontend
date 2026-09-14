@@ -31,6 +31,7 @@ describe('Catalog HTTP integration without backend', () => {
     await h.fixture.whenStable();
     expect(el.querySelector('[role=alert]')?.textContent).toContain('No pudimos cargar');
     el.querySelector<HTMLButtonElement>('[role=alert] button')!.click();
+    http.expectOne(base + '/categories').flush([product.category]);
     http.expectOne(base + '/products').flush([product]);
     await h.fixture.whenStable();
     expect(el.querySelectorAll('.catalog-card')).toHaveLength(1);

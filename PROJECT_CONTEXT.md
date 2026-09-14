@@ -1,5 +1,55 @@
 # MIQA Store — contexto y traspaso
 
+## Cierre de versionado local ? 13 de septiembre de 2026
+
+Cierre Git LOCAL: se conserva main y origin existente. Store API ya estaba versionada en 67502d7; el commit de esta etapa incluye solamente el panel administrativo y cambios/documentaci?n pendientes. Validaci?n: 61 tests, build correcto y tres rutas prerenderizadas. Sin push, deploy ni cambios funcionales nuevos durante el cierre.
+
+
+## Panel administrativo local completado — 13 de septiembre de 2026
+
+Estado vigente para administración. Esta sección reemplaza las referencias históricas a ausencia de admin y a categorías públicas cacheadas permanentemente. No se rediseñó Home ni catálogo, no se modificó QuoteStore y no se hizo commit/push/deploy, ni cambios en ERP, Cloudflare o producción.
+
+Al retomar tras el límite de créditos ya existían la API admin, JWT/BCrypt, migración V3, las seis rutas Angular, formularios, subrecursos y tests. También existía la corrección para no registrar credenciales en logs. Quedaban la documentación frontend y la última validación del paquete corregido. Se conservaron todos los archivos y migraciones; no se reconstruyó el panel.
+
+Rutas lazy, standalone y con RenderMode.Client:
+- /admin/login: login y errores, autocomplete adecuado, sin Header/Footer público.
+- /admin: resumen de productos totales/publicados/destacados y categorías activas, calculado con endpoints existentes.
+- /admin/productos: listado responsive, búsqueda con debounce 300 ms, categoría, published y featured; acciones publicar/despublicar/destacar/quitar destacado.
+- /admin/productos/nuevo y /admin/productos/:id/editar: nombre, slug editable/sugerido solo hasta edición manual, categoría, descripciones, QUANTITY/PACK/AREA, unidades, presentación, mínimos/paso, orden, visibilidad y SEO.
+- /admin/categorias: alta/edición inline, nombre/slug/descripción/orden y estado activo.
+
+Layout desktop sidebar + contenido; móvil navegación colapsable en flujo, sin tabla ancha. Componentes principales en src/app/features/admin: AdminLogin, AdminLayout, AdminSummary, AdminProductList, AdminProductForm, AdminCategories, ProductResources y OptionEditor. No Angular Material ni librerías visuales nuevas.
+
+AdminApi concentra las llamadas HTTP y usa STORE_API_CONFIG.baseUrl = http://127.0.0.1:8081. El catálogo público conserva ProductCatalog/CatalogApiService: categorías se vuelven a consultar al visitar la vista para reflejar administración sin una caché permanente. Productos/detalles ya consultaban API. No mocks en producción ni dependencia admin → fixtures. El parámetro category administrativo representa ID; el público sigue usando slug.
+
+AdminAuth encapsula token, login/logout/me y localStorage miqa.admin.session.v1 con guard isPlatformBrowser. Interceptor agrega Bearer solo al prefijo /api/admin/ de la API configurada, nunca a terceros o /api/public; 401 borra sesión y redirige al login. Guard de padre/hijos valida sesión con /auth/me. No se guardan contraseñas. localStorage permite persistir la sesión pero es accesible ante XSS; antes de producción revisar CSP, política de expiración y alternativa cookie HttpOnly/BFF con CSRF. Logout local no revoca un JWT copiado hasta expirar; backend verifica también usuario activo en cada solicitud.
+
+Backend D:\MIQA-STORE\miqa-store-backend: Spring Security, JWT HS256 con clave base64 de al menos 32 bytes, issuer/audience, expiración configurable (PT1H por defecto), BCrypt cost 12 y límite local de cinco fallos de login por minuto/usuario. /api/admin/** protegido salvo POST /auth/login; GET /api/public/** abierto. CORS permite exactamente http://localhost:4200, incluido Authorization. Endpoints completos y variables documentados en README/PROJECT_CONTEXT del backend.
+
+Formulario PACK exige packSize/packLabel; QUANTITY y AREA envían ambos null. Se avisa que guardar otro tipo eliminará presentación PACK; lo escrito se conserva hasta guardar o volver a PACK y se limpia tras guardar otro tipo. UI y backend validan cantidades, orden, longitudes, requeridos y slug; DB garantiza unicidad. Opciones permiten agregar/editar nombre, estado y orden. Imagen permite URL/path, altText, orden, principal y preview. Solo referencias: no upload físico; media futura en VPS mediante MEDIA_STORAGE_PATH/MEDIA_BASE_URL, independiente de Angular. Referencias /images/... del seed y validación son TEMPORALES.
+
+SSR/build: /admin y /admin/** se resuelven en cliente, sin prerender de sesión ni HTTP admin en build. Catálogo y detalle mantienen su estrategia y noindex; admin establece noindex,nofollow. Sitemap/Cloudflare intactos. SEO de producto se almacena/administra, sin activar indexación pública.
+
+Validación al retomar: 61/61 tests frontend en 18 archivos, 26/26 backend sin omitidos. npm.cmd run build correcto, bundles browser/server y tres rutas públicas prerenderizadas (/ /productos /proyectos); comprobado con API apagada. Maven test/package Java 21 correctos, Flyway V1/V2/V3 y Hibernate validate. Tests HTTP frontend no requieren backend real: login, guard, interceptor por origen, 401, creación/edición, slug manual, PACK/AREA, categorías y regresiones de catálogo/cotización.
+
+Para usar el panel (terminales separadas):
+
+```powershell
+cd D:\MIQA-STORE\miqa-store-backend
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts\Start-LocalAdmin.ps1 -Username miqa-local
+# Elegir contraseña LOCAL de al menos 12 caracteres en el prompt seguro.
+
+cd D:\MIQA-STORE\miqa-store-frontend
+npm.cmd start -- --host localhost --port 4200
+# Abrir http://localhost:4200/admin/login
+```
+
+El helper genera/reutiliza .local/admin-jwt.key (ignorado) y carga PostgreSQL aislado 127.0.0.1:55432 / miqa_store_db. LocalAdminBootstrap solo se ejecuta con perfil local y tabla admin_users vacía; no cambia contraseñas existentes. Tests usan exclusivamente miqa_store_test_db. ADMIN_JWT_SECRET es obligatorio para arrancar sin helper; ADMIN_JWT_EXPIRATION opcional. ADMIN_BOOTSTRAP_USERNAME/PASSWORD solo para primera cuenta local. No contraseñas predeterminadas ni de producción.
+
+Deuda antes de producción: TLS/proxy VPS, API URL y CORS reales, secretos nuevos/rotación, provisión del primer admin de producción, restricciones de acceso a claves locales, rate limiting persistente/proxy, CSP y política de sesión, backup/permisos DB. Listados sin paginación, sin versión optimista ni historial de auditoría y sin guard global de cambios sin guardar. Upload, entrega /media, recuperación de contraseña, roles complejos, analítica, pedidos/pagos y ERP permanecen excluidos.
+
+
+
 ## Integración local Store API — 13 de septiembre de 2026
 
 Esta es la fuente vigente para el catálogo y reemplaza las referencias históricas a LocalProductCatalog/mocks y a ocho rutas prerenderizadas. Trabajo LOCAL, sin commit, push, deploy, cambios en Cloudflare/ERP/producción ni modificaciones del backend. Al comenzar, frontend estaba limpio en b8d6387.
@@ -604,3 +654,8 @@ Orden decidido por el propietario, no autorización para ejecutarlo automáticam
 11. Después iniciar Store API + PostgreSQL.
 12. Después construir administración de catálogo.
 13. Integraciones con ERP/SUNAT/pagos quedan para fases posteriores.
+Validación integrada final tras retomar (13/09/2026): el paquete actualizado pasó login/guard, creación de categoría y producto, edición, material/extra/imagen principal, publicación visible en /productos, edición posterior reflejada en ficha pública, despublicación y logout. Sin errores JS inesperados; sin overflow en 360/390/768/1024/1440/1920; axe sin infracciones en listado, categorías y edición a 390/1440. Se conservaron las capturas y evidencia en .tmp/admin-browser-check.json y admin-*.png.
+
+Estado final verificado en PostgreSQL: dos productos con slugs admin-local-check-1789281049545 y admin-local-check-1789358366249, ambos published=false; categorías homónimas active=false. Sus opciones/imágenes solo pertenecen a esos borradores. Cinco productos originales permanecen públicos. Usuario admin-e2e-local eliminado, admin_users vacío, preparado para crear cuenta propia con Start-LocalAdmin.ps1. No se conservó una contraseña de pruebas utilizable. Flyway V1/V2/V3 success en ambas bases; sin migraciones adicionales en la reanudación.
+
+Backend de validación detenido y puerto 8081 libre; PostgreSQL propio sigue activo en 55432. Frontend disponible en localhost:4200. Para iniciar sesión por primera vez, arrancar backend con el helper y elegir contraseña propia; no hay admin/password predeterminados. Documentación backend README/PROJECT_CONTEXT y frontend PROJECT_CONTEXT completada; no hubo cambios de implementación ni errores de compilación que requirieran rehacer archivos durante esta reanudación.
