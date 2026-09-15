@@ -1,5 +1,13 @@
 # MIQA Store — contexto y traspaso
 
+## Configuración de entornos frontend/API — 15 de septiembre de 2026
+
+- DEV frontend: http://localhost:4200
+- DEV API: http://localhost:8081
+- PROD API: https://api-store.solucionesmicaela.com
+- `npm start` usa la configuración `development` de Angular y reemplaza `src/environments/environment.ts` por `src/environments/environment.development.ts`.
+- `npm run build` usa la configuración `production` predeterminada y conserva `src/environments/environment.ts`. `STORE_API_CONFIG` es el único punto de configuración consumido por catálogo y administración; `mediaBaseUrl` permanece vacío para conservar las referencias `/images/...` existentes.
+
 ## Catálogo compacto — 15 de septiembre de 2026
 
 - /productos deja de renderizar la fila de filtros bajo «Encuentra lo que necesitas». El header mantiene la navegación por categoría y TODOS; se conservan los filtros categoria/buscar por URL, los nombres de categoría y toda la lógica de cotización.

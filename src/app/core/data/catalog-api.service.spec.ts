@@ -5,6 +5,7 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { CatalogApiService } from './catalog-api.service';
 import { ProductCatalog } from './product-catalog';
 import { ProductDto, mapProduct, resolveProductImage } from './catalog-mapper';
+import { environment } from '../../../environments/environment';
 
 @Component({ template: '' })
 class RenderHost {}
@@ -15,7 +16,7 @@ export const API_PRODUCT: ProductDto = {
   saleType: 'PACK', unitLabel: 'unidad', packSize: 1000, packLabel: 'millar',
   minQuantity: null, step: null, materials: null, extras: null
 };
-const base = 'https://api-store.solucionesmicaela.com/api/public';
+const base = `${environment.storeApiBaseUrl}/api/public`;
 describe('Catalog API', () => {
   let api: CatalogApiService;
   let http: HttpTestingController;

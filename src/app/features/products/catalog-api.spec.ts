@@ -6,8 +6,9 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { routes } from '../../app.routes';
 import { QUOTE_STORAGE_KEY } from '../../core/quote/quote-store';
 import { ProductDto } from '../../core/data/catalog-mapper';
+import { environment } from '../../../environments/environment';
 
-const base = 'https://api-store.solucionesmicaela.com/api/public';
+const base = `${environment.storeApiBaseUrl}/api/public`;
 const product: ProductDto = {
   id: 'api-only', slug: 'api-only', name: 'API only product', shortDescription: '', description: '',
   category: { slug: 'imprenta-papeleria', name: 'Imprenta' }, image: '/images/products/volantes.png',

@@ -2,10 +2,11 @@ import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { OptionEditor } from './option-editor';
+import { environment } from '../../../environments/environment';
 
 describe('Compact material editor',()=>{
  let http:HttpTestingController;
- const base='https://api-store.solucionesmicaela.com/api/admin/products/p1/materials';
+ const base=`${environment.storeApiBaseUrl}/api/admin/products/p1/materials`;
  const materials=[{id:'m1',name:'Zeta',active:true,displayOrder:7},{id:'m2',name:'Álbum',active:false,displayOrder:2}];
  beforeEach(()=>{TestBed.configureTestingModule({providers:[provideHttpClient(),provideHttpClientTesting()]});http=TestBed.inject(HttpTestingController);});
  afterEach(()=>http.verify());
