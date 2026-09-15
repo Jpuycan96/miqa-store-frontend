@@ -35,7 +35,7 @@ describe('Home projects', () => {
 
   it('follows Services and provides a valid portfolio route', async () => {
     const harness = await RouterTestingHarness.create('/');
-    expect(harness.routeNativeElement?.querySelector('app-services + app-projects')).toBeTruthy();
+    expect(harness.routeNativeElement?.querySelector('app-featured-products + app-projects')).toBeTruthy();
     expect(harness.routeNativeElement?.querySelector('.projects-link')?.getAttribute('href')).toBe('/proyectos');
     await harness.navigateByUrl('/proyectos');
     expect(harness.routeNativeElement?.querySelector('h1')?.textContent).toBe('Estamos preparando nuestro portafolio completo.');

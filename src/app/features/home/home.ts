@@ -6,11 +6,10 @@ import { Hero } from './hero/hero';
 import { Categories } from './categories/categories';
 import { FeaturedProducts } from './featured-products/featured-products';
 import { FEATURED_PRODUCTS } from './featured-products/featured-products.mock';
-import { Services } from './services/services';
 import { Projects } from './projects/projects';
 import { ContactCta } from './contact-cta/contact-cta';
 @Component({
- selector: 'app-home', imports: [Header, Footer, Hero, Categories, FeaturedProducts, Services, Projects, ContactCta],
+ selector: 'app-home', imports: [Header, Footer, Hero, Categories, FeaturedProducts, Projects, ContactCta],
  template: `
   <a class="skip-link" href="#contenido">Saltar al contenido</a>
   <app-header />
@@ -18,7 +17,6 @@ import { ContactCta } from './contact-cta/contact-cta';
    <app-hero />
    <app-categories [query]="query()" (explore)="openNotice($event, info)" />
    <app-featured-products [products]="products" />
-   <app-services />
    <app-projects />
    <app-contact-cta />
   </main>

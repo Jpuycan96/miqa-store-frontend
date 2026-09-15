@@ -36,7 +36,7 @@ describe('Home services', () => {
 
   it('places services after the selection and opens the prepared catalog route', async () => {
     const harness = await RouterTestingHarness.create('/');
-    expect(harness.routeNativeElement?.querySelector('app-featured-products + app-services')).toBeTruthy();
+    expect(harness.routeNativeElement?.querySelector('app-services')).toBeNull();
     expect(harness.routeNativeElement?.querySelector('.catalog-link')?.getAttribute('href')).toBe('/productos');
     await harness.navigateByUrl('/productos');
     expect(harness.routeNativeElement?.querySelector('#catalog-title')?.textContent).toContain('Encuentra lo que necesitas');

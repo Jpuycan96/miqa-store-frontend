@@ -36,7 +36,7 @@ describe('MIQA Home', () => {
   expect(element.querySelector<HTMLElement>('#mobile-nav')!.hidden).toBe(true);
   expect(showModal).not.toHaveBeenCalled();
   expect(alert).not.toHaveBeenCalled();
-  expect(element.querySelector('app-hero .primary-button')?.getAttribute('href')).toBe('#categorias');
+  expect(element.querySelector('app-hero .primary-button')?.getAttribute('href')).toBe('/productos');
   expect(element.querySelector('#categorias')).toBeTruthy();
   vi.restoreAllMocks();
  });

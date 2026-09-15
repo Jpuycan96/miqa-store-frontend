@@ -34,7 +34,7 @@ describe('Footer', () => {
     const home = harness.routeNativeElement!;
     expect(home.querySelector('main')?.nextElementSibling?.tagName).toBe('APP-FOOTER');
     expect(home.querySelector('main')?.lastElementChild?.tagName).toBe('APP-CONTACT-CTA');
-    expect(home.querySelector('#servicios')).toBeTruthy();
+    expect(home.querySelector('#servicios')).toBeNull();
     for (const path of ['/productos', '/proyectos']) {
       await harness.navigateByUrl(path);
       expect(harness.routeNativeElement?.querySelector('h1')).toBeTruthy();
