@@ -1,0 +1,14 @@
+:host { display: block; background: #f3f8f9; border-top: 1px solid #d6eaed; }
+.home-contact { display: grid; gap: 28px; padding-block: 32px; color: var(--miqa-navy); }
+.contact-map { min-width: 0; overflow: hidden; background: #dceff1; border-radius: var(--radius-media); }
+.contact-map iframe { display: block; width: 100%; height: 260px; border: 0; }
+.maps-link { display: flex; align-items: center; justify-content: center; gap: 12px; min-height: 48px; padding: 8px 16px; font-size: 14px; font-weight: 600; text-decoration: underline; text-underline-offset: 4px; }
+h2 { font-size: clamp(32px, 3vw, 42px); font-weight: 500; line-height: 1.15; letter-spacing: -.04em; }
+dl { margin: 24px 0 0; display: grid; gap: 20px; }
+dt { font-size: 12px; font-weight: 600; margin-bottom: 6px; }
+dd { margin: 0; font-size: 16px; }
+dd a { display: inline-flex; align-items: center; gap: 16px; min-height: 44px; font-size: 24px; text-decoration: underline; text-underline-offset: 5px; }
+@media (min-width: 768px) {
+  .home-contact { grid-template-columns: 1.15fr 1fr; align-items: center; gap: 48px; padding-block: 40px; }
+  .contact-map iframe { height: 300px; }
+}

@@ -37,7 +37,7 @@ describe('MIQA Home', () => {
   expect(showModal).not.toHaveBeenCalled();
   expect(alert).not.toHaveBeenCalled();
   expect(element.querySelector('app-hero .primary-button')?.getAttribute('href')).toBe('/productos');
-  expect(element.querySelector('#categorias')).toBeTruthy();
+  expect(element.querySelector('#categorias')).toBeNull();
   vi.restoreAllMocks();
  });
  it('renders the home route and SEO metadata', async () => {
@@ -47,7 +47,7 @@ describe('MIQA Home', () => {
   expect(heading).toContain('Tu marca');
   expect(heading).toContain('nuestro compromiso');
   expect(heading).not.toContain('Hacemos');
-  expect(harness.routeNativeElement?.querySelectorAll('.category').length).toBe(6);
+  expect(harness.routeNativeElement?.querySelectorAll('.category').length).toBe(0);
   expect(TestBed.inject(Title).getTitle()).toBe('MIQA | Impresión, publicidad y soluciones gráficas');
   expect(TestBed.inject(Meta).getTag('name="description"')?.content).toContain('hacer visible tu marca');
  });

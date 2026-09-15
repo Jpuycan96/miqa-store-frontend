@@ -3,22 +3,22 @@ import { Seo } from '../../core/seo/seo';
 import { Header } from '../../core/header/header';
 import { Footer } from '../../core/footer/footer';
 import { Hero } from './hero/hero';
-import { Categories } from './categories/categories';
 import { FeaturedProducts } from './featured-products/featured-products';
 import { FEATURED_PRODUCTS } from './featured-products/featured-products.mock';
 import { Projects } from './projects/projects';
+import { HomeContact } from './contact/contact';
 import { ContactCta } from './contact-cta/contact-cta';
 @Component({
- selector: 'app-home', imports: [Header, Footer, Hero, Categories, FeaturedProducts, Projects, ContactCta],
+ selector: 'app-home', imports: [Header, Footer, Hero, FeaturedProducts, Projects, ContactCta, HomeContact],
  template: `
   <a class="skip-link" href="#contenido">Saltar al contenido</a>
   <app-header />
   <main id="contenido" tabindex="-1">
    <app-hero />
-   <app-categories [query]="query()" (explore)="openNotice($event, info)" />
    <app-featured-products [products]="products" />
    <app-projects />
    <app-contact-cta />
+   <app-home-contact />
   </main>
   <app-footer />
   <dialog #info aria-labelledby="notice-title" aria-describedby="notice-text">

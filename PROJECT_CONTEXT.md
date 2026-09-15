@@ -1,5 +1,13 @@
 # MIQA Store — contexto y traspaso
 
+## Home: proyectos compactos y contacto — 14 de septiembre de 2026
+
+- La sección visual «¿Qué necesitas crear?» y sus seis tarjetas dejan de renderizarse en Home; el componente reutilizable, el header y el catálogo se conservan.
+- Proyectos conserva las cinco muestras existentes (el pedido mencionaba cuatro), sus títulos y categorías. Desktop desde 1024 px usa siete columnas: principal de tres columnas y dos filas, cuatro muestras de dos columnas a su derecha; medios secundarios de 150 px, gap 24 × 20 px y padding de sección 36/40 px. Altura total comprobada: 672–680 px en 1276/1440/1920. Móvil apilado con medios de 210 px; tablet conserva dos columnas.
+- HomeContact al final del main, después de ContactCta y antes del footer: mapa a la izquierda e información a la derecha desde 768 px; apilado debajo. Solo este bloque usa 957 173 688 y https://wa.me/51957173688. El número global y los contactos anteriores no cambian.
+- Ubicación confirmada por el propietario el 15 de septiembre de 2026: Av. España Nº1520, Trujillo 13007. Google Maps identifica el negocio con ftid 0x91ad3db79e2849f1:0x307e6133cef0512e (CID decimal 3494337236029165870). El iframe usa https://www.google.com/maps?cid=3494337236029165870&output=embed, carga lazy, título accesible, ancho 100% y alto 260 px móvil / 300 px desktop. «Abrir en Maps» conserva el enlace completo suministrado por el propietario, en pestaña nueva con noopener noreferrer. Se retiró el aviso de ubicación pendiente. Sin formulario ni email; header y otras secciones intactos.
+- Validación local: 91/91 tests, build correcto con tres rutas prerenderizadas; 375/430/768/1276/1440/1920 sin overflow horizontal, revisión visual y seis auditorías axe sin infracciones. Evidencias ignoradas en .tmp/home-contact-*, .tmp/home-projects-* y .tmp/check-home-contact.cjs. Sin commit, push ni deploy.
+
 ## Navegación pública y hero — 14 de septiembre de 2026
 
 - Hero mobile: contenedor cuadrado con margen interior del 8%, piezas proporcionales y alturas naturales, sin scale ni recorte del contenedor. Home conserva solo el H1 y los dos enlaces del hero; Explorar productos abre /productos sin filtros (Todos). El bloque completo de Servicios deja de renderizarse en Home; el componente reutilizable se conserva.
