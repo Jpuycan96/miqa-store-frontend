@@ -1,5 +1,11 @@
 # MIQA Store — contexto y traspaso
 
+## Catálogo compacto — 15 de septiembre de 2026
+
+- /productos deja de renderizar la fila de filtros bajo «Encuentra lo que necesitas». El header mantiene la navegación por categoría y TODOS; se conservan los filtros categoria/buscar por URL, los nombres de categoría y toda la lógica de cotización.
+- Desde 1024 px: tres productos por fila, imágenes de 210 px de alto con contain y padding 12 px, gap vertical 18 px, márgenes de categoría/título/presentación reducidos y controles de 44 px intactos. Padding superior del catálogo 12 px, heading 4 px y contador 4/8 px. Sin cambios a Home, header, búsqueda, WhatsApp, admin ni backend.
+- Verificación local con seis productos representativos y API interceptada: en 1276×1031 las dos filas completas terminan en y=931 px sin scroll; en 1440/1920×1031 terminan en y=936 px. Imágenes proporcionadas, sin overflow; tres auditorías axe sin infracciones. Navegación por categoría y TODOS comprobada; tests de catálogo actualizados para la navegación por URL en lugar de los filtros retirados. Evidencias ignoradas .tmp/catalog-compact-* y .tmp/check-catalog-compact.cjs.
+
 ## Home: proyectos compactos y contacto — 14 de septiembre de 2026
 
 - La sección visual «¿Qué necesitas crear?» y sus seis tarjetas dejan de renderizarse en Home; el componente reutilizable, el header y el catálogo se conservan.

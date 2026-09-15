@@ -2,10 +2,6 @@
   <div class="catalog-heading">
     <div><p class="eyebrow">PRODUCTOS MIQA</p><h1 id="catalog-title">Encuentra lo que necesitas.</h1><p class="intro">Configura tus productos y reúne todo en una sola cotización.</p></div>
   </div>
-  <div class="category-chips" role="group" aria-label="Filtrar por categoría">
-    <button [attr.aria-pressed]="!category()" (click)="filterCategory('')">Todos</button>
-    @for (option of categories(); track option.slug) { <button [attr.aria-pressed]="category() === option.slug" (click)="filterCategory(option.slug)">{{ option.name }}</button> }
-  </div>
   @if (categoryState().error) { <p class="status" role="alert">No pudimos cargar las categorías. <button type="button" (click)="retry()">Reintentar</button></p> }
   <div class="catalog-layout"><div class="catalog-main">
   @if (state().loading) { <p class="status" role="status">Cargando productos…</p> }

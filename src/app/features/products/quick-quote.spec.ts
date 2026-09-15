@@ -17,20 +17,19 @@ describe('Quick catalog quoting', () => {
   });
   afterEach(() => { vi.restoreAllMocks(); Reflect.deleteProperty(HTMLDialogElement.prototype, 'showModal'); Reflect.deleteProperty(HTMLDialogElement.prototype, 'close'); localStorage.removeItem(QUOTE_STORAGE_KEY); });
 
-  it('filters using category chips and preserves name search', async () => {
+  it('combines category URL filters with name search without duplicate category controls', async () => {
     const h = await RouterTestingHarness.create('/productos');
     const el = h.routeNativeElement!;
     const search = el.querySelector<HTMLInputElement>('#header-product-search')!;
     search.value = 'tarjetas'; search.dispatchEvent(new Event('input'));
     TestBed.tick();
     await new Promise(resolve => setTimeout(resolve, 650));
-    const chips = Array.from(el.querySelectorAll<HTMLButtonElement>('.category-chips button'));
-    chips.find(b => b.textContent?.includes('Imprenta'))!.click();
+    expect(el.querySelector('.category-chips')).toBeNull();
+    await h.navigateByUrl('/productos?categoria=imprenta-papeleria&buscar=tarjetas');
     await h.fixture.whenStable();
     expect(el.querySelectorAll('.catalog-card')).toHaveLength(1);
     expect(search.value).toBe('tarjetas');
-    expect(chips.find(b => b.textContent?.includes('Imprenta'))!.getAttribute('aria-pressed')).toBe('true');
-    chips.find(b => b.textContent?.includes('gran formato'))!.click();
+    await h.navigateByUrl('/productos?categoria=impresion-gran-formato&buscar=tarjetas');
     await h.fixture.whenStable();
     expect(el.querySelectorAll('.catalog-card')).toHaveLength(0);
   });

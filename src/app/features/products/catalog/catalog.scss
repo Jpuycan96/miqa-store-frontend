@@ -5,9 +5,6 @@ h1 { margin-top: 6px; color: var(--miqa-navy); font-size: clamp(27px, 2.7vw, 35p
 .intro { margin-top: 6px; font-size: 14px; line-height: 1.5; color: var(--muted); }
 .field { min-width: 0; } label { display: block; font-size: 12px; font-weight: 600; margin-bottom: 6px; }
 input { width: 100%; min-width: 0; min-height: 44px; border: 1px solid #c4cbd4; border-radius: 12px; padding: 10px 14px; background: white; color: var(--ink); font: inherit; font-size: 14px; }
-.category-chips { display: flex; gap: 8px; overflow-x: auto; padding: 5px 4px 8px; scrollbar-width: thin; }
-.category-chips button { flex-shrink: 0; min-height: 44px; padding: 8px 12px; border: 1px solid #c4cbd4; border-radius: 99px; background: white; color: var(--miqa-navy); font-size: 12px; cursor: pointer; }
-.category-chips button[aria-pressed=true] { background: var(--miqa-navy); color: white; border-color: var(--miqa-navy); font-weight: 600; }
 .catalog-layout, .catalog-main { min-width: 0; }
 .results { color: var(--muted); font-size: 12px; margin-block: 8px 12px; }
 .product-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 22px 18px; }
@@ -31,3 +28,15 @@ h2 { margin-block: 5px 8px; font-size: 20px; font-weight: 600; color: var(--miqa
 @media (min-width: 600px) { .product-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (min-width: 1024px) { .catalog-heading { flex-direction: row; align-items: center; justify-content: space-between; gap: 24px; } .field { width: 280px; } .product-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 @media (min-width: 1280px) { .catalog-layout { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 1fr); gap: 24px; } }
+
+@media (min-width: 1024px) {
+  .catalog { padding-block: 12px 24px; }
+  .catalog-heading { margin-bottom: 4px; }
+  .results { margin-block: 4px 8px; }
+  .product-grid { row-gap: 18px; }
+  .product-image { aspect-ratio: auto; height: 210px; --product-image-padding: 12px; }
+  .category-name { margin-top: 6px; }
+  h2 { margin-block: 3px 5px; line-height: 1.2; }
+  .presentation { margin-bottom: 4px; }
+  .image-note { margin-top: 16px; }
+}

@@ -18,6 +18,7 @@ describe('Local catalog and configurator', () => {
     const harness = await RouterTestingHarness.create('/productos?categoria=imprenta-papeleria');
     const element = harness.routeNativeElement!;
     expect(element.querySelectorAll('.catalog-card').length).toBe(2);
+    expect(element.querySelector('.category-chips')).toBeNull();
     const input = element.querySelector<HTMLInputElement>('#header-product-search')!;
     input.value = 'VOLANTES'; input.dispatchEvent(new Event('input'));
     TestBed.tick();
@@ -30,6 +31,12 @@ describe('Local catalog and configurator', () => {
     await new Promise(resolve => setTimeout(resolve, 650));
     await harness.fixture.whenStable();
     expect(element.querySelector('.empty')).toBeTruthy();
+    const allUrl = element.querySelector('app-header a.all')!.getAttribute('href')!;
+    expect(allUrl).toBe('/productos');
+    await harness.navigateByUrl(allUrl);
+    await new Promise(resolve => setTimeout(resolve, 650));
+    await harness.fixture.whenStable();
+    expect(harness.routeNativeElement!.querySelectorAll('.catalog-card').length).toBeGreaterThan(2);
   });
 
   it('requires dimensions and a single material before adding AREA; resets on slug change', async () => {
