@@ -20,6 +20,8 @@ describe('Home services', () => {
     expect(element.querySelectorAll('article').length).toBe(4);
     expect(element.querySelectorAll('a, img, ol').length).toBe(0);
     expect(element.textContent).toContain('PVC desde 2 mm hasta 20 mm');
+    expect(element.querySelector('#services-title')?.textContent).toBe('Lo que hacemos');
+    expect(element.textContent).not.toMatch(/tecnología|precisión|experiencia/i);
   });
 
   it('supports a future photograph and service route supplied through data', async () => {

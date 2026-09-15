@@ -2,7 +2,7 @@
 .services { padding-block: 52px 80px; border-top: 1px solid #17203312; color: var(--miqa-navy); }
 .services-heading { display: flex; flex-direction: column; gap: 22px; margin-bottom: 36px; }
 .eyebrow { font-size: 10px; color: var(--muted); }
-h2 { margin-top: 13px; font-size: clamp(32px, 3.5vw, 48px); font-weight: 500; line-height: 1.12; letter-spacing: -.05em; }
+h2 { margin:0; font-weight:650; line-height:1.5; letter-spacing:.18em; }
 .services-intro { max-width: 300px; font-size: 14px; line-height: 1.7; color: var(--muted); }
 .services-grid { display: grid; gap: 16px; }
 .service { min-width: 0; padding: 28px; border-radius: var(--radius-media); display: flex; flex-direction: column; justify-content: space-between; gap: 28px; overflow: hidden; }

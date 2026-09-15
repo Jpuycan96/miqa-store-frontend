@@ -10,6 +10,7 @@
   <p class="hero-note"><span aria-hidden="true">✳</span> Tu idea. Nuestro oficio. Una marca que se ve.</p>
  </div>
  <figure class="hero-visual" [class.ready]="ready()" aria-label="Productos gráficos MIQA">
+  <div class="hero-composition">
   <div class="hero-product hero-rollup">
    <img #heroImage ngSrc="/images/hero/rollo-up.png" width="1024" height="1536" priority (load)="imagesLoaded()" (error)="imagesLoaded()" alt="Roll-up publicitario MIQA">
   </div>
@@ -18,6 +19,7 @@
   </div>
   <div class="hero-product hero-signage">
    <img #heroImage ngSrc="/images/hero/senaletica.png" width="1536" height="1024" priority (load)="imagesLoaded()" (error)="imagesLoaded()" alt="Señalética impresa">
+  </div>
   </div>
  </figure>
 </section>
