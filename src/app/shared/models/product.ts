@@ -31,7 +31,10 @@ export interface Product {
   readonly name: string;
   readonly shortDescription: string;
   readonly description: string;
+  readonly seoTitle?: string;
+  readonly seoDescription?: string;
   readonly categorySlug: string;
+  readonly categoryName?: string;
   readonly image: string;
   readonly gallery?: readonly string[];
   readonly images?: readonly ProductImage[];

@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
-import { Seo } from '../../core/seo/seo';
+import { MIQA_LOCAL_BUSINESS, PAGE_SEO, Seo } from '../../core/seo/seo';
 import { Header } from '../../core/header/header';
 import { Footer } from '../../core/footer/footer';
 import { Hero } from './hero/hero';
@@ -37,7 +37,7 @@ export class Home {
  readonly noticeTitle = signal('');
  readonly noticeText = signal('');
  constructor() {
-  inject(Seo).apply('/');
+  inject(Seo).applyPage('/', { ...PAGE_SEO['/'], structuredData: [MIQA_LOCAL_BUSINESS] });
  }
  openNotice(title: string, dialog: HTMLDialogElement) {
   this.noticeTitle.set(title);

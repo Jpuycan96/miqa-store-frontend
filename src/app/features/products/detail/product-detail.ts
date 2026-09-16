@@ -8,8 +8,9 @@ import { catchError, combineLatest, Subject, distinctUntilChanged, map, of, star
 import { ProductCatalog } from '../../../core/data/product-catalog';
 import { QuoteStore } from '../../../core/quote/quote-store';
 import { calculateArea, createQuoteItem, quantityLabel } from '../../../core/quote/quote-utils';
-import { Seo } from '../../../core/seo/seo';
+import { absoluteUrl, breadcrumb, INSTITUTIONAL_IMAGE, Seo } from '../../../core/seo/seo';
 import { Product } from '../../../shared/models/product';
+import { productImages } from '../../../shared/product-images/product-images';
 
 interface ProductState { slug?: string; product?: Product; loading: boolean; error: boolean; }
 
@@ -62,10 +63,18 @@ export class ProductDetail {
       const product = this.product();
       this.form.reset({ quantity: product?.minQuantity ?? 1, width: null, height: null, material: '', notes: '' });
       const path = `/productos/${encodeURIComponent(this.state().slug ?? this.route.snapshot.paramMap.get('slug') ?? '')}`;
+      const title = product?.seoTitle?.trim() || (product ? `${product.name} | MIQA` : 'Producto no disponible | MIQA');
+      const description = product?.seoDescription?.trim() || product?.shortDescription?.trim() || product?.description?.trim() || 'Explora los productos y soluciones gráficas disponibles de MIQA.';
+      const primaryImage = product ? productImages(product)[0] : undefined;
+      const image = primaryImage?.url || INSTITUTIONAL_IMAGE;
+      const structuredData = product ? [{
+        '@context':'https://schema.org','@type':'Product',name:product.name,description,
+        ...(image?{image:absoluteUrl(image)}:{}),...(product.categoryName?{category:product.categoryName}:{}),
+        url:absoluteUrl(path),brand:{'@type':'Brand',name:'MIQA'}
+      },breadcrumb([{name:'Inicio',path:'/'},{name:'Productos',path:'/productos'},{name:product.name,path}])] : [];
       this.seo.applyPage(path, {
-        title: product ? `${product.name} | MIQA` : 'Producto no disponible | MIQA',
-        description: product?.shortDescription ?? 'Explora los productos disponibles de MIQA.',
-        robots: 'noindex,follow'
+        title, description, robots: product?.published ? 'index,follow' : 'noindex,follow', type: product ? 'product' : 'website',
+        image, imageAlt: primaryImage?.altText || product?.name || 'MIQA', structuredData
       });
     });
   }

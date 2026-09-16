@@ -1,5 +1,13 @@
 # MIQA Store — contexto y traspaso
 
+## SEO público fase 1 — 16 de septiembre de 2026
+
+- Home, `/productos` limpio y los productos publicados usan `index,follow`; cualquier query param del catálogo conserva canonical `/productos` y usa `noindex,follow`. Productos consumen `seoTitle`/`seoDescription` públicos con fallbacks no vacíos, canonical propia, OG/Twitter con imagen real o logo institucional y JSON-LD Product + BreadcrumbList sin precios, ofertas, stock ni reseñas. Home usa LocalBusiness con los datos públicos confirmados.
+- El catálogo consulta la API durante prerender y entrega sus cards reales. `productos/:slug` usa `RenderMode.Prerender`, `getPrerenderParams` desde la API pública y fallback CSR para slugs aún no incluidos en el último build. El build validado generó 25 productos y 28 rutas estáticas totales.
+- `npm run build` genera primero `public/sitemap.xml` desde la API de producción; falla si la API no responde o no devuelve una lista. El sitemap validado contiene Home, catálogo y 25 productos publicados (27 URLs), sin Admin, filtros, query params ni Proyectos.
+- `public/_headers` añade `X-Robots-Tag: noindex, nofollow` a `/admin` y `/admin/*` en Cloudflare Static Assets, además del noindex Angular existente. La ruta wildcard muestra una página Not Found con `noindex,nofollow`; el HTTP 404 real sigue pendiente porque `not_found_handling: single-page-application` devuelve 200 sin introducir un Worker dinámico.
+- Validación: API producción 200 con 25 publicados; 107/107 tests; build limpio; 25/25 HTML de producto con contenido, canonical, index y JSON-LD; catálogo con 25 cards y sin «Cargando productos…»; robots y `_headers` copiados; cero páginas Admin prerenderizadas. Sin deploy, commit ni push.
+
 ## Editor Admin de productos compacto y materiales — 16 de septiembre de 2026
 
 - Información general y Configuración de venta son secciones accesibles contraíbles: abiertas al crear, cerradas al editar y tras guardar; muestran resúmenes derivados del formulario y no pierden estado al alternarse. El formulario conserva dos columnas y reduce moderadamente alturas y espacios.

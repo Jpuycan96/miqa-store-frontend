@@ -11,6 +11,7 @@ import { environment } from '../../../environments/environment';
 const base = `${environment.storeApiBaseUrl}/api/public`;
 const product: ProductDto = {
   id: 'api-only', slug: 'api-only', name: 'API only product', shortDescription: '', description: '',
+  seoTitle: 'Producto SEO', seoDescription: 'Descripción SEO del producto.',
   category: { slug: 'imprenta-papeleria', name: 'Imprenta' }, image: '/images/products/volantes.png',
   published: true, featured: false, saleType: 'QUANTITY', unitLabel: 'unidad'
 };
@@ -66,6 +67,13 @@ describe('Catalog HTTP integration without backend', () => {
     http.expectOne(base + '/products/api-only').flush(product);
     await h.fixture.whenStable();
     expect(h.routeNativeElement!.querySelector('h1')?.textContent).toBe(product.name);
-    expect(document.querySelector('meta[name=robots]')?.getAttribute('content')).toBe('noindex,follow');
+    expect(document.title).toBe('Producto SEO');expect(document.querySelector('meta[name=description]')?.getAttribute('content')).toBe('Descripción SEO del producto.');
+    expect(document.querySelector('meta[name=robots]')?.getAttribute('content')).toBe('index,follow');expect(document.querySelector('meta[property="og:type"]')?.getAttribute('content')).toBe('product');
+    expect(document.querySelector('meta[property="og:image"]')?.getAttribute('content')).toBe('https://store.solucionesmicaela.com/images/products/volantes.png');
+    const schemas=JSON.parse(document.querySelector('script[data-miqa-seo-jsonld]')?.textContent||'[]');expect(schemas.some((schema:{'@type':string})=>schema['@type']==='Product')).toBe(true);expect(schemas.some((schema:{'@type':string})=>schema['@type']==='BreadcrumbList')).toBe(true);
+  });
+  it('uses non-empty product SEO fields and falls back for blank strings',async()=>{
+    const h=await RouterTestingHarness.create('/productos/api-only');http.match(base+'/categories').forEach(request=>request.flush([]));http.expectOne(base+'/products/api-only').flush({...product,seoTitle:'   ',seoDescription:' ',shortDescription:'Descripción corta'});await h.fixture.whenStable();
+    expect(document.title).toBe('API only product | MIQA');expect(document.querySelector('meta[name=description]')?.getAttribute('content')).toBe('Descripción corta');expect(document.querySelector('link[rel=canonical]')?.getAttribute('href')).toBe('https://store.solucionesmicaela.com/productos/api-only');
   });
 });

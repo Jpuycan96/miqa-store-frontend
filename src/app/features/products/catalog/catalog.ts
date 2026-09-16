@@ -9,7 +9,7 @@ import { QuoteStore } from '../../../core/quote/quote-store';
 import { createQuoteItem } from '../../../core/quote/quote-utils';
 import { AreaConfigurator } from '../area-configurator/area-configurator';
 import { QuotePanel } from '../../../core/quote/quote-panel/quote-panel';
-import { Seo } from '../../../core/seo/seo';
+import { breadcrumb, PAGE_SEO, Seo } from '../../../core/seo/seo';
 
 @Component({
   selector: 'app-catalog', imports: [RouterLink, ProductImageGallery, AreaConfigurator, QuotePanel],
@@ -53,7 +53,14 @@ export class Catalog {
   change(product: Product, delta: number) { this.quantities.update(values => ({ ...values, [product.id]: Math.max(product.minQuantity ?? 1, this.quantity(product) + delta) })); }
   canAdd(product: Product) { return !!createQuoteItem(product, { quantity: this.quantity(product) }, 'preview'); }
   add(product: Product) { this.quote.addItem(product, { quantity: this.quantity(product) }); }
-  constructor() { inject(Seo).apply('/productos');effect(()=>this.query.set(this.requestedSearch())); }
+  constructor() {
+    const seo=inject(Seo);
+    effect(()=>{
+      this.query.set(this.requestedSearch());
+      const filtered=this.params().keys.length>0;
+      seo.applyPage('/productos',{...PAGE_SEO['/productos'],robots:filtered?'noindex,follow':'index,follow',structuredData:[breadcrumb([{name:'Inicio',path:'/'},{name:'Productos',path:'/productos'}])]});
+    });
+  }
   categoryName(slug: string) { return this.categories().find(category => category.slug === slug)?.name ?? slug; }
   filterCategory(category: string) {
     void this.router.navigate([], { relativeTo: this.route, queryParams: { categoria: category || null }, queryParamsHandling: 'merge' });

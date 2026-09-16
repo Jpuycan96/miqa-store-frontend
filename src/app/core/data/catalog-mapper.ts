@@ -22,6 +22,8 @@ export interface ProductDto {
   readonly name: string;
   readonly shortDescription: string;
   readonly description: string;
+  readonly seoTitle?: string | null;
+  readonly seoDescription?: string | null;
   readonly categorySlug?: string;
   readonly category: CategoryDto;
   readonly image: string | null;
@@ -57,7 +59,9 @@ export function mapCategory(dto: CategoryDto): ProductCategory {
 export function mapProduct(dto: ProductDto, mediaBaseUrl = ''): Product {
   return {
     id: String(dto.id), slug: dto.slug, name: dto.name, shortDescription: dto.shortDescription || dto.description,
-    description: dto.description || dto.shortDescription, categorySlug: dto.categorySlug ?? dto.category.slug,
+    description: dto.description || dto.shortDescription,
+    seoTitle: dto.seoTitle?.trim() || undefined, seoDescription: dto.seoDescription?.trim() || undefined,
+    categorySlug: dto.categorySlug ?? dto.category.slug, categoryName: dto.category.name,
     image: resolveProductImage(dto.image, mediaBaseUrl),
     gallery: (dto.gallery ?? []).map(image => resolveProductImage(image, mediaBaseUrl)),
     images: dto.images?.map(image => ({ ...image, id: String(image.id), url: resolveProductImage(image.url, mediaBaseUrl) })),

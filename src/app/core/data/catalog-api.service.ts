@@ -1,7 +1,7 @@
 import { sortProductsByName } from '../../shared/models/product-order';
-﻿import { afterNextRender, inject, Injectable } from '@angular/core';
+﻿import { inject, Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
-import { BehaviorSubject, catchError, filter, map, Observable, of, switchMap, take, throwError, timeout } from 'rxjs';
+import { catchError, map, Observable, of, throwError, timeout } from 'rxjs';
 import { STORE_API_CONFIG } from '../config/store-api';
 import { CategoryDto, mapCategory, mapProduct, ProductDto } from './catalog-mapper';
 import type { CatalogFilters, ProductCatalog } from './product-catalog';
@@ -10,18 +10,12 @@ import type { CatalogFilters, ProductCatalog } from './product-catalog';
 export class CatalogApiService implements ProductCatalog {
   private readonly http = inject(HttpClient);
   private readonly config = inject(STORE_API_CONFIG);
-  private readonly ready = new BehaviorSubject(false);
   private readonly baseUrl = this.config.baseUrl.replace(/\/+$/, '') + '/api/public';
   private readonly categoryRequest = this.get<readonly CategoryDto[]>('/categories').pipe(
     map(categories => categories.map(mapCategory))
   );
-  constructor() {
-    // No requests while prerendering or before hydration. Builds never need a running local API.
-    afterNextRender(() => this.ready.next(true));
-  }
   private get<T>(path: string, params = new HttpParams()): Observable<T> {
-    return this.ready.pipe(filter(Boolean), take(1), switchMap(() =>
-      this.http.get<T>(this.baseUrl + path, { params }).pipe(timeout(8000))));
+    return this.http.get<T>(this.baseUrl + path, { params }).pipe(timeout(10000));
   }
   categories() { return this.categoryRequest; }
   list(filters: CatalogFilters = {}) {
