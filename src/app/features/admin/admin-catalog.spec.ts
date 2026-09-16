@@ -39,6 +39,19 @@ describe('Admin catalog forms',()=>{
   c.form.controls.saleType.setValue('AREA');c.changeType();expect(c.form.controls.packSize.value).toBe(1000);const nav=vi.spyOn(TestBed.inject(Router),'navigate').mockResolvedValue(true);c.save();
   const req=http.expectOne(base+'/products');expect(req.request.method).toBe('POST');expect(req.request.body).toMatchObject({saleType:'AREA',packSize:null,packLabel:null,slug:'manual'});req.flush({...product,saleType:'AREA'});expect(nav).toHaveBeenCalledWith(['/admin/productos','p1','editar']);
  });
+ it('starts new sections open, keeps form values while toggling, summarizes them and collapses after save',()=>{
+  const nav=vi.spyOn(TestBed.inject(Router),'navigate').mockResolvedValue(true);const f=TestBed.createComponent(AdminProductForm);http.expectOne(base+'/categories').flush([category]);f.detectChanges();const c=f.componentInstance;
+  expect(c.generalOpen()).toBe(true);expect(c.salesOpen()).toBe(true);expect(f.nativeElement.querySelector('#general-product-fields')).toBeTruthy();
+  c.form.patchValue({name:'Llavero destapador',categoryId:'c1',slug:'llavero',unitLabel:'unidad',minQuantity:100,quantityStep:50});f.detectChanges();
+  const toggles=f.nativeElement.querySelectorAll('.section-toggle') as NodeListOf<HTMLButtonElement>;toggles[0].click();toggles[1].click();f.detectChanges();
+  expect(toggles[0].getAttribute('aria-expanded')).toBe('false');expect(f.nativeElement.textContent).toContain('Llavero destapador · Categoría');expect(f.nativeElement.textContent).toContain('Por unidad · mínimo 100 · incrementos de 50');expect(c.form.controls.name.value).toBe('Llavero destapador');http.expectNone(base+'/products');
+  toggles[0].click();toggles[1].click();expect(c.form.controls.name.value).toBe('Llavero destapador');c.save();http.expectOne(base+'/products').flush({...product,name:'Llavero destapador',minQuantity:100,quantityStep:50});
+  expect(c.generalOpen()).toBe(false);expect(c.salesOpen()).toBe(false);expect(nav).toHaveBeenCalled();
+ });
+ it('starts an existing product with the main sections collapsed and allows expansion',()=>{
+  route.snapshot.paramMap=convertToParamMap({id:'p1'});const f=TestBed.createComponent(AdminProductForm);http.expectOne(base+'/categories').flush([category]);http.expectOne(base+'/products/p1').flush(product);f.detectChanges();
+  expect(f.componentInstance.generalOpen()).toBe(false);expect(f.componentInstance.salesOpen()).toBe(false);const toggle=f.nativeElement.querySelector('.section-toggle') as HTMLButtonElement;toggle.click();f.detectChanges();expect(toggle.getAttribute('aria-expanded')).toBe('true');expect(f.nativeElement.querySelector('#general-product-fields')).toBeTruthy();
+ });
  it('edits existing product and retains SEO and inactive options',()=>{
   route.snapshot.paramMap=convertToParamMap({id:'p1'});const f=TestBed.createComponent(AdminProductForm);http.expectOne(base+'/categories').flush([category]);http.expectOne(base+'/products/p1').flush({...product,seoTitle:'Existing SEO',materials:[{id:'m1',name:'Hidden',active:false,displayOrder:0}]});
   f.componentInstance.form.controls.name.setValue('Editado');f.componentInstance.save();const req=http.expectOne(base+'/products/p1');expect(req.request.method).toBe('PUT');expect(req.request.body.seoTitle).toBe('Existing SEO');req.flush({...product,name:'Editado'});expect(f.componentInstance.message()).toContain('guardado');

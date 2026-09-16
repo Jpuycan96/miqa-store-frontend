@@ -15,6 +15,7 @@ export class AdminApi {
  saveProduct(id:string|null,input:ProductInput){return id?this.http.put<AdminProduct>(this.base+'/products/'+encodeURIComponent(id),input):this.http.post<AdminProduct>(this.base+'/products',input);}
  flag(id:string,flag:'published'|'featured',value:boolean){return this.http.patch<AdminProduct>(this.base+'/products/'+encodeURIComponent(id)+'/'+flag,{[flag]:value});}
  saveOption(pid:string,kind:'materials'|'extras',id:string|null,input:OptionInput){const url=this.base+'/products/'+encodeURIComponent(pid)+'/'+kind;return id?this.http.put<AdminOption>(url+'/'+encodeURIComponent(id),input):this.http.post<AdminOption>(url,input);}
+ removeMaterial(pid:string,id:string){return this.http.delete<void>(this.base+'/products/'+encodeURIComponent(pid)+'/materials/'+encodeURIComponent(id));}
  images(pid:string){return this.http.get<AdminImage[]>(this.base+'/products/'+encodeURIComponent(pid)+'/images');}
  uploadImage(pid:string,file:File,altText:string,displayOrder:number|null,primaryImage:boolean){
   const form=new FormData();form.append('file',file);form.append('altText',altText);form.append('primaryImage',String(primaryImage));

@@ -2,11 +2,12 @@
 h2 { margin-bottom:10px; }
 h3 { margin:0 0 12px; font-size:16px; }
 .heading { margin-bottom:16px; }
-.compact-row { display:grid; grid-template-columns:minmax(0,1fr) auto auto; align-items:center; gap:8px 20px; padding:4px 0; border-bottom:1px solid #d9dfe7; font-size:14px; }
+.compact-row { display:grid; grid-template-columns:minmax(0,1fr) auto auto auto; align-items:center; gap:8px 14px; padding:4px 0; border-bottom:1px solid #d9dfe7; font-size:14px; }
 .compact-row strong { overflow-wrap:anywhere; }
 .compact-row .actions,.compact-form .actions { gap:4px; }
 .compact-row button { border:0; background:transparent; padding:4px 8px; font-size:13px; }
 .compact-row button:hover { color:#087e8a; text-decoration:underline; }
+.compact-row .remove-option{color:#7a3d3a}.add-option{margin-top:12px;padding:6px 12px;font-size:13px}.field-error{color:#9b2f2a;font-size:12px;font-weight:400;line-height:1.35}
 .status { font-size:12px; color:#536077; }
 .compact-form { max-width:920px; }
 .compact-form .fields { gap:12px; }

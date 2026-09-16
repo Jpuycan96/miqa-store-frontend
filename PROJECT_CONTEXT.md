@@ -1,5 +1,12 @@
 # MIQA Store — contexto y traspaso
 
+## Editor Admin de productos compacto y materiales — 16 de septiembre de 2026
+
+- Información general y Configuración de venta son secciones accesibles contraíbles: abiertas al crear, cerradas al editar y tras guardar; muestran resúmenes derivados del formulario y no pierden estado al alternarse. El formulario conserva dos columnas y reduce moderadamente alturas y espacios.
+- Materiales conserva filas compactas y un único editor que solo se abre al agregar o editar; cancelar limpia y cierra sin HTTP, y guardar exitosamente actualiza y cierra. El nombre se recorta y debe incluir al menos una letra o número Unicode; los registros legacy inválidos siguen visibles para eliminación manual.
+- El frontend consume `DELETE /api/admin/products/{productId}/materials/{materialId}` tras confirmación nativa identificando el material. Bloquea operaciones duplicadas, elimina solo del estado local tras 204 y reutiliza el feedback/error Admin. No se modificó backend.
+- Validación: 101/101 tests y build de producción correctos; tres rutas prerenderizadas. Sin commit, push ni despliegue.
+
 ## Fotografías reales de proyectos — 15 de septiembre de 2026
 
 - «Proyectos que hablan por nosotros.» permanece hardcodeado con cinco proyectos: Letreros Publicitarios, Señaléticas, Implementación de local, Impresión de gran formato y Merchandising. Cada entrada usa su fotografía real de `/images/projects/`; se retiró el fallback de arte CSS y las categorías pequeñas bajo las imágenes.
