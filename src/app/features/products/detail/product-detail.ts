@@ -8,7 +8,7 @@ import { catchError, combineLatest, Subject, distinctUntilChanged, map, of, star
 import { ProductCatalog } from '../../../core/data/product-catalog';
 import { QuoteStore } from '../../../core/quote/quote-store';
 import { calculateArea, createQuoteItem, quantityLabel } from '../../../core/quote/quote-utils';
-import { absoluteUrl, breadcrumb, INSTITUTIONAL_IMAGE, Seo } from '../../../core/seo/seo';
+import { breadcrumb, INSTITUTIONAL_IMAGE, Seo } from '../../../core/seo/seo';
 import { Product } from '../../../shared/models/product';
 import { productImages } from '../../../shared/product-images/product-images';
 
@@ -67,11 +67,9 @@ export class ProductDetail {
       const description = product?.seoDescription?.trim() || product?.shortDescription?.trim() || product?.description?.trim() || 'Explora los productos y soluciones gráficas disponibles de MIQA.';
       const primaryImage = product ? productImages(product)[0] : undefined;
       const image = primaryImage?.url || INSTITUTIONAL_IMAGE;
-      const structuredData = product ? [{
-        '@context':'https://schema.org','@type':'Product',name:product.name,description,
-        ...(image?{image:absoluteUrl(image)}:{}),...(product.categoryName?{category:product.categoryName}:{}),
-        url:absoluteUrl(path),brand:{'@type':'Brand',name:'MIQA'}
-      },breadcrumb([{name:'Inicio',path:'/'},{name:'Productos',path:'/productos'},{name:product.name,path}])] : [];
+      const structuredData = product
+        ? [breadcrumb([{name:'Inicio',path:'/'},{name:'Productos',path:'/productos'},{name:product.name,path}])]
+        : [];
       this.seo.applyPage(path, {
         title, description, robots: product?.published ? 'index,follow' : 'noindex,follow', type: product ? 'product' : 'website',
         image, imageAlt: primaryImage?.altText || product?.name || 'MIQA', structuredData

@@ -70,7 +70,8 @@ describe('Catalog HTTP integration without backend', () => {
     expect(document.title).toBe('Producto SEO');expect(document.querySelector('meta[name=description]')?.getAttribute('content')).toBe('Descripción SEO del producto.');
     expect(document.querySelector('meta[name=robots]')?.getAttribute('content')).toBe('index,follow');expect(document.querySelector('meta[property="og:type"]')?.getAttribute('content')).toBe('product');
     expect(document.querySelector('meta[property="og:image"]')?.getAttribute('content')).toBe('https://store.solucionesmicaela.com/images/products/volantes.png');
-    const schemas=JSON.parse(document.querySelector('script[data-miqa-seo-jsonld]')?.textContent||'[]');expect(schemas.some((schema:{'@type':string})=>schema['@type']==='Product')).toBe(true);expect(schemas.some((schema:{'@type':string})=>schema['@type']==='BreadcrumbList')).toBe(true);
+    const schema=JSON.parse(document.querySelector('script[data-miqa-seo-jsonld]')?.textContent||'{}');expect(schema['@type']).toBe('BreadcrumbList');expect(JSON.stringify(schema)).not.toContain('"@type":"Product"');
+    expect(document.querySelector('link[rel=canonical]')?.getAttribute('href')).toBe('https://store.solucionesmicaela.com/productos/api-only');expect(document.querySelector('meta[name="twitter:title"]')?.getAttribute('content')).toBe('Producto SEO');
   });
   it('uses non-empty product SEO fields and falls back for blank strings',async()=>{
     const h=await RouterTestingHarness.create('/productos/api-only');http.match(base+'/categories').forEach(request=>request.flush([]));http.expectOne(base+'/products/api-only').flush({...product,seoTitle:'   ',seoDescription:' ',shortDescription:'Descripción corta'});await h.fixture.whenStable();
