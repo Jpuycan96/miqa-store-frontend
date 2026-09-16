@@ -48,6 +48,8 @@ describe('MIQA Home', () => {
   expect(heading).toContain('nuestro compromiso');
   expect(heading).not.toContain('Hacemos');
   expect(harness.routeNativeElement?.querySelectorAll('.category').length).toBe(0);
+  expect(harness.routeNativeElement?.querySelectorAll('main > .home-snap-section').length).toBe(4);
+  expect(harness.routeNativeElement?.querySelector('.home-final-snap app-contact-cta + app-home-contact')).toBeTruthy();
   expect(TestBed.inject(Title).getTitle()).toBe('MIQA | Impresión, publicidad y soluciones gráficas');
   expect(TestBed.inject(Meta).getTag('name="description"')?.content).toContain('hacer visible tu marca');
  });

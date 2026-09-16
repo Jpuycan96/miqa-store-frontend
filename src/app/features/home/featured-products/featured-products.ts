@@ -15,5 +15,5 @@ import { ProductVisual } from './product-visual';
 export class FeaturedProducts {
   readonly products = input.required<readonly FeaturedProduct[]>();
   readonly whatsappUrl = productWhatsAppUrl;
-  readonly featuredProducts = computed(() => this.products().filter(product => product.featured));
+  readonly featuredProducts = computed(() => this.products().filter(product => product.featured).slice(0, 3));
 }

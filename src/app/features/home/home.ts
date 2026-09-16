@@ -14,11 +14,13 @@ import { ContactCta } from './contact-cta/contact-cta';
   <a class="skip-link" href="#contenido">Saltar al contenido</a>
   <app-header />
   <main id="contenido" tabindex="-1">
-   <app-hero />
-   <app-featured-products [products]="products" />
-   <app-projects />
-   <app-contact-cta />
-   <app-home-contact />
+   <app-hero class="home-snap-section" />
+   <app-featured-products class="home-snap-section" [products]="products" />
+   <app-projects class="home-snap-section" />
+   <div class="home-snap-section home-final-snap">
+    <app-contact-cta />
+    <app-home-contact />
+   </div>
   </main>
   <app-footer />
   <dialog #info aria-labelledby="notice-title" aria-describedby="notice-text">

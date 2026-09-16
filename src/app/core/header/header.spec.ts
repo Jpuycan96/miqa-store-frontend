@@ -52,6 +52,15 @@ describe('Public header',()=>{
   await h.navigateByUrl('/productos');await new Promise(resolve=>setTimeout(resolve,350));await h.fixture.whenStable();
   expect(h.routeNativeElement!.querySelectorAll('.catalog-card').length).toBeGreaterThan(1);
  });
+ it('marks the URL category active and marks Todos active without a category',async()=>{
+  const h=await RouterTestingHarness.create('/productos?categoria=merchandising');
+  let active=h.routeNativeElement!.querySelector<HTMLAnchorElement>('.desktop-nav a.active');
+  expect(active?.textContent).toBe('Merchandising');expect(active?.getAttribute('aria-current')).toBe('page');
+  await h.navigateByUrl('/productos');
+  active=h.routeNativeElement!.querySelector<HTMLAnchorElement>('.desktop-nav a.active');
+  expect(active?.textContent).toBe('TODOS');expect(active?.getAttribute('aria-current')).toBe('page');
+  expect(h.routeNativeElement!.querySelectorAll('.mobile-nav a.active')).toHaveLength(1);
+ });
  it('shows automatic product links in the header without a submit button',async()=>{
   const f=TestBed.createComponent(Header);await f.whenStable();
   f.componentInstance.toggleSearch();f.componentInstance.search.setValue('tarjetas');

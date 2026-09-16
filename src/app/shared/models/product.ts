@@ -3,6 +3,8 @@ export type ProductSaleType = 'QUANTITY' | 'PACK' | 'AREA';
 export interface ProductCategory {
   readonly slug: string;
   readonly name: string;
+  readonly catalogHeadline?: string;
+  readonly catalogDescription?: string;
 }
 
 export interface ProductMaterialOption {

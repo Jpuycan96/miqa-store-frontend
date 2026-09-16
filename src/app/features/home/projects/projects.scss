@@ -1,54 +1,43 @@
-:host { display: block; }
-.projects { padding-block: 32px 40px; color: var(--miqa-navy); border-top: 1px solid #17203312; }
+:host { display: block; background: #f4f7f8; }
+.projects { padding-block: 34px 38px; color: var(--miqa-navy); }
 .projects-heading { display: flex; flex-direction: column; gap: 16px; margin-bottom: 24px; }
 .eyebrow { font-size: 10px; color: var(--muted); }
 h2 { margin-top: 13px; font-size: clamp(32px, 3.5vw, 48px); font-weight: 500; line-height: 1.12; letter-spacing: -.05em; }
 .projects-intro { max-width: 300px; font-size: 14px; line-height: 1.7; color: var(--muted); }
 .projects-link { display: inline-flex; align-items: center; gap: 14px; min-height: 44px; margin-top: 12px; color: var(--miqa-navy); font-size: 13px; font-weight: 600; text-decoration: underline; text-underline-offset: 5px; }
 .projects-grid { display: grid; gap: 24px 20px; }
-.project { min-width: 0; margin: 0; display: flex; flex-direction: column; }
-.project-media { position: relative; min-height: 210px; overflow: hidden; border-radius: var(--radius-media); background: #e2e7e9; flex: 1; }
-.project-media img { object-fit: cover; }
-figcaption { padding: 10px 2px 0; }
-.project-category { font-size: 10px; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); line-height: 1.5; }
-h3 { margin-top: 7px; font-size: 23px; font-weight: 500; line-height: 1.2; letter-spacing: -.035em; }
-.project-art { position: absolute; inset: 0; overflow: hidden; background: #e4e2db; }
-.project-art span { position: absolute; display: block; }
-.art-plane { width: 66%; height: 68%; left: 19%; top: 18%; background: #c6cece; transform: skewY(-9deg); }
-.art-line { width: 58%; height: 3px; left: 23%; top: 47%; background: #0b2559; transform: skewY(-9deg); }
-.art-accent { width: 10%; height: 3px; left: 23%; top: 52%; background: #247b85; transform: skewY(-9deg); }
-.project-art--fachada-comercial { background: #d8dcd9; }
-.project-art--fachada-comercial .art-plane { top: 12%; left: 14%; width: 78%; height: 82%; background: repeating-linear-gradient(90deg, #c0c9c9 0 39px, #b7c1c2 40px 41px); }
-.project-art--fachada-comercial .art-line { left: 19%; top: 30%; width: 68%; height: 24%; background: #16304b; }
-.project-art--fachada-comercial .art-accent { top: 39%; left: 27%; width: 34%; height: 5px; background: #b9dbdc; }
-.project-art--senaletica-corporativa .art-plane { width: 52%; height: 22%; top: 26%; background: #16304b; }
-.project-art--senaletica-corporativa .art-line { width: 52%; height: 22%; top: 57%; left: 28%; background: #b8c7c7; }
-.project-art--implementacion-local { background: #d4dadb; }
-.project-art--implementacion-local .art-plane { left: 16%; top: 16%; height: 100%; width: 46%; background: #eeece5; transform: skewY(12deg); }
-.project-art--implementacion-local .art-line { left: 62%; top: 16%; height: 100%; width: 24%; background: #b0bcbe; transform: skewY(-20deg); }
-.project-art--grafica-gran-formato .art-plane { width: 52%; height: 95%; top: 15%; left: 26%; background: #f4f1e8; transform: rotate(-12deg); }
-.project-art--grafica-gran-formato .art-line { width: 38%; height: 38%; top: 41%; left: 28%; border: 18px solid #345165; border-radius: 50%; background: none; transform: rotate(-12deg); }
-.project-art--letras-corporeas .art-plane { width: 30%; height: 55%; left: 22%; top: 24%; background: transparent; border: 22px solid #f4f1e8; transform: skewY(-8deg); }
-.project-art--letras-corporeas .art-line { width: 22%; height: 55%; left: 57%; top: 16%; background: #b4c1c1; transform: skewY(-8deg); }
+.project { min-width: 0; margin: 0; display: flex; flex-direction: column; transition-property: transform; }
+.project-media { position: relative; width: 100%; aspect-ratio: 16 / 9; overflow: hidden; border-radius: var(--radius-media); background: #fff; }
+.project-media img { object-fit: cover; object-position: center; }
+figcaption { padding: 9px 2px 0; }
+h3 { position: relative; width: fit-content; font-size: 19px; font-weight: 500; line-height: 1.25; letter-spacing: -.03em; transition-property: color, font-weight; }
+h3::after { content: ''; position: absolute; left: 0; bottom: -6px; width: 28px; height: 2px; background: var(--miqa-cyan); opacity: 0; transform: scaleX(.5); transform-origin: left; transition-property: opacity, transform; }
 @media (min-width: 768px) {
-  .projects-heading { flex-direction: row; align-items: end; justify-content: space-between; gap: 40px; margin-bottom: 24px; }
+  .projects-heading { flex-direction: row; align-items: end; justify-content: space-between; gap: 40px; margin-bottom: 20px; }
   .projects-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .project--wide { grid-column: span 2; }
-  .project--wide .project-media { min-height: 210px; }
 }
 @media (min-width: 1024px) {
-  .projects { padding-block: 36px 40px; }
-  .projects-grid { grid-template-columns: repeat(7, minmax(0, 1fr)); }
-  .project { grid-column: span 2; }
-  .project-media { min-height: 150px; }
-  .project--lead { grid-column: span 3; grid-row: span 2; }
-  .project--wide { grid-column: span 2; }
-  .project--wide .project-media { min-height: 150px; }
-  .project--lead h3 { font-size: 30px; }
+  .projects { padding-block: 30px 34px; }
+  .projects-heading { margin-bottom: 18px; }
+  .projects-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; }
+}
+@media (min-width: 1200px) {
+  .projects-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 24px; }
+  .project--lead { grid-column: span 2; grid-row: span 2; }
+  .project--lead .project-media { flex: 1; aspect-ratio: auto; min-height: 0; }
+}
+@media (min-width: 1200px) and (hover: hover) {
+  .project:hover .project-media img { filter: saturate(1.04) brightness(1.01); }
+  .project:hover h3 { color: var(--miqa-blue); }
+  .project:hover h3::after { opacity: 1; transform: scaleX(1); }
 }
 @media (hover: hover) and (prefers-reduced-motion: no-preference) {
-  .project-media img, .project-art { transition: transform 240ms var(--motion-ease); }
-  .project:hover :is(img, .project-art) { transform: scale(1.025); }
+  .project, .project-media img, h3, h3::after { transition-duration: 260ms; transition-timing-function: var(--motion-ease); }
+  .project:hover { transform: translateY(-3px); }
+  .project:hover img { transform: scale(1.025); }
   .projects-link span { transition: transform 180ms var(--motion-ease); }
   .projects-link:hover span { transform: translateX(3px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  h3::after { transform: none; }
 }

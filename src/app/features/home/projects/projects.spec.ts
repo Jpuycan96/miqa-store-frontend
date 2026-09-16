@@ -11,19 +11,26 @@ beforeEach(() => TestBed.configureTestingModule({ providers: [provideTestCatalog
 describe('Home projects', () => {
   beforeEach(() => TestBed.configureTestingModule({ providers: [provideRouter(routes)] }));
 
-  it('shows five structural examples with visible captions and no missing photographs', async () => {
+  it('shows the five definitive projects with their real photographs', async () => {
     const fixture = TestBed.createComponent(Projects);
     await fixture.whenStable();
     const element: HTMLElement = fixture.nativeElement;
     expect(Array.from(element.querySelectorAll('h3'), h => h.textContent)).toEqual([
-      'Fachada comercial', 'Señalética corporativa', 'Implementación de local', 'Gráfica de gran formato', 'Letras corpóreas'
+      'Letreros Publicitarios', 'Señaléticas', 'Implementación de local', 'Impresión de gran formato', 'Merchandising'
     ]);
     expect(element.querySelectorAll('figcaption').length).toBe(5);
-    expect(element.querySelectorAll('.project-art[aria-hidden="true"]').length).toBe(5);
-    expect(element.querySelector('img')).toBeNull();
+    expect(element.querySelector('.project-category')).toBeNull();
+    expect(element.querySelectorAll('figure.project')).toHaveLength(5);
+    expect(element.querySelectorAll('figure.project--lead')).toHaveLength(1);
+    expect(element.querySelector('figure.project--lead h3')?.textContent).toBe('Letreros Publicitarios');
+    expect(element.querySelectorAll('img')).toHaveLength(5);
+    expect(Array.from(element.querySelectorAll('img'), image => image.getAttribute('src'))).toEqual(HOME_PROJECTS.map(project => project.image));
+    expect(Array.from(element.querySelectorAll('img'), image => image.getAttribute('alt'))).toEqual(HOME_PROJECTS.map(project => project.imageAlt));
+    expect(element.querySelectorAll('img[loading="lazy"]')).toHaveLength(5);
+    expect(element.querySelector('.project-art')).toBeNull();
   });
 
-  it('replaces the abstract artwork with a photo supplied through data', async () => {
+  it('renders a supplied project photograph without an illustrated fallback', async () => {
     const fixture = TestBed.createComponent(Projects);
     fixture.componentRef.setInput('projects', [{ ...HOME_PROJECTS[0], image: '/images/hero/senaletica.png', imageAlt: 'Señalética instalada en una oficina' }]);
     await fixture.whenStable();

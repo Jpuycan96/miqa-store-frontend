@@ -18,6 +18,7 @@ export class Header {
  readonly catalogMode = input(false);
  readonly categories = toSignal(inject(ProductCatalog).categories().pipe(map(items => items.slice(0,6)),catchError(()=>of([]))),{initialValue:[]});
  readonly menuOpen = signal(false);
+ readonly activeCategory = signal(this.router.parseUrl(this.router.url).queryParams['categoria']??'');
  readonly searchOpen = signal(false);
  readonly search = new FormControl<string>(this.router.parseUrl(this.router.url).queryParams['buscar']??'',{nonNullable:true});
  readonly results = toSignal(this.search.valueChanges.pipe(
@@ -35,6 +36,7 @@ export class Header {
   })
  ),{initialValue:{products:[],loading:false,error:false}});
  constructor(){this.router.events.pipe(filter(event=>event instanceof NavigationEnd),takeUntilDestroyed()).subscribe(()=>{
+  this.activeCategory.set(this.router.parseUrl(this.router.url).queryParams['categoria']??'');
   if(this.catalogMode())this.search.setValue(this.router.parseUrl(this.router.url).queryParams['buscar']??'',{emitEvent:false});
  });}
  private readonly searchToggle = viewChild<ElementRef<HTMLButtonElement>>('searchToggle');

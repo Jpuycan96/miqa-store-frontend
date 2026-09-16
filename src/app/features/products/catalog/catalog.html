@@ -1,6 +1,10 @@
 ﻿<section class="page-shell catalog" aria-labelledby="catalog-title">
-  <div class="catalog-heading">
-    <div><p class="eyebrow">PRODUCTOS MIQA</p><h1 id="catalog-title">Encuentra lo que necesitas.</h1><p class="intro">Configura tus productos y reúne todo en una sola cotización.</p></div>
+  <div class="catalog-heading" [class.category-editorial]="activeCategory()">
+    @if (activeCategory(); as activeCategory) {
+      <div><p class="eyebrow">{{ activeCategory.name }}</p><h1 id="catalog-title">{{ activeCategory.catalogHeadline || activeCategory.name }}</h1>@if (activeCategory.catalogDescription) { <p class="intro">{{ activeCategory.catalogDescription }}</p> }</div>
+    } @else {
+      <div><p class="eyebrow">PRODUCTOS MIQA</p><h1 id="catalog-title">Encuentra lo que necesitas.</h1><p class="intro">Configura tus productos y reúne todo en una sola cotización.</p></div>
+    }
   </div>
   @if (categoryState().error) { <p class="status" role="alert">No pudimos cargar las categorías. <button type="button" (click)="retry()">Reintentar</button></p> }
   <div class="catalog-layout"><div class="catalog-main">

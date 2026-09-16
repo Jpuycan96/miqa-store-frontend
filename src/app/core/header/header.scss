@@ -11,6 +11,7 @@
 .desktop-nav{display:none;align-items:center;justify-content:space-between;gap:4px;flex:1;min-width:0}
 .desktop-nav a{font-size:15px;font-weight:600;line-height:1.35;min-height:52px;padding:6px 4px;display:flex;align-items:center;min-width:0;border-bottom:2px solid transparent}
 .desktop-nav a:hover{border-color:#16b8c4;color:#087e8a}
+.desktop-nav a.active{border-color:#16b8c4;font-weight:700;color:#061b4f}
 .all{color:#087e8a}
 .controls{display:flex;gap:6px;align-items:center;margin-left:auto;flex-shrink:0}
 .icon-button{display:grid;place-items:center;width:44px;height:44px;background:none;border:0;color:inherit;border-radius:6px}
@@ -20,6 +21,7 @@
 .quote-count{position:absolute;top:0;right:0;min-width:17px;height:17px;border-radius:50%;display:grid;place-items:center;font-size:10px;background:#061b4f;color:white}
 .mobile-nav:not([hidden]){display:grid;max-height:calc(100dvh - 124px);overflow-y:auto;padding-block:12px 20px}
 .mobile-nav a,.mobile-nav button,.mobile-nav>span{display:flex;align-items:center;gap:12px;min-height:44px;text-align:left;font-size:14px}
+.mobile-nav a.active{font-weight:700;text-decoration:underline;text-decoration-color:#16b8c4;text-decoration-thickness:2px;text-underline-offset:6px}
 .mobile-nav button{background:none;border:0;padding:0;color:inherit}
 .mobile-nav small{font-size:11px;color:#536077}
 .menu-label{margin:12px 0 4px;font-size:11px;letter-spacing:.12em;color:#087e8a;border-top:1px solid #d4e7e9;padding-top:16px}

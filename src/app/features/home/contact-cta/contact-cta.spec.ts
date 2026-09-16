@@ -28,6 +28,6 @@ describe('Contact CTA', () => {
   it('appears immediately after Projects', async () => {
     TestBed.configureTestingModule({ providers: [provideRouter(routes)] });
     const harness = await RouterTestingHarness.create('/');
-    expect(harness.routeNativeElement?.querySelector('app-projects + app-contact-cta')).toBeTruthy();
+    expect(harness.routeNativeElement?.querySelector('app-projects + .home-final-snap app-contact-cta')).toBeTruthy();
   });
 });

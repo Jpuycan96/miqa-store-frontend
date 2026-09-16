@@ -33,4 +33,16 @@ dialog::backdrop { background: #061b4f55; }
 dialog h2 { font-size: 28px; letter-spacing: -.04em; margin-bottom: 16px; }
 dialog p { color: var(--muted); line-height: 1.7; margin-bottom: 24px; }
 @media (min-width: 768px) { .page-shell { width: min(var(--page-width), calc(100% - 80px)); } }
+@media (min-width: 1024px) {
+ html:has(app-home) {
+  --home-header-offset: 122px;
+  scroll-behavior: auto;
+  scroll-snap-type: y proximity;
+  scroll-padding-top: var(--home-header-offset);
+ }
+ .home-snap-section {
+  min-height: calc(100svh - var(--home-header-offset));
+  scroll-snap-align: start;
+ }
+}
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } *, *::before, *::after { animation: none !important; transition: none !important; } }

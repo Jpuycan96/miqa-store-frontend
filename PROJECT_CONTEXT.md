@@ -1,5 +1,25 @@
 # MIQA Store — contexto y traspaso
 
+## Fotografías reales de proyectos — 15 de septiembre de 2026
+
+- «Proyectos que hablan por nosotros.» permanece hardcodeado con cinco proyectos: Letreros Publicitarios, Señaléticas, Implementación de local, Impresión de gran formato y Merchandising. Cada entrada usa su fotografía real de `/images/projects/`; se retiró el fallback de arte CSS y las categorías pequeñas bajo las imágenes.
+- Las fotografías cargan lazy mediante `NgOptimizedImage` y usan cover centrado. Projects se separa con un gris azulado suave (#f4f7f8): móvil usa una columna, desde 768 px dos, desde 1024 px tres y desde 1200 px recupera la composición editorial con Letreros Publicitarios grande a la izquierda y cuatro proyectos en una cuadrícula 2×2 a la derecha, con gaps de 24 px. En desktop, el hover eleva 3 px, escala la fotografía 1.025, realza sutilmente color y muestra un acento cyan; reduced motion conserva el estado visual sin transformaciones. No se modificaron backend, Admin ni otras secciones.
+
+## Cabeceras editoriales administrables del catálogo — 15 de septiembre de 2026
+
+- `/productos` conserva su cabecera general para TODOS. Cuando el query param estable `categoria` coincide con una categoría pública cargada por API, la misma vista muestra su nombre, `catalogHeadline` y `catalogDescription`; reacciona a navegación interna, acceso directo y recarga sin rutas ni páginas adicionales ni contenido comercial hardcodeado en el catálogo.
+- Admin Categorías permite editar ambos campos dentro de «CABECERA DEL CATÁLOGO», con preview local inmediata y persistencia solo mediante el Guardar existente. El Header deriva la categoría activa del mismo query param y usa texto navy con underline cyan en desktop y móvil; TODOS queda activo cuando no existe `categoria`.
+
+## Scroll Snap de Home — 15 de septiembre de 2026
+
+- Desde 1024 px, el documento usa `scroll-snap-type: y proximity`; Hero, Favoritos, Proyectos y el grupo final CTA + Contacto son cuatro targets consecutivos con `scroll-snap-align: start` y una altura mínima disponible, nunca una altura fija.
+- El header sticky ocupa 122 px (38 px de franja superior + 84 px de barra principal), compensados mediante `scroll-padding-top`. En esta vista desktop el desplazamiento normal es nativo (`scroll-behavior: auto`) y `proximity` solo completa el encaje final. Por debajo de 1024 px no se aplica snap ni altura mínima. `prefers-reduced-motion: reduce` conserva el snap nativo sin desplazamiento suave.
+
+## Favoritos compactos en Home — 15 de septiembre de 2026
+
+- «Los favoritos de nuestros clientes.» muestra los tres primeros productos destacados y conserva sus datos y acciones. Se retiraron el eyebrow «Los más solicitados» y el párrafo introductorio; el título y «Ver todos los productos» comparten la franja superior desde tablet.
+- Desktop desde 1024 px usa tres columnas iguales, medios de 220 px y espaciado vertical reducido para que título, enlace y las tres tarjetas entren completos en un viewport típico de 900 px, sin overflow ni recorte. Móvil mantiene su flujo de una columna y tablet dos columnas.
+
 ## Configuración de entornos frontend/API — 15 de septiembre de 2026
 
 - DEV frontend: http://localhost:4200

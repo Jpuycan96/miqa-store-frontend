@@ -5,7 +5,7 @@ import { ProductResources } from './product-resources';
 import { AdminImage, AdminProduct } from './admin.models';
 import { STORE_API_CONFIG } from '../../core/config/store-api';
 
-const product:AdminProduct={id:'p1',categoryId:'c1',category:{id:'c1',name:'Cat',slug:'cat',description:'',active:true,displayOrder:0},name:'Producto',slug:'producto',shortDescription:'',description:'',saleType:'QUANTITY',unitLabel:'unidad',packSize:null,packLabel:null,minQuantity:1,quantityStep:1,featured:false,published:false,displayOrder:0,seoTitle:'',seoDescription:'',image:'',materials:[],extras:[],images:[]};
+const product:AdminProduct={id:'p1',categoryId:'c1',category:{id:'c1',name:'Cat',slug:'cat',description:'',catalogHeadline:null,catalogDescription:null,active:true,displayOrder:0},name:'Producto',slug:'producto',shortDescription:'',description:'',saleType:'QUANTITY',unitLabel:'unidad',packSize:null,packLabel:null,minQuantity:1,quantityStep:1,featured:false,published:false,displayOrder:0,seoTitle:'',seoDescription:'',image:'',materials:[],extras:[],images:[]};
 const image:AdminImage={id:'i1',url:'https://media.example/one.png',publicUrl:'https://media.example/one.png',altText:'Frente',primaryImage:true,displayOrder:0};
 describe('Product image upload admin',()=>{
  let http:HttpTestingController;

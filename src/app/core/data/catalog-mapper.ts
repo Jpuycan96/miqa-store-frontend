@@ -4,6 +4,8 @@ export interface CategoryDto {
   readonly id?: string | number;
   readonly slug: string;
   readonly name: string;
+  readonly catalogHeadline?: string | null;
+  readonly catalogDescription?: string | null;
   readonly displayOrder?: number;
 }
 interface OptionDto { readonly id: string | number; readonly name: string; }
@@ -45,7 +47,12 @@ export function resolveProductImage(reference: string | null, mediaBaseUrl = '')
   return mediaBaseUrl ? `${mediaBaseUrl.replace(/\/+$/, '')}/${reference.replace(/^\/+/, '')}` : reference;
 }
 export function mapCategory(dto: CategoryDto): ProductCategory {
-  return { slug: dto.slug, name: dto.name };
+  return {
+    slug: dto.slug,
+    name: dto.name,
+    catalogHeadline: dto.catalogHeadline?.trim() || undefined,
+    catalogDescription: dto.catalogDescription?.trim() || undefined
+  };
 }
 export function mapProduct(dto: ProductDto, mediaBaseUrl = ''): Product {
   return {

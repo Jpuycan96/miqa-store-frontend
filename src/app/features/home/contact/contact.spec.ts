@@ -24,7 +24,7 @@ describe('Home contact', () => {
     expect(maps.rel).toBe('noopener noreferrer');
     expect(contact.querySelector('form, a[href="#"]')).toBeNull();
     expect(home.querySelector('app-hero a[target="_blank"]')?.getAttribute('href')).toBe(contactWhatsAppUrl());
-    expect(home.querySelector('app-contact-cta + app-home-contact')).toBeTruthy();
+    expect(home.querySelector('.home-final-snap app-contact-cta + app-home-contact')).toBeTruthy();
     expect(home.querySelector('app-categories')).toBeNull();
   });
 });

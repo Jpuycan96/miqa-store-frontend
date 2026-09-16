@@ -43,6 +43,7 @@ export class Catalog {
     )
   )), { initialValue: { categories: [], error: false } });
   readonly categories = computed(() => this.categoryState().categories);
+  readonly activeCategory = computed(() => this.categories().find(category => category.slug === this.category()) ?? null);
   readonly filtered = computed(() => this.state().products);
   retry() { this.refresh.next(); }
   readonly quote = inject(QuoteStore);

@@ -11,18 +11,13 @@
   </div>
   <div class="projects-grid">
     @for (project of projects(); track project.id) {
-      <figure class="project" [class.project--lead]="project.layoutVariant === 'lead'" [class.project--wide]="project.layoutVariant === 'wide'">
+      <figure class="project" [class.project--lead]="project.layoutVariant === 'lead'">
         <div class="project-media">
           @if (project.image; as image) {
-            <img [ngSrc]="image" [alt]="project.imageAlt || project.title" fill loading="lazy" sizes="(min-width: 1024px) 60vw, (min-width: 768px) 50vw, 100vw">
-          } @else {
-            <div class="project-art" [class]="'project-art--' + project.slug" aria-hidden="true">
-              <span class="art-plane"></span><span class="art-line"></span><span class="art-accent"></span>
-            </div>
+            <img [ngSrc]="image" [alt]="project.imageAlt || project.title" fill loading="lazy" sizes="(min-width: 1200px) 50vw, (min-width: 768px) 50vw, 100vw">
           }
         </div>
         <figcaption>
-          <p class="project-category">{{ project.category }}</p>
           <h3>{{ project.title }}</h3>
         </figcaption>
       </figure>

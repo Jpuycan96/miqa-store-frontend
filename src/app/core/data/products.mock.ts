@@ -1,12 +1,12 @@
 import { Product, ProductCategory } from '../../shared/models/product';
 
 export const PRODUCT_CATEGORIES: readonly ProductCategory[] = [
-  { slug: 'impresion-gran-formato', name: 'Impresión gran formato' },
-  { slug: 'letreros-publicitarios', name: 'Letreros Publicitarios' },
-  { slug: 'merchandising', name: 'Merchandising' },
-  { slug: 'imprenta-papeleria', name: 'Imprenta y Papelería' },
-  { slug: 'senaletica', name: 'Señalética' },
-  { slug: 'branding-instalaciones', name: 'Branding e Instalaciones' }
+  { slug: 'impresion-gran-formato', name: 'Impresión gran formato', catalogHeadline: 'Imprime tus ideas.', catalogDescription: 'Soluciones de impresión para interiores y exteriores.' },
+  { slug: 'letreros-publicitarios', name: 'Letreros Publicitarios', catalogHeadline: 'Haz visible tu marca.', catalogDescription: 'Letreros y soluciones para fachadas, negocios y espacios comerciales.' },
+  { slug: 'merchandising', name: 'Merchandising', catalogHeadline: 'Personaliza lo que quieras.', catalogDescription: 'Productos personalizados para tu marca, negocio o evento.' },
+  { slug: 'imprenta-papeleria', name: 'Imprenta y Papelería', catalogHeadline: 'Tu marca también está en los detalles.', catalogDescription: 'Tarjetas, volantes, dípticos, calendarios y papelería corporativa.' },
+  { slug: 'senaletica', name: 'Señalética', catalogHeadline: 'Comunica, orienta y destaca.', catalogDescription: 'Señalización personalizada para empresas y espacios.' },
+  { slug: 'branding-instalaciones', name: 'Branding e Instalaciones', catalogHeadline: 'Soluciones integrales a la medida de tu marca.', catalogDescription: 'Diseño, producción e instalación en un solo lugar.' }
 ];
 
 /** TEST FIXTURE ONLY. Never imported by the application. Local examples. Images are existing brand/product references, not new product photography. */

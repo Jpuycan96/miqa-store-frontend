@@ -8,7 +8,7 @@ import { AdminCategories } from './categories';
 import { AdminProduct } from './admin.models';
 import { environment } from '../../../environments/environment';
 const base=`${environment.storeApiBaseUrl}/api/admin`;
-const category={id:'c1',name:'Categoría',slug:'categoria',description:'',active:true,displayOrder:0};
+const category={id:'c1',name:'Categoría',slug:'categoria',description:'',catalogHeadline:'Haz visible tu marca.',catalogDescription:'Descripción comercial.',active:true,displayOrder:0};
 const product:AdminProduct={id:'p1',categoryId:'c1',category,name:'Producto',slug:'producto',shortDescription:'',description:'',saleType:'QUANTITY',unitLabel:'unidad',packSize:null,packLabel:null,minQuantity:1,quantityStep:1,published:false,featured:false,displayOrder:0,seoTitle:'',seoDescription:'',image:'',materials:[],extras:[],images:[]};
 describe('Admin catalog forms',()=>{
  let http:HttpTestingController;
@@ -45,6 +45,21 @@ describe('Admin catalog forms',()=>{
  });
  it('creates and deactivates categories through API',()=>{
   const f=TestBed.createComponent(AdminCategories);http.expectOne(base+'/categories').flush([]);const c=f.componentInstance;c.edit();c.form.controls.name.setValue('Nueva categoría');c.nameChanged();expect(c.form.controls.slug.value).toBe('nueva-categoria');c.save();const req=http.expectOne(base+'/categories');expect(req.request.method).toBe('POST');req.flush(category);http.expectOne(base+'/categories').flush([category]);c.toggle(category);http.expectOne(base+'/categories/c1/active').flush({...category,active:false});http.expectOne(base+'/categories').flush([{...category,active:false}]);expect(c.items()[0].active).toBe(false);
+ });
+ it('previews category editorial changes locally and persists them only on save',()=>{
+  const f=TestBed.createComponent(AdminCategories);http.expectOne(base+'/categories').flush([category]);f.componentInstance.edit(category);f.detectChanges();
+  const headline=f.nativeElement.querySelector('[formControlName=catalogHeadline]') as HTMLInputElement;
+  const description=f.nativeElement.querySelector('[formControlName=catalogDescription]') as HTMLTextAreaElement;
+  headline.value='Nueva frase';headline.dispatchEvent(new Event('input'));description.value='Nueva descripción';description.dispatchEvent(new Event('input'));f.detectChanges();
+  expect(f.nativeElement.querySelector('.catalog-preview').textContent).toContain('Nueva frase');
+  expect(f.nativeElement.querySelector('.catalog-preview').textContent).toContain('Nueva descripción');
+  http.expectNone(base+'/categories/c1');
+  (f.nativeElement.querySelector('button[type=button]') as HTMLButtonElement).click();f.componentInstance.edit(category);f.detectChanges();
+  expect(f.componentInstance.form.controls.catalogHeadline.value).toBe(category.catalogHeadline);
+  f.componentInstance.form.patchValue({catalogHeadline:'Nueva frase',catalogDescription:'Nueva descripción'});
+  f.componentInstance.save();const request=http.expectOne(base+'/categories/c1');
+  expect(request.request.body).toMatchObject({catalogHeadline:'Nueva frase',catalogDescription:'Nueva descripción'});
+  request.flush({...category,catalogHeadline:'Nueva frase',catalogDescription:'Nueva descripción'});http.expectOne(base+'/categories').flush([]);
  });
  it('sorts categories only in admin and preserves their public order when editing',()=>{
   const f=TestBed.createComponent(AdminCategories);
