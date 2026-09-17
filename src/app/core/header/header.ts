@@ -1,11 +1,10 @@
 import { NgOptimizedImage } from '@angular/common';
-import { ChangeDetectionStrategy, Component, ElementRef, inject, input, signal, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, ElementRef, inject, input, signal, viewChild } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router, RouterLink } from '@angular/router';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { catchError, debounceTime, filter, map, of, startWith, switchMap } from 'rxjs';
 import { ProductCatalog } from '../data/product-catalog';
-import { publicSeoCategory } from '../seo/category-seo';
 import { QuoteStore } from '../quote/quote-store';
 import { FloatingWhatsApp } from '../whatsapp/floating-whatsapp';
 @Component({
@@ -17,9 +16,14 @@ export class Header {
  private readonly router = inject(Router);
  private readonly source = inject(ProductCatalog);
  readonly catalogMode = input(false);
- readonly categories = toSignal(inject(ProductCatalog).categories().pipe(map(items => items.slice(0,6)),catchError(()=>of([]))),{initialValue:[]});
+ readonly categories = toSignal(inject(ProductCatalog).categories().pipe(catchError(()=>of([]))),{initialValue:[]});
  readonly menuOpen = signal(false);
- readonly activeCategory = signal(this.categoryFromUrl(this.router.url));
+ private readonly currentUrl = signal(this.router.url);
+ readonly activeCategory = computed(()=>{
+  const tree=this.router.parseUrl(this.currentUrl());
+  const pathSlug=tree.root.children['primary']?.segments[1]?.path??'';
+  return this.categories().some(category=>category.slug===pathSlug)?pathSlug:tree.queryParams['categoria']??'';
+ });
  readonly searchOpen = signal(false);
  readonly search = new FormControl<string>(this.router.parseUrl(this.router.url).queryParams['buscar']??'',{nonNullable:true});
  readonly results = toSignal(this.search.valueChanges.pipe(
@@ -38,16 +42,10 @@ export class Header {
   })
  ),{initialValue:{products:[],loading:false,error:false}});
  constructor(){this.router.events.pipe(filter(event=>event instanceof NavigationEnd),takeUntilDestroyed()).subscribe(()=>{
-  this.activeCategory.set(this.categoryFromUrl(this.router.url));
+  this.currentUrl.set(this.router.url);
   if(this.catalogMode())this.search.setValue(this.router.parseUrl(this.router.url).queryParams['buscar']??'',{emitEvent:false});
  });}
- categoryLink(slug: string): string { return publicSeoCategory(slug) ? `/productos/${slug}` : '/productos'; }
- categoryQueryParams(slug: string): Record<string, string> | null { return publicSeoCategory(slug) ? null : { categoria: slug }; }
- private categoryFromUrl(url: string): string {
-  const tree=this.router.parseUrl(url);
-  const pathSlug=tree.root.children['primary']?.segments[1]?.path??'';
-  return publicSeoCategory(pathSlug)?.slug??tree.queryParams['categoria']??'';
- }
+ categoryLink(slug: string): string { return `/productos/${slug}`; }
  private readonly searchToggle = viewChild<ElementRef<HTMLButtonElement>>('searchToggle');
  private readonly searchInput = viewChild<ElementRef<HTMLInputElement>>('searchInput');
  toggleSearch() { this.closeMenu(); this.searchOpen.update(open=>!open); if(this.searchOpen())setTimeout(()=>this.searchInput()?.nativeElement.focus()); }

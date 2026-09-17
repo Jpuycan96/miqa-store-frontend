@@ -10,6 +10,7 @@ export class AdminApi {
  categories(){return this.http.get<AdminCategory[]>(this.base+'/categories').pipe(timeout(10000));}
  saveCategory(id:string|null,input:CategoryInput){return id?this.http.put<AdminCategory>(this.base+'/categories/'+encodeURIComponent(id),input):this.http.post<AdminCategory>(this.base+'/categories',input);}
  activeCategory(id:string,active:boolean){return this.http.patch<AdminCategory>(this.base+'/categories/'+encodeURIComponent(id)+'/active',{active});}
+ deleteCategory(id:string){return this.http.delete<void>(this.base+'/categories/'+encodeURIComponent(id));}
  products(filters:Record<string,string>={}){let params=new HttpParams();for(const [key,value] of Object.entries(filters))if(value.trim())params=params.set(key,value.trim());return this.http.get<AdminProduct[]>(this.base+'/products',{params}).pipe(timeout(10000));}
  product(id:string){return this.http.get<AdminProduct>(this.base+'/products/'+encodeURIComponent(id)).pipe(timeout(10000));}
  saveProduct(id:string|null,input:ProductInput){return id?this.http.put<AdminProduct>(this.base+'/products/'+encodeURIComponent(id),input):this.http.post<AdminProduct>(this.base+'/products',input);}

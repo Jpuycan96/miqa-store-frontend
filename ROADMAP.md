@@ -96,6 +96,10 @@ Google exige `offers`, `review` o `aggregateRating` para que `Product` sea váli
 - [x] Evitar usar query params como landing SEO principal.
 - [x] Incorporar title, description, canonical y contenido editorial por categoría.
 - [x] Incorporar categorías indexables al sitemap.
+- [x] Usar Admin/API como fuente de verdad para categorías, rutas, navegación, sitemap y prerender.
+- [x] Generar slugs desde el nombre y conservar aliases históricos.
+- [x] Generar reglas 301 de Cloudflare desde el historial de slugs.
+- [ ] Desplegar coordinadamente V6/API y después reconstruir/publicar el frontend para activar redirects reales.
 
 ### HTTP 404
 

@@ -16,7 +16,7 @@ describe('Public header',()=>{
   const f=TestBed.createComponent(Header);await f.whenStable();
   const el:HTMLElement=f.nativeElement;
   const links=el.querySelectorAll<HTMLAnchorElement>('.desktop-nav a');
-  expect(links.length).toBe(Math.min(6,PRODUCT_CATEGORIES.length)+1);
+  expect(links.length).toBe(PRODUCT_CATEGORIES.length+1);
   expect(links[0].getAttribute('href')).toBe('/productos/'+PRODUCT_CATEGORIES[0].slug);
   expect(links[links.length-1].getAttribute('href')).toBe('/productos');
   expect(el.querySelectorAll('.top-strip [aria-disabled=true]')).toHaveLength(2);
@@ -40,7 +40,7 @@ describe('Public header',()=>{
   received.next([{name:'Nueva categoría de API',slug:'nueva-api'},{name:'Otra categoría',slug:'otra-api'}]);await f.whenStable();
   const links=f.nativeElement.querySelectorAll('.desktop-nav a') as NodeListOf<HTMLAnchorElement>;
   expect(Array.from(links,a=>a.textContent)).toEqual(['Nueva categoría de API','Otra categoría','TODOS']);
-  expect(links[0].getAttribute('href')).toBe('/productos?categoria=nueva-api');
+  expect(links[0].getAttribute('href')).toBe('/productos/nueva-api');
   expect(links[2].getAttribute('href')).toBe('/productos');
   received.complete();
  });

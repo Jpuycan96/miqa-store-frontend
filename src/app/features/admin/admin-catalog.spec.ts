@@ -57,7 +57,7 @@ describe('Admin catalog forms',()=>{
   f.componentInstance.form.controls.name.setValue('Editado');f.componentInstance.save();const req=http.expectOne(base+'/products/p1');expect(req.request.method).toBe('PUT');expect(req.request.body.seoTitle).toBe('Existing SEO');req.flush({...product,name:'Editado'});expect(f.componentInstance.message()).toContain('guardado');
  });
  it('creates and deactivates categories through API',()=>{
-  const f=TestBed.createComponent(AdminCategories);http.expectOne(base+'/categories').flush([]);const c=f.componentInstance;c.edit();c.form.controls.name.setValue('Nueva categoría');c.nameChanged();expect(c.form.controls.slug.value).toBe('nueva-categoria');c.save();const req=http.expectOne(base+'/categories');expect(req.request.method).toBe('POST');req.flush(category);http.expectOne(base+'/categories').flush([category]);c.toggle(category);http.expectOne(base+'/categories/c1/active').flush({...category,active:false});http.expectOne(base+'/categories').flush([{...category,active:false}]);expect(c.items()[0].active).toBe(false);
+  const f=TestBed.createComponent(AdminCategories);http.expectOne(base+'/categories').flush([]);const c=f.componentInstance;c.edit();c.form.controls.name.setValue('Nueva categoría');expect(c.slugPreview()).toBe('nueva-categoria');c.save();const req=http.expectOne(base+'/categories');expect(req.request.method).toBe('POST');expect(req.request.body.slug).toBeUndefined();req.flush(category);http.expectOne(base+'/categories').flush([category]);c.toggle(category);http.expectOne(base+'/categories/c1/active').flush({...category,active:false});http.expectOne(base+'/categories').flush([{...category,active:false}]);expect(c.items()[0].active).toBe(false);
  });
  it('previews category editorial changes locally and persists them only on save',()=>{
   const f=TestBed.createComponent(AdminCategories);http.expectOne(base+'/categories').flush([category]);f.componentInstance.edit(category);f.detectChanges();
@@ -87,8 +87,22 @@ describe('Admin catalog forms',()=>{
   const req=http.expectOne(base+'/categories/c1');
   expect(req.request.body).toMatchObject({name:'Nueva Zeta',displayOrder:3});
   req.flush(categories[0]);http.expectOne(base+'/categories').flush(categories);
-  f.componentInstance.edit();f.componentInstance.form.patchValue({name:'Nueva',slug:'nueva'});f.componentInstance.save();
+  f.componentInstance.edit();f.componentInstance.form.patchValue({name:'Nueva'});f.componentInstance.save();
   const create=http.expectOne(base+'/categories');expect(create.request.body.displayOrder).toBe(0);
   create.flush(category);http.expectOne(base+'/categories').flush(categories);
+ });
+ it('shows generated URL read-only, warns on rename and deletes through the API',()=>{
+  const confirmSpy=vi.spyOn(window,'confirm').mockReturnValue(true);
+  const f=TestBed.createComponent(AdminCategories);http.expectOne(base+'/categories').flush([category]);f.componentInstance.edit(category);f.componentInstance.form.controls.name.setValue('Señalética Ñandú');f.detectChanges();
+  expect(f.componentInstance.slugPreview()).toBe('senaletica-nandu');expect(f.nativeElement.querySelector('[formControlName=slug]')).toBeNull();expect(f.nativeElement.textContent).toContain('redirección SEO permanente');
+  f.componentInstance.message.set('Categoría guardada.');
+  f.componentInstance.remove(category);expect(confirmSpy).toHaveBeenCalled();http.expectOne(base+'/categories/c1').flush(null);http.expectOne(base+'/categories').flush([]);expect(f.componentInstance.message()).toContain('eliminada');confirmSpy.mockRestore();
+ });
+ it('shows a safe backend conflict and clears previous success when deletion fails',()=>{
+  const confirmSpy=vi.spyOn(window,'confirm').mockReturnValue(true);
+  const f=TestBed.createComponent(AdminCategories);http.expectOne(base+'/categories').flush([category]);
+  f.componentInstance.message.set('Categoría guardada.');f.componentInstance.remove(category);
+  http.expectOne(base+'/categories/c1').flush({message:'No se puede eliminar la categoría porque tiene productos asociados'},{status:409,statusText:'Conflict'});
+  expect(f.componentInstance.message()).toBe('');expect(f.componentInstance.error()).toContain('productos asociados');confirmSpy.mockRestore();
  });
 });

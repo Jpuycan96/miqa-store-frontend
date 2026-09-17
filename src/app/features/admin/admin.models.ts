@@ -1,5 +1,5 @@
 export interface AdminCategory { id: string; name: string; slug: string; description: string | null; catalogHeadline: string | null; catalogDescription: string | null; active: boolean; displayOrder: number; }
-export type CategoryInput = Omit<AdminCategory,'id'>;
+export type CategoryInput = Omit<AdminCategory,'id' | 'slug'>;
 export interface AdminOption { id: string; name: string; active: boolean; displayOrder: number; }
 export interface AdminImage { id: string; url: string; publicUrl: string; altText: string; primaryImage: boolean; displayOrder: number; }
 export interface ProductInput {

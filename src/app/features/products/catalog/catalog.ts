@@ -10,7 +10,6 @@ import { createQuoteItem } from '../../../core/quote/quote-utils';
 import { AreaConfigurator } from '../area-configurator/area-configurator';
 import { QuotePanel } from '../../../core/quote/quote-panel/quote-panel';
 import { breadcrumb, PAGE_SEO, Seo } from '../../../core/seo/seo';
-import { publicSeoCategory } from '../../../core/seo/category-seo';
 
 @Component({
   selector: 'app-catalog', imports: [RouterLink, ProductImageGallery, AreaConfigurator, QuotePanel],
@@ -23,11 +22,12 @@ export class Catalog {
   private readonly route = inject(ActivatedRoute);
   private readonly params = toSignal(this.route.queryParamMap, { initialValue: this.route.snapshot.queryParamMap });
   private readonly routeData = toSignal(this.route.data, { initialValue: this.route.snapshot.data });
+  private readonly routeParams = toSignal(this.route.paramMap, { initialValue: this.route.snapshot.paramMap });
   private readonly refresh = new Subject<void>();
   private readonly requestedSearch = computed(()=>(this.params().get('buscar')??'').slice(0,120));
   readonly query = signal('');
-  readonly category = computed(() => this.routeData()['categorySlug'] as string | undefined ?? this.params().get('categoria') ?? '');
-  readonly isCategoryPage = computed(() => !!this.routeData()['categorySlug']);
+  readonly isCategoryPage = computed(() => this.routeData()['categoryRoute'] === true);
+  readonly category = computed(() => this.isCategoryPage() ? this.routeParams().get('slug') ?? '' : this.params().get('categoria') ?? '');
   private readonly search = toObservable(this.query).pipe(
     map(value => value.trim()), distinctUntilChanged(), debounceTime(300), startWith(''), distinctUntilChanged()
   );
@@ -61,16 +61,15 @@ export class Catalog {
     effect(()=>{
       this.query.set(this.requestedSearch());
       const category = this.activeCategory();
-      const seoCategory = publicSeoCategory(this.category());
       const hasQueryParams = this.params().keys.length > 0;
-      if (this.isCategoryPage() && category && seoCategory) {
-        const path = `/productos/${seoCategory.slug}`;
+      if (this.isCategoryPage() && category) {
+        const path = `/productos/${category.slug}`;
         const editorial = category.catalogDescription?.trim();
         const description = editorial
           ? `${editorial} Conoce las opciones de ${category.name.toLocaleLowerCase('es')} de MIQA en Trujillo.`
           : `Conoce las opciones de ${category.name} de MIQA en Trujillo y solicita una cotización para tu proyecto.`;
         seo.applyPage(path, {
-          title: seoCategory.title,
+          title: `${category.name} en Trujillo | MIQA`,
           description,
           robots: hasQueryParams ? 'noindex,follow' : 'index,follow',
           image: PAGE_SEO['/productos'].image,

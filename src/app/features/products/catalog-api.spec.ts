@@ -54,13 +54,16 @@ describe('Catalog HTTP integration without backend', () => {
     expect(el.querySelector('.empty')).toBeTruthy();
   });
   it('keeps an unknown slug in place and allows retry after a detail failure', async () => {
-    const h = await RouterTestingHarness.create('/productos/missing');
+    const creating = RouterTestingHarness.create('/productos/missing');
+    await new Promise(resolve=>setTimeout(resolve,0));
+    http.expectOne(base + '/categories').flush([]);
+    const h = await creating;
     expect(h.routeNativeElement!.textContent).toContain('Cargando producto');
     http.match(base + '/categories').forEach(request=>request.flush([]));
     http.expectOne(base + '/products/missing').flush({}, { status: 404, statusText: 'Not Found' });
     await h.fixture.whenStable();
     expect(h.routeNativeElement!.querySelector('h1')?.textContent).toContain('no está disponible');
-    await h.navigateByUrl('/productos/api-only');
+    const navigating=h.navigateByUrl('/productos/api-only');await new Promise(resolve=>setTimeout(resolve,0));http.expectOne(base+'/categories').flush([]);await navigating;
     http.expectOne(base + '/products/api-only').flush({}, { status: 500, statusText: 'Error' });
     await h.fixture.whenStable();
     h.routeNativeElement!.querySelector<HTMLButtonElement>('.unavailable button')!.click();
@@ -74,7 +77,7 @@ describe('Catalog HTTP integration without backend', () => {
     expect(document.querySelector('link[rel=canonical]')?.getAttribute('href')).toBe('https://store.solucionesmicaela.com/productos/api-only');expect(document.querySelector('meta[name="twitter:title"]')?.getAttribute('content')).toBe('Producto SEO');
   });
   it('uses non-empty product SEO fields and falls back for blank strings',async()=>{
-    const h=await RouterTestingHarness.create('/productos/api-only');http.match(base+'/categories').forEach(request=>request.flush([]));http.expectOne(base+'/products/api-only').flush({...product,seoTitle:'   ',seoDescription:' ',shortDescription:'Descripción corta'});await h.fixture.whenStable();
+    const creating=RouterTestingHarness.create('/productos/api-only');await new Promise(resolve=>setTimeout(resolve,0));http.expectOne(base+'/categories').flush([]);const h=await creating;http.match(base+'/categories').forEach(request=>request.flush([]));http.expectOne(base+'/products/api-only').flush({...product,seoTitle:'   ',seoDescription:' ',shortDescription:'Descripción corta'});await h.fixture.whenStable();
     expect(document.title).toBe('API only product | MIQA');expect(document.querySelector('meta[name=description]')?.getAttribute('content')).toBe('Descripción corta');expect(document.querySelector('link[rel=canonical]')?.getAttribute('href')).toBe('https://store.solucionesmicaela.com/productos/api-only');
   });
 });

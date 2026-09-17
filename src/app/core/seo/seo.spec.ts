@@ -5,7 +5,6 @@ import { provideRouter } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
 import { routes } from '../../app.routes';
 import { PAGE_SEO } from './seo';
-import { PUBLIC_SEO_CATEGORIES } from './category-seo';
 import { PRODUCT_CATEGORIES } from '../data/products.mock';
 
 beforeEach(() => TestBed.configureTestingModule({ providers: [provideTestCatalog()] }));
@@ -50,15 +49,14 @@ describe('Route SEO', () => {
     TestBed.configureTestingModule({providers:[provideRouter(routes)]});
     const harness=await RouterTestingHarness.create('/productos/impresion-gran-formato');
     const document=TestBed.inject(DOCUMENT);
-    for(const expected of PUBLIC_SEO_CATEGORIES){
-      await harness.navigateByUrl(`/productos/${expected.slug}`);
-      const category=PRODUCT_CATEGORIES.find(item=>item.slug===expected.slug)!;
-      expect(document.title).toBe(expected.title);
+    for(const category of PRODUCT_CATEGORIES){
+      await harness.navigateByUrl(`/productos/${category.slug}`);
+      expect(document.title).toBe(`${category.name} en Trujillo | MIQA`);
       expect(document.querySelector('meta[name=description]')?.getAttribute('content')).toContain(category.catalogDescription);
       expect(document.querySelector('meta[name=description]')?.getAttribute('content')).toContain('Trujillo');
       expect(document.querySelector('meta[name=robots]')?.getAttribute('content')).toBe('index,follow');
-      expect(document.querySelector('link[rel=canonical]')?.getAttribute('href')).toBe(`https://store.solucionesmicaela.com/productos/${expected.slug}`);
-      expect(document.querySelector('meta[property="og:url"]')?.getAttribute('content')).toBe(`https://store.solucionesmicaela.com/productos/${expected.slug}`);
+      expect(document.querySelector('link[rel=canonical]')?.getAttribute('href')).toBe(`https://store.solucionesmicaela.com/productos/${category.slug}`);
+      expect(document.querySelector('meta[property="og:url"]')?.getAttribute('content')).toBe(`https://store.solucionesmicaela.com/productos/${category.slug}`);
       const data=JSON.parse(document.querySelector('script[data-miqa-seo-jsonld]')!.textContent!);
       expect(data['@type']).toBe('BreadcrumbList');
       expect(data.itemListElement.map((item:{name:string})=>item.name)).toEqual(['Inicio','Productos',category.name]);
