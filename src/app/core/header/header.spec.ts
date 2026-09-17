@@ -17,7 +17,7 @@ describe('Public header',()=>{
   const el:HTMLElement=f.nativeElement;
   const links=el.querySelectorAll<HTMLAnchorElement>('.desktop-nav a');
   expect(links.length).toBe(Math.min(6,PRODUCT_CATEGORIES.length)+1);
-  expect(links[0].getAttribute('href')).toBe('/productos?categoria='+PRODUCT_CATEGORIES[0].slug);
+  expect(links[0].getAttribute('href')).toBe('/productos/'+PRODUCT_CATEGORIES[0].slug);
   expect(links[links.length-1].getAttribute('href')).toBe('/productos');
   expect(el.querySelectorAll('.top-strip [aria-disabled=true]')).toHaveLength(2);
   expect(el.querySelector('.top-strip a')?.getAttribute('href')).toBe('/');
@@ -28,7 +28,7 @@ describe('Public header',()=>{
   const f=TestBed.createComponent(Header);await f.whenStable();
   const nav=vi.spyOn(TestBed.inject(Router),'navigate').mockResolvedValue(true);
   f.componentRef.setInput('catalogMode',true);f.componentInstance.search.setValue('  tarjetas  ');await new Promise(resolve=>setTimeout(resolve,300));
-  expect(nav).toHaveBeenCalledWith(['/productos'],{queryParams:{buscar:'tarjetas'},replaceUrl:true});
+  expect(nav).toHaveBeenCalledWith(['productos'],{queryParams:{buscar:'tarjetas'},replaceUrl:true});
   const open=vi.spyOn(f.componentInstance.quote,'open');f.nativeElement.querySelector('.quote-toggle').click();expect(open).toHaveBeenCalledOnce();
  });
  it('renders asynchronously received categories rather than fixed category names',async()=>{
@@ -53,7 +53,7 @@ describe('Public header',()=>{
   expect(h.routeNativeElement!.querySelectorAll('.catalog-card').length).toBeGreaterThan(1);
  });
  it('marks the URL category active and marks Todos active without a category',async()=>{
-  const h=await RouterTestingHarness.create('/productos?categoria=merchandising');
+  const h=await RouterTestingHarness.create('/productos/merchandising');
   let active=h.routeNativeElement!.querySelector<HTMLAnchorElement>('.desktop-nav a.active');
   expect(active?.textContent).toBe('Merchandising');expect(active?.getAttribute('aria-current')).toBe('page');
   await h.navigateByUrl('/productos');

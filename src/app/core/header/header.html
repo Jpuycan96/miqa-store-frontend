@@ -3,7 +3,7 @@
  <div class="header-shell main-bar" [class.searching]="searchOpen()">
   <a routerLink="/" aria-label="MIQA Soluciones Gráficas, inicio" class="brand" (click)="navigate()"><img ngSrc="/images/brand/logo-miqa3.png" width="2048" height="768" priority alt="MIQA Soluciones Gráficas"></a>
   <nav aria-label="Categorías de productos" class="desktop-nav">
-   @for(c of categories();track c.slug){<a class="category-link" [class.active]="activeCategory() === c.slug" [attr.aria-current]="activeCategory() === c.slug ? 'page' : null" routerLink="/productos" [queryParams]="{categoria:c.slug}" (click)="navigate()">{{c.name}}</a>}
+   @for(c of categories();track c.slug){<a class="category-link" [class.active]="activeCategory() === c.slug" [attr.aria-current]="activeCategory() === c.slug ? 'page' : null" [routerLink]="categoryLink(c.slug)" [queryParams]="categoryQueryParams(c.slug)" (click)="navigate()">{{c.name}}</a>}
    <a class="all" [class.active]="!activeCategory()" [attr.aria-current]="!activeCategory() ? 'page' : null" href="/productos">TODOS</a>
   </nav>
   <div id="site-search" class="inline-search" [hidden]="!searchOpen()" (keydown.escape)="closeSearch()" role="search">
@@ -28,7 +28,7 @@
  <nav id="mobile-nav" aria-label="Navegación móvil" [hidden]="!menuOpen()" (keydown.escape)="closeMenu();menu.focus()" class="mobile-nav header-shell">
   <a routerLink="/" (click)="navigate()">INICIO</a><span aria-disabled="true">NOSOTROS <small>Próximamente</small></span><span aria-disabled="true">UBÍCANOS <small>Próximamente</small></span>
   <p class="menu-label">PRODUCTOS</p>
-  @for(c of categories();track c.slug){<a [class.active]="activeCategory() === c.slug" [attr.aria-current]="activeCategory() === c.slug ? 'page' : null" routerLink="/productos" [queryParams]="{categoria:c.slug}" (click)="navigate()">{{c.name}}</a>}
+  @for(c of categories();track c.slug){<a [class.active]="activeCategory() === c.slug" [attr.aria-current]="activeCategory() === c.slug ? 'page' : null" [routerLink]="categoryLink(c.slug)" [queryParams]="categoryQueryParams(c.slug)" (click)="navigate()">{{c.name}}</a>}
   <a [class.active]="!activeCategory()" [attr.aria-current]="!activeCategory() ? 'page' : null" href="/productos">TODOS</a>
   <button (click)="toggleSearch()">Buscar productos</button><button (click)="navigate();quote.open()">Abrir cotización</button>
  </nav>

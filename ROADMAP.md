@@ -92,10 +92,10 @@ Google exige `offers`, `review` o `aggregateRating` para que `Product` sea váli
 
 ### Categorías SEO
 
-- [ ] Crear URLs limpias e indexables para categorías, por ejemplo `/productos/merchandising` y `/productos/impresion-gran-formato`.
-- [ ] Evitar usar query params como landing SEO principal.
-- [ ] Incorporar title, description, canonical y contenido editorial por categoría.
-- [ ] Incorporar categorías indexables al sitemap cuando estén listas.
+- [x] Crear URLs limpias e indexables para las seis categorías públicas.
+- [x] Evitar usar query params como landing SEO principal.
+- [x] Incorporar title, description, canonical y contenido editorial por categoría.
+- [x] Incorporar categorías indexables al sitemap.
 
 ### HTTP 404
 

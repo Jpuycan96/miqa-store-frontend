@@ -81,4 +81,11 @@ describe('Local catalog and configurator', () => {
     expect(element.querySelector('h1')?.textContent).toContain('no está disponible');
     expect(element.querySelector('.add-button')).toBeNull();
   });
+
+  it('keeps a product slug on the detail route instead of treating it as a category', async () => {
+    const harness = await RouterTestingHarness.create('/productos/tarjetas-personales');
+    expect(harness.routeNativeElement!.querySelector('.product-detail h1')?.textContent).toContain('Tarjetas personales');
+    expect(harness.routeNativeElement!.querySelector('.catalog')).toBeNull();
+    expect(document.querySelector('script[data-miqa-seo-jsonld]')?.textContent).not.toContain('"@type":"Product"');
+  });
 });

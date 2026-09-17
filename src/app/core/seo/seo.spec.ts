@@ -5,6 +5,8 @@ import { provideRouter } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
 import { routes } from '../../app.routes';
 import { PAGE_SEO } from './seo';
+import { PUBLIC_SEO_CATEGORIES } from './category-seo';
+import { PRODUCT_CATEGORIES } from '../data/products.mock';
 
 beforeEach(() => TestBed.configureTestingModule({ providers: [provideTestCatalog()] }));
 
@@ -43,6 +45,28 @@ describe('Route SEO', () => {
     for(const url of ['/productos?buscar=vinil','/productos?categoria=impresion','/productos?categoria=impresion&buscar=vinil']){
       await harness.navigateByUrl(url);expect(document.querySelector('meta[name=robots]')?.getAttribute('content')).toBe('noindex,follow');expect(document.querySelector('link[rel=canonical]')?.getAttribute('href')).toBe('https://store.solucionesmicaela.com/productos');expect(document.querySelectorAll('script[data-miqa-seo-jsonld]')).toHaveLength(1);
     }
+  });
+  it('applies category SEO, canonical and three-level BreadcrumbList to all category pages',async()=>{
+    TestBed.configureTestingModule({providers:[provideRouter(routes)]});
+    const harness=await RouterTestingHarness.create('/productos/impresion-gran-formato');
+    const document=TestBed.inject(DOCUMENT);
+    for(const expected of PUBLIC_SEO_CATEGORIES){
+      await harness.navigateByUrl(`/productos/${expected.slug}`);
+      const category=PRODUCT_CATEGORIES.find(item=>item.slug===expected.slug)!;
+      expect(document.title).toBe(expected.title);
+      expect(document.querySelector('meta[name=description]')?.getAttribute('content')).toContain(category.catalogDescription);
+      expect(document.querySelector('meta[name=description]')?.getAttribute('content')).toContain('Trujillo');
+      expect(document.querySelector('meta[name=robots]')?.getAttribute('content')).toBe('index,follow');
+      expect(document.querySelector('link[rel=canonical]')?.getAttribute('href')).toBe(`https://store.solucionesmicaela.com/productos/${expected.slug}`);
+      expect(document.querySelector('meta[property="og:url"]')?.getAttribute('content')).toBe(`https://store.solucionesmicaela.com/productos/${expected.slug}`);
+      const data=JSON.parse(document.querySelector('script[data-miqa-seo-jsonld]')!.textContent!);
+      expect(data['@type']).toBe('BreadcrumbList');
+      expect(data.itemListElement.map((item:{name:string})=>item.name)).toEqual(['Inicio','Productos',category.name]);
+      expect(document.body.textContent).not.toContain('"@type":"Product"');
+    }
+    await harness.navigateByUrl('/productos/merchandising?buscar=lapicero');
+    expect(document.querySelector('meta[name=robots]')?.getAttribute('content')).toBe('noindex,follow');
+    expect(document.querySelector('link[rel=canonical]')?.getAttribute('href')).toBe('https://store.solucionesmicaela.com/productos/merchandising');
   });
   it('marks unknown routes noindex nofollow without using the home canonical',async()=>{
     TestBed.configureTestingModule({providers:[provideRouter(routes)]});await RouterTestingHarness.create('/no-existe');const document=TestBed.inject(DOCUMENT);

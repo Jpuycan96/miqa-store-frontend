@@ -1,5 +1,6 @@
 import { writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
+import categories from '../src/app/core/seo/public-categories.json' with { type: 'json' };
 
 export const SITE_URL = 'https://store.solucionesmicaela.com';
 export const PRODUCTS_URL = 'https://api-store.solucionesmicaela.com/api/public/products';
@@ -7,6 +8,7 @@ export const PRODUCTS_URL = 'https://api-store.solucionesmicaela.com/api/public/
 export function sitemapUrls(products) {
   return [
     `${SITE_URL}/`, `${SITE_URL}/productos`,
+    ...categories.map(category => `${SITE_URL}/productos/${category.slug}`),
     ...products.filter(product => product?.published === true && typeof product.slug === 'string' && product.slug.trim())
       .map(product => `${SITE_URL}/productos/${encodeURIComponent(product.slug.trim())}`)
   ];

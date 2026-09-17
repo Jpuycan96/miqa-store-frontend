@@ -8,16 +8,19 @@ import { provideTestCatalog } from '../../../testing/catalog.fixture';
 describe('Catalog category editorial heading', () => {
   beforeEach(() => TestBed.configureTestingModule({ providers: [provideRouter(routes), provideTestCatalog()] }));
 
-  it('renders API category editorial content, reacts to URL changes and restores Todos', async () => {
-    const harness = await RouterTestingHarness.create('/productos?categoria=impresion-gran-formato');
+  it('renders all six API category pages, filters their products and restores Todos', async () => {
+    const harness = await RouterTestingHarness.create('/productos/impresion-gran-formato');
     const heading = () => harness.routeNativeElement!.querySelector('.catalog-heading')!;
 
     for (const category of PRODUCT_CATEGORIES) {
-      await harness.navigateByUrl(`/productos?categoria=${category.slug}`);
+      await harness.navigateByUrl(`/productos/${category.slug}`);
       expect(heading().textContent).toContain(category.name);
       expect(heading().textContent).toContain(category.catalogHeadline);
       expect(heading().textContent).toContain(category.catalogDescription);
       expect(heading().classList).toContain('category-editorial');
+      const cards = harness.routeNativeElement!.querySelectorAll<HTMLElement>('.catalog-card');
+      expect(Array.from(cards).every(card => card.dataset['product'] &&
+        card.querySelector('.category-name')?.textContent?.trim() === category.name)).toBe(true);
     }
 
     await harness.navigateByUrl('/productos');

@@ -1,5 +1,12 @@
 # MIQA Store — contexto y traspaso
 
+## Páginas SEO de categorías públicas — 17 de septiembre de 2026
+
+- Las seis categorías principales tienen landings limpias en `/productos/{categorySlug}`. El router las declara explícitamente antes de `:slug`, por lo que esos seis slugs reutilizan `Catalog` y cualquier otro slug continúa en `ProductDetail`; no se usa una heurística ni una consulta ambigua a la API.
+- La landing obtiene nombre, `catalogHeadline` y `catalogDescription` desde la API, muestra solo productos publicados de la categoría y emite title local para Trujillo, descripción derivada del copy editorial, canonical propia, OG/Twitter, `index,follow` y `BreadcrumbList` de tres niveles. Si lleva query params pasa a `noindex,follow` conservando la canonical limpia de la categoría. No se emite JSON-LD `Product`.
+- Header desktop/móvil enlaza esas categorías por sus URLs limpias; TODOS conserva `/productos`. Las categorías no incluidas en la lista SEO siguen pudiendo usar el query param anterior. `/productos` con búsqueda/filtros mantiene `noindex,follow` y canonical `/productos`.
+- La lista declarativa de seis categorías se comparte entre rutas Angular, prerender, navegación y generador del sitemap. El build falla como antes si la API pública requerida no responde. Validación: 109/109 tests; build correcto; 34 rutas estáticas (home, catálogo, proyectos, seis categorías y 25 productos); sitemap con 33 URLs indexables (sin Proyectos); HTML real inspeccionado para Merchandising, Imprenta/Papelería y Tarjetas personales.
+
 ## SEO público fase 1 — 16 de septiembre de 2026
 
 - Home, `/productos` limpio y los productos publicados usan `index,follow`; cualquier query param del catálogo conserva canonical `/productos` y usa `noindex,follow`. Productos consumen `seoTitle`/`seoDescription` públicos con fallbacks no vacíos, canonical propia y OG/Twitter con imagen real o logo institucional. Las páginas de producto emiten únicamente JSON-LD BreadcrumbList: no emiten Product porque MIQA no publica offers, reviews ni aggregateRating reales. Home usa LocalBusiness con los datos públicos confirmados.

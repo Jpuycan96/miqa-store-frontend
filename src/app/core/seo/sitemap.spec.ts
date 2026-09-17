@@ -1,10 +1,16 @@
 // @ts-ignore Build helper is intentionally plain Node ESM.
 import { generateSitemap, renderSitemap, sitemapUrls } from '../../../../scripts/generate-sitemap.mjs';
+import { PUBLIC_SEO_CATEGORIES } from './category-seo';
 
 describe('SEO sitemap generator',()=>{
   it('includes canonical public pages and only published products',()=>{
     const urls=sitemapUrls([{slug:'publicado',published:true},{slug:'borrador',published:false},{slug:'',published:true}]);
-    expect(urls).toEqual(['https://store.solucionesmicaela.com/','https://store.solucionesmicaela.com/productos','https://store.solucionesmicaela.com/productos/publicado']);
+    expect(urls).toEqual([
+      'https://store.solucionesmicaela.com/',
+      'https://store.solucionesmicaela.com/productos',
+      ...PUBLIC_SEO_CATEGORIES.map(category => `https://store.solucionesmicaela.com/productos/${category.slug}`),
+      'https://store.solucionesmicaela.com/productos/publicado'
+    ]);
     const xml=renderSitemap(urls);expect(xml).toContain('<loc>https://store.solucionesmicaela.com/</loc>');expect(xml).not.toContain('admin');expect(urls.every((url:string)=>!url.includes('?'))).toBe(true);expect(xml).not.toContain('borrador');
   });
   it('escapes XML values',()=>{expect(renderSitemap(['https://example.test/?a=1&b=2'])).toContain('&amp;');});
