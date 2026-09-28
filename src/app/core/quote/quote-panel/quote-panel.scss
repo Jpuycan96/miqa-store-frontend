@@ -6,10 +6,27 @@ ul { list-style: none; margin: 0; padding: 0; } li { padding-block: 14px; border
 h3 { font-size: 15px; font-weight: 600; } .configuration, .empty, .hint { font-size: 12px; color: var(--muted); line-height: 1.6; overflow-wrap: anywhere; margin-block: 8px 12px; }
 .item-controls { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
 .quantity-control { display: inline-flex; align-items: center; border: 1px solid #c4cbd4; border-radius: 99px; }
-.quantity-control button { width: 36px; height: 36px; border: 0; border-radius: 50%; background: none; font-size: 18px; } .quantity-control span { min-width: 24px; text-align: center; font-size: 12px; }
+.quantity-control button { width: 36px; height: 36px; border: 0; border-radius: 50%; background: none; font-size: 18px; } .quantity-control input { width: 48px; min-height: 36px; padding: 0; border: 0; background: transparent; color: inherit;  min-width: 24px; text-align: center; font-size: 12px; }
 button { cursor: pointer; color: inherit; } button:disabled { opacity: .45; cursor: default; } .remove, .clear { min-height: 36px; border: 0; background: none; font-size: 12px; text-decoration: underline; text-underline-offset: 4px; }
 .panel-actions { padding-top: 16px; border-top: 1px solid #e0e3e8; flex-shrink: 0; }
 .panel-whatsapp { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 44px; padding: 10px 14px; border-radius: 99px; font-size: 13px; font-weight: 600; background: var(--miqa-cyan); color: var(--miqa-navy); } .panel-whatsapp:hover { background: #a4f2f2; } .clear { display: block; margin: 4px auto 0; }
 @media (min-width: 1280px) { :host { display: block; position: sticky; top: 112px; align-self: start; } }
 
 li.updated { background: #e9fafa; box-shadow: inset 3px 0 #16b8c4; }
+
+.quantity-minimum { margin: 4px 0; font-size: 12px; color: #536174; }
+.quantity-control input { appearance: textfield; }
+.quantity-control input::-webkit-inner-spin-button, .quantity-control input::-webkit-outer-spin-button { appearance: none; margin: 0; }
+
+.quantity-control input[appQuantityInput] {
+  border: 0;
+  outline: none;
+  box-shadow: none;
+  background: transparent;
+  text-align: center;
+  cursor: text;
+}
+.quantity-control input[appQuantityInput]:focus-visible {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}

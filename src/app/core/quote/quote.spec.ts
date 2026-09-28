@@ -21,7 +21,7 @@ describe('Quote calculations and message', () => {
     expect(createQuoteItem(product, { ...config, materialId: 'blanco', extraIds: ['unknown'] }, '1')).toBeNull();
     expect(createQuoteItem(product, { ...config, materialId: 'blanco', widthMeters: 0 }, '1')).toBeNull();
     expect(createQuoteItem(PRODUCTS[0], { quantity: 1.5 }, '1')).toBeNull();
-    expect(createQuoteItem({ ...PRODUCTS[2], minQuantity: 5, step: 5 }, { quantity: 6 }, '1')).toBeNull();
+    expect(createQuoteItem({ ...PRODUCTS[2], minQuantity: 5, step: 5 }, { quantity: 6 }, '1')).toBeTruthy();
     expect(createQuoteItem({ ...PRODUCTS[2], minQuantity: 5, step: 5 }, { quantity: 10 }, '1')).toBeTruthy();
   });
   it('formats packs, units, measures, material, extras and notes without prices', () => {

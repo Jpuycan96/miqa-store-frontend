@@ -31,8 +31,14 @@ export function calculateArea(width: number, height: number): number {
     && Number.isFinite(width * height) ? width * height : 0;
 }
 
-export function validQuantity(quantity: number, minimum = 1, step = 1): boolean {
-  return Number.isSafeInteger(quantity) && quantity >= minimum && (quantity - minimum) % step === 0;
+export function validQuantity(quantity: number, minimum = 1): boolean {
+  return Number.isSafeInteger(quantity) && quantity >= Math.max(1, minimum);
+}
+
+/** Truncate decimals, enforce the configured minimum, and reject unsafe numbers. */
+export function normalizeQuantity(quantity: number, minimum = 1): number {
+  const integer = Math.trunc(quantity);
+  return Number.isSafeInteger(integer) ? Math.max(1, minimum, integer) : Math.max(1, minimum);
 }
 
 export function quantityLabel(quantity: number, unit: string): string {
@@ -41,7 +47,7 @@ export function quantityLabel(quantity: number, unit: string): string {
 }
 
 export function createQuoteItem(product: Product, config: QuoteConfiguration, id: string): QuoteItem | null {
-  if (!product.published || !validQuantity(config.quantity, product.minQuantity, product.step)) return null;
+  if (!product.published || !validQuantity(config.quantity, product.minQuantity)) return null;
   if (product.saleType === 'PACK' && (!product.packSize || !product.packLabel)) return null;
   const area = calculateArea(config.widthMeters ?? 0, config.heightMeters ?? 0);
   if (product.saleType === 'AREA' && (!area || (config.widthMeters ?? 0) < 0.01 || (config.heightMeters ?? 0) < 0.01)) return null;

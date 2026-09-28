@@ -8,11 +8,12 @@
           <li [class.updated]="quote.highlightedItemId() === item.id">
             <h3>{{ item.productName }}</h3>
             <p class="configuration">{{ describe(item) }}</p>
+            <p class="quantity-minimum">Mínimo {{ quote.quantityRules(item).minimum }} {{ item.saleType === 'PACK' ? 'presentaciones' : 'unidades' }}</p>
             <div class="item-controls">
               <div class="quantity-control" role="group" [attr.aria-label]="'Cantidad de ' + item.productName">
-                <button [attr.aria-label]="'Reducir cantidad de ' + item.productName" [disabled]="item.quantity <= quote.quantityRules(item).minimum" (click)="quote.updateQuantity(item.id, item.quantity - quote.quantityRules(item).step)">−</button>
-                <span aria-live="polite">{{ item.quantity }}</span>
-                <button [attr.aria-label]="'Aumentar cantidad de ' + item.productName" (click)="quote.updateQuantity(item.id, item.quantity + quote.quantityRules(item).step)">+</button>
+                <button [attr.aria-label]="'Reducir cantidad de ' + item.productName" [disabled]="item.quantity <= quote.quantityRules(item).minimum" (click)="quote.changeQuantity(item, -quote.quantityRules(item).step)">−</button>
+                <input appQuantityInput [quantity]="item.quantity" [minimum]="quote.quantityRules(item).minimum" (quantityChange)="quote.updateQuantity(item.id, $event)" [attr.aria-label]="'Cantidad de ' + item.productName">
+                <button [attr.aria-label]="'Aumentar cantidad de ' + item.productName" (click)="quote.changeQuantity(item, quote.quantityRules(item).step)">+</button>
               </div>
               <button class="remove" [attr.aria-label]="'Eliminar ' + item.productName + ' de la cotización'" (click)="quote.removeItem(item.id)">Eliminar</button>
             </div>

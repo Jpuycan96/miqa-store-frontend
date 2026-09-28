@@ -27,10 +27,11 @@
               <p class="presentation">{{ product.saleType === 'PACK' ? '1 ' + product.packLabel : 'Por ' + product.unitLabel }}</p>
               <div class="purchase-row"><div class="quantity-control" role="group" [attr.aria-label]="'Cantidad de ' + product.name">
                 <button [attr.aria-label]="'Reducir cantidad de ' + product.name" [disabled]="quantity(product) <= (product.minQuantity ?? 1)" (click)="change(product, -(product.step ?? 1))">−</button>
-                <output [attr.aria-label]="'Cantidad de ' + product.name">{{ quantity(product) }}</output>
+                <input appQuantityInput [quantity]="quantity(product)" [minimum]="product.minQuantity ?? 1" (quantityChange)="setQuantity(product, $event)" [attr.aria-label]="'Cantidad de ' + product.name">
                 <button [attr.aria-label]="'Aumentar cantidad de ' + product.name" (click)="change(product, product.step ?? 1)">+</button>
               </div>
               <button class="card-action quick-add" [disabled]="!canAdd(product)" [attr.aria-label]="'Agregar ' + product.name" (click)="add(product)">Agregar</button></div>
+              <p class="quantity-minimum">Mínimo {{ product.minQuantity ?? 1 }} {{ product.saleType === 'PACK' ? 'presentaciones' : 'unidades' }}</p>
             }
           </div>
         </article>

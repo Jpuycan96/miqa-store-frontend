@@ -4,7 +4,7 @@ import { take } from 'rxjs';
 import { ProductCatalog } from '../data/product-catalog';
 import { Product } from '../../shared/models/product';
 import { QuoteConfiguration, QuoteItem } from '../../shared/models/quote-item';
-import { buildQuoteMessage, createQuoteItem, getQuoteItemIdentity, mergeQuoteItems, validQuantity } from './quote-utils';
+import { buildQuoteMessage, createQuoteItem, getQuoteItemIdentity, mergeQuoteItems, normalizeQuantity, validQuantity } from './quote-utils';
 import { whatsAppUrl } from '../config/whatsapp';
 
 export const QUOTE_STORAGE_KEY = 'miqa.quote.v1';
@@ -25,7 +25,12 @@ export class QuoteStore {
   readonly isOpen = this.visibility.asReadonly();
   /** Count configured lines, not incompatible units such as millares and square metres. */
   readonly totalItems = computed(() => this.items().length);
-  readonly whatsappUrl = computed(() => whatsAppUrl(buildQuoteMessage(this.items())));
+  readonly whatsappUrl = computed(() => {
+    const items = this.items().map(item => ({
+      ...item, quantity: normalizeQuantity(item.quantity, this.quantityRules(item).minimum)
+    }));
+    return whatsAppUrl(buildQuoteMessage(items));
+  });
   readonly confirmation = signal('');
   private confirmationTimer?: ReturnType<typeof setTimeout>;
   readonly highlightedItemId = signal<string | null>(null);
@@ -45,7 +50,7 @@ export class QuoteStore {
     const item = createQuoteItem(product, configuration, `quote-${++this.nextId}`);
     if (!item) return false;
     const existing = this.items().find(current => getQuoteItemIdentity(current) === getQuoteItemIdentity(item));
-    if (existing && !validQuantity(existing.quantity + item.quantity, product.minQuantity, product.step)) return false;
+    if (existing && !validQuantity(existing.quantity + item.quantity, product.minQuantity)) return false;
     this.products.set(product.id, product);
     this.state.update(items => mergeQuoteItems([...items, item]));
     this.persist();
@@ -68,10 +73,14 @@ export class QuoteStore {
   updateQuantity(id: string, quantity: number): boolean {
     const item = this.items().find(item => item.id === id);
     const product = item && this.products.get(item.productId);
-    if (!product || !validQuantity(quantity, product.minQuantity, product.step)) return false;
+    if (!product || !validQuantity(quantity, product.minQuantity)) return false;
     this.state.update(items => items.map(item => item.id === id ? { ...item, quantity } : item));
     this.persist();
     return true;
+  }
+
+  changeQuantity(item: QuoteItem, delta: number) {
+    return this.updateQuantity(item.id, normalizeQuantity(item.quantity + delta, this.quantityRules(item).minimum));
   }
 
   quantityRules(item: QuoteItem) {

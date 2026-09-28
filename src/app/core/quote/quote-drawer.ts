@@ -1,8 +1,10 @@
+import { QuantityInput } from '../../shared/quantity-input';
 import { afterRenderEffect, ChangeDetectionStrategy, Component, DOCUMENT, ElementRef, inject, OnDestroy, viewChild } from '@angular/core';
 import { QuoteStore } from './quote-store';
 import { describeQuoteItem } from './quote-utils';
 
 @Component({
+  imports: [QuantityInput],
   selector: 'app-quote-drawer',
   templateUrl: './quote-drawer.html',
   styleUrl: './quote-drawer.scss',

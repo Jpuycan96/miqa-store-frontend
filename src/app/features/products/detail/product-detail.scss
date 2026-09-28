@@ -24,3 +24,16 @@ button:disabled { opacity: .5; cursor: not-allowed; }
 .unavailable { padding-block: 48px; } .unavailable p { margin-block: 24px; }
 @media (min-width: 768px) { .detail-image { height: 344px; } }
 @media (min-width: 1024px) { .detail-layout { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 40px; } .detail-image { height: 464px; } }
+
+.quantity-control input[appQuantityInput] {
+  border: 0;
+  outline: none;
+  box-shadow: none;
+  background: transparent;
+  text-align: center;
+  cursor: text;
+}
+.quantity-control input[appQuantityInput]:focus-visible {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}

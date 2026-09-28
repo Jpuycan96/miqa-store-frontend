@@ -40,7 +40,7 @@ describe('Quick catalog quoting', () => {
     const pack = el.querySelector('[data-product="tarjetas-personales"]')!;
     pack.querySelector<HTMLButtonElement>('[aria-label^="Aumentar"]')!.click();
     await h.fixture.whenStable();
-    expect(pack.querySelector('.purchase-row output')?.textContent).toBe('2');
+    expect(pack.querySelector<HTMLInputElement>('.purchase-row input')?.value).toBe('2');
     pack.querySelector<HTMLButtonElement>('.quick-add')!.click();
     el.querySelector<HTMLButtonElement>('[data-product="roll-up"] .quick-add')!.click();
     await h.fixture.whenStable();

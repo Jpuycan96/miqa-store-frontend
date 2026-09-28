@@ -26,9 +26,10 @@
             <label for="quantity">{{ product.saleType === 'PACK' ? 'Cantidad de presentaciones' : 'Cantidad' }}</label>
             <div class="quantity-control">
               <button type="button" aria-label="Reducir cantidad" [disabled]="quantity() <= (product.minQuantity ?? 1)" (click)="changeQuantity(-(product.step ?? 1))">−</button>
-              <input id="quantity" type="number" inputmode="numeric" [min]="product.minQuantity ?? 1" [step]="product.step ?? 1" formControlName="quantity" aria-describedby="quantity-help">
+              <input id="quantity" appQuantityInput [quantity]="quantity()" [minimum]="product.minQuantity ?? 1" (quantityChange)="form.controls.quantity.setValue($event)" aria-describedby="quantity-help">
               <button type="button" aria-label="Aumentar cantidad" (click)="changeQuantity(product.step ?? 1)">+</button>
             </div>
+            <p class="help">Mínimo {{ product.minQuantity ?? 1 }} {{ product.saleType === 'PACK' ? 'presentaciones' : 'unidades' }}</p>
             <p class="help" id="quantity-help">@if (product.saleType === 'PACK') { {{ label(quantity(), product.packLabel ?? '') }} = {{ quantity() * (product.packSize ?? 1) | number:'1.0-0' }} unidades } @else { {{ label(quantity(), product.unitLabel) }} }</p>
           }
           @if (product.materials?.length) {

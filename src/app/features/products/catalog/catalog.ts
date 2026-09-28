@@ -1,3 +1,4 @@
+import { QuantityInput } from '../../../shared/quantity-input';
 import { ProductImageGallery } from '../../../shared/product-images/product-image-gallery';
 import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
@@ -6,13 +7,13 @@ import { catchError, combineLatest, debounceTime, distinctUntilChanged, map, of,
 import { ProductCatalog } from '../../../core/data/product-catalog';
 import { Product } from '../../../shared/models/product';
 import { QuoteStore } from '../../../core/quote/quote-store';
-import { createQuoteItem } from '../../../core/quote/quote-utils';
+import { createQuoteItem, normalizeQuantity } from '../../../core/quote/quote-utils';
 import { AreaConfigurator } from '../area-configurator/area-configurator';
 import { QuotePanel } from '../../../core/quote/quote-panel/quote-panel';
 import { breadcrumb, PAGE_SEO, Seo } from '../../../core/seo/seo';
 
 @Component({
-  selector: 'app-catalog', imports: [RouterLink, ProductImageGallery, AreaConfigurator, QuotePanel],
+  selector: 'app-catalog', imports: [QuantityInput, RouterLink, ProductImageGallery, AreaConfigurator, QuotePanel],
   templateUrl: './catalog.html', styleUrl: './catalog.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -53,7 +54,8 @@ export class Catalog {
   readonly selected = signal<Product | null>(null);
   readonly quantities = signal<Record<string, number>>({});
   quantity(product: Product) { return this.quantities()[product.id] ?? product.minQuantity ?? 1; }
-  change(product: Product, delta: number) { this.quantities.update(values => ({ ...values, [product.id]: Math.max(product.minQuantity ?? 1, this.quantity(product) + delta) })); }
+  setQuantity(product: Product, quantity: number) { this.quantities.update(values => ({ ...values, [product.id]: quantity })); }
+  change(product: Product, delta: number) { this.quantities.update(values => ({ ...values, [product.id]: normalizeQuantity(this.quantity(product) + delta, product.minQuantity) })); }
   canAdd(product: Product) { return !!createQuoteItem(product, { quantity: this.quantity(product) }, 'preview'); }
   add(product: Product) { this.quote.addItem(product, { quantity: this.quantity(product) }); }
   constructor() {

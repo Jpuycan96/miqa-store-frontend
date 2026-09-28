@@ -10,7 +10,7 @@ ul { list-style: none; padding: 0; margin: 0; } li { padding-block: 24px; border
 h3 { font-size: 20px; font-weight: 600; } .configuration { font-size: 13px; line-height: 1.7; color: var(--muted); margin: 10px 0 16px; overflow-wrap: anywhere; }
 .item-controls { display: flex; justify-content: space-between; align-items: center; gap: 16px; }
 .quantity-control { display: inline-flex; border: 1px solid #cbd0da; border-radius: 99px; align-items: center; }
-.quantity-control button { width: 44px; height: 44px; border: 0; border-radius: 50%; background: none; font-size: 20px; } .quantity-control span { min-width: 36px; text-align: center; }
+.quantity-control button { width: 44px; height: 44px; border: 0; border-radius: 50%; background: none; font-size: 20px; } .quantity-control input { width: 48px; min-height: 36px; padding: 0; border: 0; background: transparent; color: inherit;  min-width: 36px; text-align: center; }
 button:disabled { opacity: .4; cursor: default; } .remove, .clear { min-height: 44px; background: none; border: 0; font-size: 13px; text-decoration: underline; text-underline-offset: 4px; }
 .drawer-bottom { padding: 18px 24px max(18px, env(safe-area-inset-bottom)); border-top: 1px solid #1720331a; }
 .drawer-bottom p, .storage-note { color: var(--muted); font-size: 12px; line-height: 1.6; margin: 0 0 14px; }
@@ -23,3 +23,20 @@ button:disabled { opacity: .4; cursor: default; } .remove, .clear { min-height: 
 .quote-toast.visible { visibility: visible; }
 
 li.updated { background: #e9fafa; box-shadow: inset 3px 0 #16b8c4; }
+
+.quantity-minimum { margin: 4px 0; font-size: 12px; color: #536174; }
+.quantity-control input { appearance: textfield; }
+.quantity-control input::-webkit-inner-spin-button, .quantity-control input::-webkit-outer-spin-button { appearance: none; margin: 0; }
+
+.quantity-control input[appQuantityInput] {
+  border: 0;
+  outline: none;
+  box-shadow: none;
+  background: transparent;
+  text-align: center;
+  cursor: text;
+}
+.quantity-control input[appQuantityInput]:focus-visible {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}

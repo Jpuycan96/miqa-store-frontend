@@ -1,3 +1,4 @@
+import { QuantityInput } from '../../../shared/quantity-input';
 import { DecimalPipe } from '@angular/common';
 import { ProductImageGallery } from '../../../shared/product-images/product-image-gallery';
 import { ChangeDetectionStrategy, Component, computed, effect, inject } from '@angular/core';
@@ -7,7 +8,7 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { catchError, combineLatest, Subject, distinctUntilChanged, map, of, startWith, switchMap } from 'rxjs';
 import { ProductCatalog } from '../../../core/data/product-catalog';
 import { QuoteStore } from '../../../core/quote/quote-store';
-import { calculateArea, createQuoteItem, quantityLabel } from '../../../core/quote/quote-utils';
+import { calculateArea, createQuoteItem, normalizeQuantity, quantityLabel } from '../../../core/quote/quote-utils';
 import { breadcrumb, INSTITUTIONAL_IMAGE, Seo } from '../../../core/seo/seo';
 import { Product } from '../../../shared/models/product';
 import { productImages } from '../../../shared/product-images/product-images';
@@ -15,7 +16,7 @@ import { productImages } from '../../../shared/product-images/product-images';
 interface ProductState { slug?: string; product?: Product; loading: boolean; error: boolean; }
 
 @Component({
-  selector: 'app-product-detail', imports: [ProductImageGallery, RouterLink, ReactiveFormsModule, DecimalPipe],
+  selector: 'app-product-detail', imports: [QuantityInput, ProductImageGallery, RouterLink, ReactiveFormsModule, DecimalPipe],
   templateUrl: './product-detail.html', styleUrl: './product-detail.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -78,7 +79,7 @@ export class ProductDetail {
   }
 
   changeQuantity(delta: number) {
-    this.form.controls.quantity.setValue(Math.max(this.product()?.minQuantity ?? 1, this.quantity() + delta));
+    this.form.controls.quantity.setValue(normalizeQuantity(this.quantity() + delta, this.product()?.minQuantity));
   }
   add() {
     const product = this.product();

@@ -1,4 +1,4 @@
-﻿.catalog { padding-block: 18px 36px; }
+.catalog { padding-block: 18px 36px; }
 .catalog-heading { display: flex; flex-direction: column; gap: 14px; margin-bottom: 12px; }
 .eyebrow { color: var(--muted); font-size: 10px; }
 h1 { margin-top: 6px; color: var(--miqa-navy); font-size: clamp(27px, 2.7vw, 35px); font-weight: 500; letter-spacing: -.04em; line-height: 1.15; }
@@ -24,7 +24,7 @@ h2 { margin-block: 5px 8px; font-size: 20px; font-weight: 600; color: var(--miqa
 .purchase-row { display: flex; align-items: center; gap: 10px; }
 .quantity-control { display: inline-flex; flex-shrink: 0; border: 1px solid #c4cbd4; border-radius: 99px; align-items: center; }
 .quantity-control button { width: 44px; height: 44px; border: 0; border-radius: 50%; background: none; font-size: 20px; cursor: pointer; }
-.quantity-control output { min-width: 24px; text-align: center; font-size: 14px; }
+.quantity-control input { width: 48px; min-height: 36px; padding: 0; border: 0; background: transparent; color: inherit;  min-width: 24px; text-align: center; font-size: 14px; }
 .card-action { display: inline-flex; align-items: center; gap: 12px; min-height: 44px; padding: 10px 18px; border: 0; border-radius: 99px; background: var(--miqa-cyan); color: var(--miqa-navy); font-size: 13px; font-weight: 600; cursor: pointer; }
 .card-action:hover { background: #a4f2f2; } button:disabled { opacity: .45; cursor: default; }
 .image-note { margin-top: 24px; color: var(--muted); font-size: 11px; line-height: 1.7; }
@@ -45,4 +45,21 @@ h2 { margin-block: 5px 8px; font-size: 20px; font-weight: 600; color: var(--miqa
   .image-note { margin-top: 16px; }
   .catalog-heading.category-editorial { margin-block: 14px 24px; }
   .category-editorial h1 { font-size: clamp(38px, 3.4vw, 50px); }
+}
+
+.quantity-minimum { margin: 4px 0; font-size: 12px; color: #536174; }
+.quantity-control input { appearance: textfield; }
+.quantity-control input::-webkit-inner-spin-button, .quantity-control input::-webkit-outer-spin-button { appearance: none; margin: 0; }
+
+.quantity-control input[appQuantityInput] {
+  border: 0;
+  outline: none;
+  box-shadow: none;
+  background: transparent;
+  text-align: center;
+  cursor: text;
+}
+.quantity-control input[appQuantityInput]:focus-visible {
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }

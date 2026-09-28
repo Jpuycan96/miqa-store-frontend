@@ -1,3 +1,17 @@
+## API por entorno - 27 de septiembre de 2026
+
+- Angular usa src/environments/environment.ts para builds de production (https://api-store.solucionesmicaela.com). development lo reemplaza por environment.development.ts (http://localhost:8081).
+- npm start conserva ng serve y su development predeterminado. npm run build conserva production predeterminado. STORE_API_CONFIG mantiene el mismo token y mediaBaseUrl vacío; SSR/prerender/SEO no cambian.
+- Tests HTTP toman la URL del entorno activo. Trabajo local sin cambios de backend, bases de datos ni despliegue; se preservan los cambios previos.
+
+## Cantidades manuales del catálogo público - 27 de septiembre de 2026
+
+- Trabajo exclusivamente local en frontend. Sin commit, push, deploy, ERP ni cambios de configuración almacenada/API.
+- minQuantity sigue siendo el mínimo; step solo determina los incrementos de los botones. Toda cantidad entera segura desde el mínimo es válida, aunque no sea múltiplo del paso.
+- Input compartido en tarjetas, detalle, panel y drawer de cotización. Mantiene el borrador visible mientras se escribe; emite cantidades normalizadas al estado y normaliza el texto al salir/Enter. Vacíos, no finitos y enteros inseguros vuelven al mínimo; decimales se truncan y se aplica el mínimo. Indicación dinámica del mínimo, con presentaciones para PACK.
+- Desde 50 con paso 12: + lleva a 62, - a 38; resta limitada al mínimo. Agregar, editar, acumular, restaurar localStorage y construir WhatsApp conservan cantidades manuales válidas exactas.
+- Tests de regresión en manual-quantity.spec.ts cubren las cuatro vistas, mínimos 12/100, borrado temporal, Enter/blur, entradas inválidas, decimales, botones, persistencia y texto exacto de WhatsApp.
+
 # MIQA Store — contexto y traspaso
 
 ## Categorías SEO dinámicas administradas por API — 17 de septiembre de 2026
