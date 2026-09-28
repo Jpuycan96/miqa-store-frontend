@@ -1,3 +1,28 @@
+## Solicitudes Web: integración local real validada — 28 de septiembre de 2026
+
+- Implementación de Solicitud Web persistente realizada. El propietario confirmó la validación local real del **2026-09-28**: Angular `localhost:4200` → backend TEST `localhost:8081` → PostgreSQL TEST `127.0.0.1:55432/miqa_store_test_db` → solicitud persistida → referencia devuelta al frontend → WhatsApp preparado después de persistir.
+- La prueba generó `MIQA-000017` únicamente en TEST. Se comprobaron estado `RECIBIDA`, origen `TIENDA_VIRTUAL`, producto Roll Up, tipo `QUANTITY`, cantidad **5** y snapshot histórico JSONB persistido. No se documentan datos personales de la prueba.
+- Idempotencia cubierta por tests: misma clave y contenido recuperan la misma solicitud sin duplicados; misma clave con contenido diferente devuelve 409 sin modificar la original ni crear otra. Precios, mapeo ERP, bandeja ERP y conversión a cotización/OT siguen pendientes.
+
+- Rama `feature/solicitudes-web`, sin commit/push/deploy. Se preservaron los cuatro documentos pendientes. Backend sin modificaciones; referencia del cierre backend: `af7645f69593b0cd4bd78e87d8c4f53fd91ed767`.
+- Panel y drawer comparten `QuoteSubmit` y `QuoteSubmission`: nombre/teléfono obligatorios, email y notas generales opcionales; POST `/api/public/quote-requests` mediante `STORE_API_CONFIG`. No precios ni campos ERP. Serialización explícita QUANTITY/PACK/AREA, materiales, extras y notas; cantidad manual exacta sin imponer múltiplos de step.
+- El envío conserva UUID y payload inmutable antes del POST en `sessionStorage` (`miqa.quote-submission.v1`), separado del carrito existente `miqa.quote.v1` en localStorage. Retry usa exactamente el mismo intento, incluso tras recargar o modificar el carrito. Formulario deshabilitado durante el intento, doble submit bloqueado, timeout de 30 s. Modificar un envío no confirmado requiere una decisión explícita y advierte de posible registro previo.
+- Confirmación 200/201: referencia visible, apertura de WhatsApp con referencia y contenido enviado, enlace de respaldo si se bloquea la ventana. No se borra el carrito. Preparar otra solicitud genera otra clave al enviar. Se conserva confirmación/enlace en la sesión y se retira el contacto del almacenamiento del intento al confirmar. Sin automatizar el envío del mensaje de WhatsApp.
+- Fallos 400/409/413/429/red: mensaje recuperable, sin WhatsApp ni pérdida de selección. Límites de 50 ítems, cantidad máxima 1 000 000 000, dimensiones 0.01–1000 m/seis decimales y cuerpo 64 KiB comprobados antes de un nuevo POST; el backend sigue validando catálogo y configuración.
+- Validación: **132/132 tests en 28 archivos**; build de producción correcto, **13 URLs de sitemap y 14 rutas prerenderizadas con fixtures locales**. Se interceptó fetch en Node exclusivamente para esta comprobación; los entornos y scripts productivos no cambiaron, los artefactos SEO públicos originales se conservaron. Advertencia de presupuesto en `catalog.scss` sin modificar (4.11 kB frente a 4 kB).
+- Edge local con API simulada en 390/1440 px: error conserva selección y no abre WhatsApp; retry conserva clave/body; éxito abre URL con referencia y muestra fallback. Sin overflow ni excepciones JS; axe sin infracciones en formulario de panel/drawer. Evidencia ignorada `.tmp/quote-browser-results.json` y `quote-success-*.png`.
+- Integración local real validada según la confirmación anterior; no implica despliegue. No se accedió a DEV/PROD/VPS/ERP. La recuperación del intento usa `sessionStorage` y está limitada a la sesión/pestaña correspondiente; cerrar/eliminar la sesión o bloquear almacenamiento limita recuperación (se muestra aviso si falla el guardado). Datos de contacto pendientes quedan en sessionStorage hasta confirmar/reemplazar el intento o finalizar la sesión. Protección por cliente/proxy y política de retención siguen pendientes antes de operación pública.
+
+Las secciones siguientes son antecedentes históricos; sus pendientes de Angular/WhatsApp quedan supersedidos por la validación local real anterior.
+
+## Antecedente: backend validado en TEST — 28 de septiembre de 2026
+
+- Backend revisado en `feature/solicitudes-web`: POST persistente, referencia MIQA, idempotencia, contacto y snapshot histórico sin precios ni FK al catálogo vivo. Angular conserva su flujo actual; envío y WhatsApp después del POST siguen pendientes.
+- El propietario confirmó la creación de PostgreSQL TEST local aislado (`127.0.0.1:55432/miqa_store_test_db`, usuario `miqa_store_local`) y Flyway aplicó V1–V7 correctamente desde esquema vacío. V7 validada; V1–V6 intactas.
+- `SPRING_PROFILES_ACTIVE=test` y `./mvnw.cmd test`: **123 tests, 0 failures, 0 errors, 2 skipped, BUILD SUCCESS**. Totales corroborados con reportes Surefire; API de solicitudes 14 tests y aislamiento TEST 12. No se repitieron pruebas en la revisión final, exclusivamente documental.
+- DEV/PROD/ERP no fueron tocados. Sin VPS, push, deploy ni cambio de rama. Cierre mediante un commit local únicamente del backend; estos documentos frontend permanecen sin commit. No se ejecutó build frontend.
+- Contrato y pendientes en [Solicitud Web](docs/tienda-virtual-erp/02-solicitud-web.md). Fase 1 completa aún pendiente; rate limit por cliente/proxy y retención de contacto requieren definición antes de operación pública.
+
 ## API por entorno - 27 de septiembre de 2026
 
 - Angular usa src/environments/environment.ts para builds de production (https://api-store.solucionesmicaela.com). development lo reemplaza por environment.development.ts (http://localhost:8081).

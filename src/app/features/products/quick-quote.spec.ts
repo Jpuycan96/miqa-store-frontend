@@ -55,7 +55,8 @@ describe('Quick catalog quoting', () => {
     panel.querySelector<HTMLButtonElement>('[aria-label^="Aumentar"]')!.click();
     await h.fixture.whenStable();
     expect(store.items()[0].quantity).toBe(3);
-    expect(new URL(panel.querySelector<HTMLAnchorElement>('.panel-whatsapp')!.href).searchParams.get('text')).toContain('3 millares');
+    expect(new URL(store.whatsappUrl()).searchParams.get('text')).toContain('3 millares');
+    expect(panel.querySelector('a[href^="https://wa.me/"]')).toBeNull();
     panel.querySelector<HTMLButtonElement>('.remove')!.click();
     await h.fixture.whenStable();
     expect(store.items()).toHaveLength(1);

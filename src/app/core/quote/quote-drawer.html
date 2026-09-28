@@ -29,10 +29,10 @@
         <div class="empty"><h3>Tu idea empieza aquí.</h3><p>Explora los productos y agrega lo que necesitas para consultarlo con nuestro equipo.</p><a href="/productos" (click)="close()">Explorar productos <span aria-hidden="true">↗</span></a></div>
       }
     </div>
-    @if (quote.items().length) {
+    @if (quote.items().length || submission.pending() || submission.confirmed()) {
       <div class="drawer-bottom">
         <p>Revisaremos las medidas y los detalles contigo antes de producir.</p>
-        <a class="quote-action" [href]="quote.whatsappUrl()" target="_blank" rel="noopener noreferrer" aria-label="Cotizar por WhatsApp (abre una nueva pestaña)">Cotizar por WhatsApp <span aria-hidden="true">↗</span></a>
+        <app-quote-submit />
         <button class="clear" (click)="quote.clear()">Vaciar cotización</button>
       </div>
     }

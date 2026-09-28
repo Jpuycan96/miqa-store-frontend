@@ -2,7 +2,9 @@
 
 Inicio formal: **2026-09-28**. Fase activa: **Fase 1 — Solicitud Web persistente en MIQA**.
 
-Este conjunto de documentos registra el flujo funcional y las decisiones acordadas para integrar las solicitudes de la tienda con la atención comercial y el ERP. La entrega inicial es exclusivamente documental: no implementa ninguna fase.
+Este conjunto de documentos registra el flujo funcional y las decisiones acordadas para integrar las solicitudes de la tienda con la atención comercial y el ERP. La Solicitud Web persistente está implementada y su integración local real fue validada el **2026-09-28**, según confirmación del propietario. Angular y WhatsApp posterior a persistencia están implementados localmente, sin commit del frontend ni despliegue.
+
+Flujo validado: Angular `localhost:4200` → backend TEST `localhost:8081` → PostgreSQL TEST `127.0.0.1:55432/miqa_store_test_db` → solicitud persistida → referencia devuelta al frontend → WhatsApp preparado después de persistir. La prueba generó `MIQA-000017` únicamente en TEST; se comprobaron `RECIBIDA` / `TIENDA_VIRTUAL`, Roll Up, `QUANTITY`, cantidad **5** y snapshot histórico JSONB persistido. No se documentan datos personales de la prueba.
 
 ## Objetivo
 
@@ -33,9 +35,9 @@ La llegada al ERP no depende de extraer el mensaje de WhatsApp ni de que el clie
 
 ## Roadmap
 
-| Fase | Alcance | Estado inicial |
+| Fase | Alcance | Estado actual |
 | --- | --- | --- |
-| 1 | Solicitud persistente en MIQA: modelo, referencia, estados, contacto, ítems, cantidades, configuraciones, snapshot, endpoint backend, envío frontend y WhatsApp después de persistir. Sin tocar ERP. | Activa para definición; implementación pendiente. |
+| 1 | Solicitud persistente en MIQA: modelo, referencia, estados, contacto, ítems, cantidades, configuraciones, snapshot, endpoint backend, envío frontend y WhatsApp después de persistir. Sin tocar ERP. | Implementada e integración local real validada el 2026-09-28 exclusivamente en TEST. Revisión de código sin defectos bloqueantes; sin despliegue. |
 | 2 | Precios públicos selectivos: conocido/fijo, «Desde» y «Precio por cotizar». | PENDIENTE DE DISEÑO. |
 | 3 | Mapeo explícito MIQA → ERP hacia Servicio, Material, Modelo, Variante o Extra. | PENDIENTE DE AUDITORÍA y PENDIENTE DE DISEÑO. |
 | 4 | Bandeja ERP «Solicitudes Tienda Virtual». | PENDIENTE DE DISEÑO. |
@@ -44,11 +46,11 @@ La llegada al ERP no depende de extraer el mensaje de WhatsApp ni de que el clie
 
 ## Estado actual y alcance
 
-Las cantidades editables del catálogo quedaron previamente desplegadas y validadas, según lo comunicado por el propietario. `WORKFLOW.md` registra 117 pruebas aprobadas en 27 archivos y build de producción aprobado. No se repiten esas validaciones ni se verifica producción en esta tarea.
+Las cantidades editables del catálogo quedaron previamente desplegadas y validadas, según lo comunicado por el propietario. El antecedente en `WORKFLOW.md` es 117 pruebas en 27 archivos. La integración Angular actual pasa **132 tests en 28 archivos**; build correcto con fixtures locales, 13 URLs de sitemap y 14 rutas prerenderizadas. No se verificó producción.
 
-El flujo actual conserva la cotización local y genera WhatsApp. La solicitud web persistente y la integración automática con ERP todavía no existen dentro de este proyecto. No se han modificado ERP ni bases de datos para esta integración.
+El frontend conserva la cotización local y solicita contacto antes del POST. Reintentos mantienen UUID y payload por pestaña; WhatsApp solo se abre tras recibir referencia, con enlace de respaldo. El backend persistente está validado exclusivamente en TEST: V1–V7 desde esquema vacío y 123 tests, 0 failures, 0 errors, 2 skipped, BUILD SUCCESS. DEV/PROD/ERP no fueron tocados; no hay despliegue ni integración automática con ERP.
 
-Se preservan cantidades editables, SEO moderno, categorías dinámicas, sitemap, prerender y BreadcrumbList. La documentación no activa precios, extras nuevos, endpoints ni cambios de interfaz.
+Se preservan cantidades editables, SEO moderno, categorías dinámicas, sitemap, prerender y BreadcrumbList. El formulario se integra en panel/drawer sin precios ni nuevos selectores de extras. La idempotencia está cubierta por tests, tanto replay sin duplicados como conflicto 409 sin modificar la solicitud original ni crear otra. La recuperación de intentos pendientes usa `sessionStorage` y está limitada a la sesión/pestaña correspondiente. Pendientes: precios, mapeo ERP, bandeja ERP, conversión a cotización/OT, protección por cliente/proxy y política de acceso/retención. Ver detalles en [Solicitud Web](02-solicitud-web.md).
 
 ## Documentos
 

@@ -24,9 +24,9 @@
       <p class="empty">Agrega productos y reúne aquí lo que necesitas para tu proyecto.</p>
     }
   </div>
-  @if (quote.items().length) {
+  @if (quote.items().length || submission.pending() || submission.confirmed()) {
     <div class="panel-actions">
-      <a class="panel-whatsapp" [href]="quote.whatsappUrl()" target="_blank" rel="noopener noreferrer" aria-label="Cotizar por WhatsApp (abre una nueva pestaña)">Cotizar por WhatsApp <span aria-hidden="true">↗</span></a>
+      <app-quote-submit />
       <button class="clear" (click)="quote.clear()">Vaciar cotización</button>
     </div>
   }

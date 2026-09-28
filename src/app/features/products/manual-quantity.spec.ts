@@ -80,7 +80,8 @@ it.each(['app-quote-panel', 'app-quote-drawer'])('preserves manual quantities an
   type(input, '55', false); await h.fixture.whenStable();
   expect(store.items()[0].quantity).toBe(55);
   expect(JSON.parse(localStorage.getItem(QUOTE_STORAGE_KEY)!)[0].quantity).toBe(55);
-  expect(new URL(panel.querySelector<HTMLAnchorElement>('a[target="_blank"]')!.href).searchParams.get('text')).toContain('55 unidades');
+  expect(new URL(store.whatsappUrl()).searchParams.get('text')).toContain('55 unidades');
+  expect(panel.querySelector('a[href^="https://wa.me/"]')).toBeNull();
   input.dispatchEvent(new Event('blur'));
   type(input, '13'); await h.fixture.whenStable();
   panel.querySelector<HTMLButtonElement>('[aria-label^="Reducir"]')!.click();
