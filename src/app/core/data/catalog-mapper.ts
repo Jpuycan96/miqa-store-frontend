@@ -17,6 +17,7 @@ export interface ImageDto {
   readonly displayOrder: number;
 }
 export interface ProductDto {
+  readonly configuration?: import('../../shared/models/erp-configuration').PublicConfiguration;
   readonly id: string | number;
   readonly slug: string;
   readonly name: string;
@@ -58,6 +59,7 @@ export function mapCategory(dto: CategoryDto): ProductCategory {
 }
 export function mapProduct(dto: ProductDto, mediaBaseUrl = ''): Product {
   return {
+    configuration: dto.configuration,
     id: String(dto.id), slug: dto.slug, name: dto.name, shortDescription: dto.shortDescription || dto.description,
     description: dto.description || dto.shortDescription,
     seoTitle: dto.seoTitle?.trim() || undefined, seoDescription: dto.seoDescription?.trim() || undefined,

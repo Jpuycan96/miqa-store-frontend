@@ -3,6 +3,7 @@ import { afterNextRender, computed, DestroyRef, DOCUMENT, inject, Injectable, PL
 import { take } from 'rxjs';
 import { ProductCatalog } from '../data/product-catalog';
 import { Product } from '../../shared/models/product';
+import { ErpSelection, validErpQuantity } from '../../shared/models/erp-configuration';
 import { QuoteConfiguration, QuoteItem } from '../../shared/models/quote-item';
 import { buildQuoteMessage, createQuoteItem, getQuoteItemIdentity, mergeQuoteItems, normalizeQuantity, validQuantity } from './quote-utils';
 import { whatsAppUrl } from '../config/whatsapp';
@@ -27,7 +28,7 @@ export class QuoteStore {
   readonly totalItems = computed(() => this.items().length);
   readonly whatsappUrl = computed(() => {
     const items = this.items().map(item => ({
-      ...item, quantity: normalizeQuantity(item.quantity, this.quantityRules(item).minimum)
+      ...item, quantity: item.erp ? item.quantity : normalizeQuantity(item.quantity, this.quantityRules(item).minimum)
     }));
     return whatsAppUrl(buildQuoteMessage(items));
   });
@@ -50,7 +51,8 @@ export class QuoteStore {
     const item = createQuoteItem(product, configuration, `quote-${++this.nextId}`);
     if (!item) return false;
     const existing = this.items().find(current => getQuoteItemIdentity(current) === getQuoteItemIdentity(item));
-    if (existing && !validQuantity(existing.quantity + item.quantity, product.minQuantity)) return false;
+    if (existing && (item.erp ? !validErpQuantity(Math.round((existing.quantity + item.quantity) * 1e6) / 1e6, item.erp.quantityRules)
+      : !validQuantity(existing.quantity + item.quantity, product.minQuantity))) return false;
     this.products.set(product.id, product);
     this.state.update(items => mergeQuoteItems([...items, item]));
     this.persist();
@@ -73,17 +75,19 @@ export class QuoteStore {
   updateQuantity(id: string, quantity: number): boolean {
     const item = this.items().find(item => item.id === id);
     const product = item && this.products.get(item.productId);
-    if (!product || !validQuantity(quantity, product.minQuantity)) return false;
+    if (!product || !item || (item.erp ? !validErpQuantity(quantity, item.erp.quantityRules) : !validQuantity(quantity, product.minQuantity))) return false;
     this.state.update(items => items.map(item => item.id === id ? { ...item, quantity } : item));
     this.persist();
     return true;
   }
 
   changeQuantity(item: QuoteItem, delta: number) {
+    if (item.erp) return this.updateQuantity(item.id, Math.round((item.quantity + delta) * 1e6) / 1e6);
     return this.updateQuantity(item.id, normalizeQuantity(item.quantity + delta, this.quantityRules(item).minimum));
   }
 
   quantityRules(item: QuoteItem) {
+    if (item.erp) return { minimum: Number(item.erp.quantityRules.minimo), step: Number(item.erp.quantityRules.multiploObligatorio ?? item.erp.quantityRules.incrementoSugerido) };
     const product = this.products.get(item.productId);
     return { minimum: product?.minQuantity ?? 1, step: product?.step ?? 1 };
   }
@@ -123,12 +127,15 @@ export class QuoteStore {
             const extraIds = Array.isArray(saved['selectedExtras']) ? saved['selectedExtras'].flatMap(extra =>
               extra && typeof extra === 'object' && typeof extra.id === 'string' ? [extra.id] : []) : [];
             const item = createQuoteItem(product, {
+              erp: saved['erp'] && typeof saved['erp'] === 'object' ? saved['erp'] as ErpSelection : undefined,
               quantity: saved['quantity'],
               widthMeters: typeof saved['widthMeters'] === 'number' ? saved['widthMeters'] : undefined,
               heightMeters: typeof saved['heightMeters'] === 'number' ? saved['heightMeters'] : undefined,
               materialId: material && typeof material === 'object' && 'id' in material && typeof material.id === 'string' ? material.id : undefined,
               extraIds, notes: typeof saved['notes'] === 'string' ? saved['notes'] : undefined
             }, `quote-${++this.nextId}`);
+            if (!item && (saved['erp'] || product.configuration?.mode === 'ERP' || product.configuration?.mode === 'UNAVAILABLE'))
+              this.persistenceWarning.set('Algunas opciones cambiaron. Vuelve al producto para configurarlo de nuevo.');
             return item ? [item] : [];
           });
           this.pendingSaved = [];

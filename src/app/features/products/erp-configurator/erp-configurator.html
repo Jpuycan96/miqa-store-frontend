@@ -1,0 +1,40 @@
+@if (config(); as config) {
+  <form [formGroup]="form" (ngSubmit)="add()">
+    <label for="erp-material">Material</label>
+    <select id="erp-material" formControlName="material">
+      @if (config.modoMaterial !== 'FIJO') { <option value="">Selecciona un material</option> }
+      @for (material of config.materiales; track material.erpMaterialId) {
+        <option [value]="material.erpMaterialId">{{ material.nombreReferencia }}</option>
+      }
+    </select>
+    @if (material(); as material) {
+      @if (material.modoModelos !== 'SIN_MODELO') {
+        <label for="erp-model">Modelo</label>
+        <select id="erp-model" formControlName="model">
+          @if (material.modoModelos !== 'FIJO') { <option value="">Selecciona un modelo</option> }
+          @for (model of material.modelos; track model.erpModelId) { <option [value]="model.erpModelId">{{ model.nombreReferencia }}</option> }
+        </select>
+      }
+    }
+    <label for="erp-quantity">Cantidad ({{ config.cantidad.unidad }})</label>
+    <input id="erp-quantity" type="number" formControlName="quantity" [attr.inputmode]="config.cantidad.permiteDecimales ? 'decimal' : 'numeric'"
+      [min]="number(config.cantidad.minimo)" [max]="number(config.cantidad.maximo)" step="any" aria-describedby="erp-quantity-help">
+    <p id="erp-quantity-help">Mínimo {{ config.cantidad.minimo }}; máximo {{ config.cantidad.maximo }}.
+      @if (config.cantidad.multiploObligatorio) { En múltiplos de {{ config.cantidad.multiploObligatorio }}. }
+      @if (config.cantidad.permiteDecimales) { Hasta {{ config.cantidad.precision }} decimales. } @else { Cantidades enteras. }
+    </p>
+    @if (fields().length) {
+      <fieldset formGroupName="measures"><legend>Medidas de la pieza</legend>
+        @for (field of fields(); track field) {
+          <label [for]="'erp-' + field">{{ labels[field] }} ({{ config.medidas.unidad }})</label>
+          <input [id]="'erp-' + field" type="number" inputmode="decimal" min="0.01" max="1000" step="any" [formControlName]="field" aria-describedby="erp-measures-help">
+        }
+        <p id="erp-measures-help">Entre 0.01 y 1000 metros, hasta seis decimales.</p>
+      </fieldset>
+    }
+    <label for="erp-notes">Detalles de tu proyecto (opcional)</label>
+    <textarea id="erp-notes" formControlName="notes" rows="2" maxlength="1000"></textarea>
+    @if (!canAdd()) { <p role="status">Completa las opciones y revisa la cantidad y las medidas.</p> }
+    <button class="primary-button" type="submit" [disabled]="!canAdd()">Agregar a cotización</button>
+  </form>
+}

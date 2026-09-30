@@ -1,0 +1,8 @@
+:host { display: block; }
+form { display: grid; gap: .75rem; }
+label, legend { font-weight: 600; }
+input, select, textarea { box-sizing: border-box; width: 100%; min-height: 44px; padding: .65rem; border: 1px solid #697386; border-radius: .4rem; background: #fff; color: #17243b; font: inherit; }
+fieldset { min-width: 0; display: grid; gap: .75rem; padding: 1rem; border: 1px solid #697386; }
+p { margin: 0 0 .5rem; color: #455065; font-size: .9rem; }
+:focus-visible { outline: 3px solid #175db3; outline-offset: 3px; }
+button { min-height: 44px; }

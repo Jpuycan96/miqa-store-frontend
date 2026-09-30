@@ -21,7 +21,11 @@
           <p class="category-name">{{ categoryName(product.categorySlug) }}</p>
           <h2><a [routerLink]="['/productos', product.slug]">{{ product.name }}</a></h2>
           <div class="quick-quote">
-            @if (product.saleType === 'AREA') {
+            @if (product.configuration?.mode === 'ERP') {
+              <a class="card-action configure" [routerLink]="['/productos', product.slug]" [attr.aria-label]="'Configurar ' + product.name">Configurar <span aria-hidden="true">↗</span></a>
+            } @else if (product.configuration?.mode === 'UNAVAILABLE') {
+              <p role="status">Temporalmente no disponible para configurar.</p>
+            } @else if (product.saleType === 'AREA') {
               <button class="card-action configure" (click)="selected.set(product)" [attr.aria-label]="'Configurar ' + product.name" aria-haspopup="dialog">Configurar <span aria-hidden="true">↗</span></button>
             } @else {
               <p class="presentation">{{ product.saleType === 'PACK' ? '1 ' + product.packLabel : 'Por ' + product.unitLabel }}</p>

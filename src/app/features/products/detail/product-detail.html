@@ -11,6 +11,11 @@
         <p class="eyebrow">{{ category()?.name }}</p>
         <h1 id="product-title">{{ product.name }}</h1>
         <p class="description">{{ product.description }}</p>
+        @if (product.configuration?.mode === 'ERP') {
+          <app-erp-configurator [product]="product" />
+        } @else if (product.configuration?.mode === 'UNAVAILABLE') {
+          <p role="status">Este producto no está disponible para configurar en este momento.</p>
+        } @else {
         <form [formGroup]="form" (ngSubmit)="add()">
           @if (product.saleType === 'AREA') {
             <fieldset><legend>Medidas de la pieza</legend>
@@ -43,6 +48,7 @@
           @if (!canAdd()) { <p class="help" role="status">{{ product.saleType === 'AREA' ? 'Completa las medidas y selecciona un material para continuar.' : 'Ingresa una cantidad válida para continuar.' }}</p> }
           <button class="primary-button add-button" type="submit" [disabled]="!canAdd()">Agregar a cotización <span aria-hidden="true">↗</span></button>
         </form>
+        }
       </div>
     </div>
   } @else {

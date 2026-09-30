@@ -1,6 +1,7 @@
 import { ProductExtraOption, ProductMaterialOption, ProductSaleType } from './product';
 
 export interface QuoteItem {
+  readonly erp?: import('./erp-configuration').ErpQuoteSelection;
   readonly id: string;
   readonly productId: string;
   readonly productSlug: string;
@@ -19,6 +20,7 @@ export interface QuoteItem {
 }
 
 export interface QuoteConfiguration {
+  readonly erp?: import('./erp-configuration').ErpSelection;
   readonly quantity: number;
   readonly widthMeters?: number;
   readonly heightMeters?: number;

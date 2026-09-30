@@ -1,4 +1,5 @@
 import { QuantityInput } from '../../../shared/quantity-input';
+import { ErpConfigurator } from '../erp-configurator/erp-configurator';
 import { DecimalPipe } from '@angular/common';
 import { ProductImageGallery } from '../../../shared/product-images/product-image-gallery';
 import { ChangeDetectionStrategy, Component, computed, effect, inject } from '@angular/core';
@@ -16,7 +17,7 @@ import { productImages } from '../../../shared/product-images/product-images';
 interface ProductState { slug?: string; product?: Product; loading: boolean; error: boolean; }
 
 @Component({
-  selector: 'app-product-detail', imports: [QuantityInput, ProductImageGallery, RouterLink, ReactiveFormsModule, DecimalPipe],
+  selector: 'app-product-detail', imports: [ErpConfigurator, QuantityInput, ProductImageGallery, RouterLink, ReactiveFormsModule, DecimalPipe],
   templateUrl: './product-detail.html', styleUrl: './product-detail.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
 })

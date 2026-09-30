@@ -1,8 +1,13 @@
 import { Product } from '../../shared/models/product';
+import { createErpQuoteItem } from './erp-quote';
+import { validErpQuantity } from '../../shared/models/erp-configuration';
 import { QuoteConfiguration, QuoteItem } from '../../shared/models/quote-item';
 
 /** Configuration identity excludes quantity and the UI row id; JSON avoids delimiter collisions. */
 export function getQuoteItemIdentity(item: QuoteItem): string {
+  if (item.erp) return JSON.stringify([item.productId, 'ERP', item.erp.erpServiceId, item.erp.catalogRevision,
+    item.erp.configurationVersion, item.erp.erpMaterialId, item.erp.erpModelId ?? null,
+    Object.entries(item.erp.measures).sort(([a], [b]) => a.localeCompare(b)), item.notes?.trim() ?? '']);
   return JSON.stringify([
     item.productId, item.saleType, item.unitLabel, item.packSize ?? null, item.packLabel ?? null,
     item.selectedMaterial?.id ?? null,
@@ -19,8 +24,8 @@ export function mergeQuoteItems(items: readonly QuoteItem[]): readonly QuoteItem
   for (const item of items) {
     const key = getQuoteItemIdentity(item);
     const existing = merged.get(key);
-    const quantity = (existing?.quantity ?? 0) + item.quantity;
-    if (!Number.isSafeInteger(quantity)) throw new RangeError('Quote quantity exceeds the safe integer range');
+    const quantity = item.erp ? Math.round(((existing?.quantity ?? 0) + item.quantity) * 1e6) / 1e6 : (existing?.quantity ?? 0) + item.quantity;
+    if (item.erp ? !validErpQuantity(quantity, item.erp.quantityRules) : !Number.isSafeInteger(quantity)) throw new RangeError('Quote quantity exceeds allowed range');
     merged.set(key, existing ? { ...existing, quantity } : item);
   }
   return [...merged.values()];
@@ -47,6 +52,9 @@ export function quantityLabel(quantity: number, unit: string): string {
 }
 
 export function createQuoteItem(product: Product, config: QuoteConfiguration, id: string): QuoteItem | null {
+  if (product.configuration?.mode === 'UNAVAILABLE') return null;
+  if (product.configuration?.mode === 'ERP') return createErpQuoteItem(product, config, id);
+  if (config.erp) return null;
   if (!product.published || !validQuantity(config.quantity, product.minQuantity)) return null;
   if (product.saleType === 'PACK' && (!product.packSize || !product.packLabel)) return null;
   const area = calculateArea(config.widthMeters ?? 0, config.heightMeters ?? 0);
@@ -67,6 +75,13 @@ export function createQuoteItem(product: Product, config: QuoteConfiguration, id
 }
 
 export function describeQuoteItem(item: QuoteItem): string {
+  if (item.erp) {
+    const labels: Record<string, string> = { ancho: 'Ancho', alto: 'Alto', longitud: 'Longitud' };
+    return [quantityLabel(item.quantity, item.unitLabel), `Material: ${item.erp.materialName}`,
+      item.erp.modelName ? `Modelo: ${item.erp.modelName}` : '',
+      ...Object.entries(item.erp.measures).map(([field, value]) => `${labels[field] ?? field}: ${value} m`),
+      item.notes ? `Notas: ${item.notes.replace(/\s+/g, ' ')}` : ''].filter(Boolean).join(' — ');
+  }
   let detail = item.saleType === 'AREA'
     ? `${item.widthMeters!.toFixed(2)} m x ${item.heightMeters!.toFixed(2)} m = ${item.areaSquareMeters!.toFixed(2)} m²${item.quantity > 1 ? ` — ${quantityLabel(item.quantity, 'pieza')}` : ''}`
     : quantityLabel(item.quantity, item.packLabel ?? item.unitLabel);

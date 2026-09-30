@@ -64,7 +64,7 @@ export class QuoteSubmission {
     this.save(); // Persist immutable payload BEFORE the request, including uncertain outcomes.
     this.error.set(''); this.state.set('sending'); this.form.disable();
     const submitted = attempt;
-    this.injector.get(HttpClient).post<QuoteReceipt>(`${this.config.baseUrl.replace(/\/$/, '')}/api/public/quote-requests`, submitted.request,
+    this.injector.get(HttpClient).post<QuoteReceipt>(`${this.config.baseUrl.replace(/\/$/, '')}/api/public/quote-requests${submitted.request.schemaVersion === 2 ? '/v2' : ''}`, submitted.request,
       { headers: { 'Idempotency-Key': submitted.key } }).pipe(timeout(30000)).subscribe({
       next: receipt => {
         if (!receipt || !/^MIQA-[0-9]{6,}$/.test(receipt.reference) || !Number.isFinite(Date.parse(receipt.receivedAt))) {

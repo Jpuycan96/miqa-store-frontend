@@ -26,6 +26,7 @@ export interface ProductImage {
 }
 
 export interface Product {
+  readonly configuration?: import('./erp-configuration').PublicConfiguration;
   readonly id: string;
   readonly slug: string;
   readonly name: string;
