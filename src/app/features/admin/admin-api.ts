@@ -1,12 +1,16 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
 import { timeout } from 'rxjs';
+import { ErpBindingInput, ErpServiceProjection, ProductErpBinding } from './erp-catalog.models';
 import { STORE_API_CONFIG } from '../../core/config/store-api';
 import { AdminCategory, AdminProduct, CategoryInput, ProductInput, AdminOption, OptionInput, AdminImage, ImageInput } from './admin.models';
 @Injectable({providedIn:'root'})
 export class AdminApi {
  private readonly http=inject(HttpClient);
  private readonly base=inject(STORE_API_CONFIG).baseUrl.replace(/\/+$/,'')+'/api/admin';
+ erpServices(){return this.http.get<ErpServiceProjection[]>(this.base+'/erp-catalog/services').pipe(timeout(10000));}
+ erpBinding(id:string){return this.http.get<ProductErpBinding>(this.base+'/erp-catalog/bindings/'+encodeURIComponent(id)).pipe(timeout(10000));}
+ saveErpBinding(id:string,input:ErpBindingInput){return this.http.put<ProductErpBinding>(this.base+'/erp-catalog/bindings/'+encodeURIComponent(id),input).pipe(timeout(10000));}
  categories(){return this.http.get<AdminCategory[]>(this.base+'/categories').pipe(timeout(10000));}
  saveCategory(id:string|null,input:CategoryInput){return id?this.http.put<AdminCategory>(this.base+'/categories/'+encodeURIComponent(id),input):this.http.post<AdminCategory>(this.base+'/categories',input);}
  activeCategory(id:string,active:boolean){return this.http.patch<AdminCategory>(this.base+'/categories/'+encodeURIComponent(id)+'/active',{active});}

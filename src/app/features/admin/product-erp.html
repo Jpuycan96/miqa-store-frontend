@@ -1,0 +1,46 @@
+<section class="section" aria-labelledby="erp-heading" [attr.aria-busy]="loading() || busy()">
+  <h2 id="erp-heading">Configuración ERP</h2>
+  @if (loading()) { <p role="status">Cargando configuración ERP…</p> }
+  @if (error()) {
+    <p class="feedback error" role="alert">{{ error() }}</p>
+    <button type="button" (click)="load()" [disabled]="loading() || busy()">Volver a cargar configuración ERP</button>
+  }
+  @if (message()) { <p class="feedback" role="status">{{ message() }}</p> }
+  @if (loaded()) {
+    <p role="status"><strong>{{ binding()?.active ? 'Vinculado' : 'Sin vincular' }}</strong></p>
+    @if (binding(); as current) {
+      <p class="reference">Referencia {{ current.active ? 'actual' : 'conservada (vínculo desactivado)' }}: ERP {{ current.erpServiceId }}</p>
+      @if (currentService(); as service) {
+        <dl class="reference">
+          <dt>Nombre de referencia ERP</dt><dd>{{ service.lastKnownErp.nombreReferencia }}</dd>
+          <dt>Categoría</dt><dd>{{ service.lastKnownErp.categoria.nombreReferencia }}</dd>
+          <dt>Forma de cotización</dt><dd>{{ service.lastKnownErp.configuracion.formaCotizacion }}</dd>
+          <dt>Estado / disponibilidad</dt><dd>{{ service.syncState }} · {{ service.available ? 'Disponible' : 'No disponible' }}</dd>
+        </dl>
+      }
+      <p>Estado del vínculo: {{ current.state }}</p>
+    }
+    @if (warning()) {
+      <p class="feedback" role="alert">El servicio vinculado no está disponible o está pendiente de revalidación. Se conserva el vínculo y su última referencia conocida; no se elimina automáticamente.</p>
+    }
+    <form (submit)="$event.preventDefault(); save()">
+      <label>Servicio ERP disponible
+        <select [formControl]="selection">
+          <option value="">Selecciona un servicio ERP</option>
+          @for (service of availableServices(); track service.erpServiceId) {
+            <option [value]="service.erpServiceId">{{ service.lastKnownErp.nombreReferencia }} · ERP {{ service.erpServiceId }}</option>
+          }
+        </select>
+      </label>
+      @if (selectedService(); as service) {
+        <p class="reference">{{ service.lastKnownErp.nombreReferencia }} · Categoría: {{ service.lastKnownErp.categoria.nombreReferencia }} · Forma de cotización: {{ service.lastKnownErp.configuracion.formaCotizacion }} · {{ service.syncState }} · Disponible</p>
+      }
+      @if (!availableServices().length) { <p class="muted">No hay servicios ERP disponibles para vincular.</p> }
+      <p class="muted">El vínculo se guarda por separado del producto. Desvincular lo desactiva y conserva su referencia.</p>
+      <div class="actions">
+        <button class="primary" type="submit" [disabled]="!canSave()">{{ busy() ? 'Guardando…' : 'Guardar vínculo ERP' }}</button>
+        @if (binding()?.active) { <button type="button" (click)="unlink()" [disabled]="loading() || busy()">Desvincular</button> }
+      </div>
+    </form>
+  }
+</section>

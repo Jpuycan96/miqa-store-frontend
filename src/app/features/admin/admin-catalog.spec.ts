@@ -15,6 +15,7 @@ describe('Admin catalog forms',()=>{
  let route={snapshot:{paramMap:convertToParamMap({})}};
  beforeEach(()=>{route={snapshot:{paramMap:convertToParamMap({})}};TestBed.configureTestingModule({providers:[provideRouter([]),provideHttpClient(),provideHttpClientTesting(),{provide:ActivatedRoute,useValue:route}]});http=TestBed.inject(HttpTestingController);});
  afterEach(()=>http.verify());
+ function flushErp(){http.expectOne(base+'/erp-catalog/services').flush([]);http.expectOne(base+'/erp-catalog/bindings/p1').flush({}, {status:404,statusText:'Not Found'});}
  it('lists API products and sends publish action',()=>{
   const f=TestBed.createComponent(AdminProductList);http.expectOne(base+'/categories').flush([category]);http.expectOne(base+'/products').flush([product]);f.detectChanges();expect(f.nativeElement.textContent).toContain('Producto');
   f.componentInstance.toggle(product,'published');const patch=http.expectOne(base+'/products/p1/published');expect(patch.request.body).toEqual({published:true});patch.flush({...product,published:true});http.expectOne(base+'/products').flush([{...product,published:true}]);expect(f.componentInstance.state().products[0].published).toBe(true);
@@ -27,7 +28,7 @@ describe('Admin catalog forms',()=>{
   expect(f.nativeElement.querySelector('button.star').getAttribute('aria-pressed')).toBe('true');expect(f.componentInstance.state().products[0].published).toBe(false);
  });
  it('uses a single description and preserves internal order when editing legacy products',()=>{
-  route.snapshot.paramMap=convertToParamMap({id:'p1'});const f=TestBed.createComponent(AdminProductForm);http.expectOne(base+'/categories').flush([category]);http.expectOne(base+'/products/p1').flush({...product,shortDescription:'Legacy text',displayOrder:17});f.detectChanges();
+  route.snapshot.paramMap=convertToParamMap({id:'p1'});const f=TestBed.createComponent(AdminProductForm);http.expectOne(base+'/categories').flush([category]);http.expectOne(base+'/products/p1').flush({...product,shortDescription:'Legacy text',displayOrder:17});f.detectChanges();flushErp();
   expect(f.nativeElement.querySelector('[formControlName=shortDescription]')).toBeNull();expect(f.nativeElement.querySelector('app-admin-product-form > form [formControlName=displayOrder]')).toBeNull();
   expect(f.componentInstance.form.controls.description.value).toBe('Legacy text');
   f.componentInstance.form.controls.description.setValue('a'.repeat(600));f.componentInstance.save();const req=http.expectOne(base+'/products/p1');expect(req.request.body).toMatchObject({description:'a'.repeat(600),shortDescription:'a'.repeat(500),displayOrder:17});req.flush(product);
@@ -49,7 +50,7 @@ describe('Admin catalog forms',()=>{
   expect(c.generalOpen()).toBe(false);expect(c.salesOpen()).toBe(false);expect(nav).toHaveBeenCalled();
  });
  it('starts an existing product with the main sections collapsed and allows expansion',()=>{
-  route.snapshot.paramMap=convertToParamMap({id:'p1'});const f=TestBed.createComponent(AdminProductForm);http.expectOne(base+'/categories').flush([category]);http.expectOne(base+'/products/p1').flush(product);f.detectChanges();
+  route.snapshot.paramMap=convertToParamMap({id:'p1'});const f=TestBed.createComponent(AdminProductForm);http.expectOne(base+'/categories').flush([category]);http.expectOne(base+'/products/p1').flush(product);f.detectChanges();flushErp();
   expect(f.componentInstance.generalOpen()).toBe(false);expect(f.componentInstance.salesOpen()).toBe(false);const toggle=f.nativeElement.querySelector('.section-toggle') as HTMLButtonElement;toggle.click();f.detectChanges();expect(toggle.getAttribute('aria-expanded')).toBe('true');expect(f.nativeElement.querySelector('#general-product-fields')).toBeTruthy();
  });
  it('edits existing product and retains SEO and inactive options',()=>{

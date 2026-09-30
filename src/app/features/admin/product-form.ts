@@ -6,7 +6,8 @@ import { finalize, forkJoin } from 'rxjs';
 import { AdminApi, adminError, suggestSlug } from './admin-api';
 import { AdminCategory, ProductInput, AdminProduct } from './admin.models';
 import { ProductResources } from './product-resources';
-@Component({selector:'app-admin-product-form',imports:[ReactiveFormsModule,RouterLink,ProductResources],styleUrls:['./admin.scss','./product-form.scss'],templateUrl:'./product-form.html',changeDetection:ChangeDetectionStrategy.OnPush})
+import { ProductErp } from './product-erp';
+@Component({selector:'app-admin-product-form',imports:[ReactiveFormsModule,RouterLink,ProductResources,ProductErp],styleUrls:['./admin.scss','./product-form.scss'],templateUrl:'./product-form.html',changeDetection:ChangeDetectionStrategy.OnPush})
 export class AdminProductForm {
  private readonly api=inject(AdminApi);private readonly router=inject(Router);readonly id=inject(ActivatedRoute).snapshot.paramMap.get('id');
  readonly categories=signal<AdminCategory[]>([]);readonly product=signal<AdminProduct|null>(null);readonly loading=signal(false);readonly busy=signal(false);readonly error=signal('');readonly message=signal('');readonly type=signal<ProductInput['saleType']>('QUANTITY');readonly generalOpen=signal(!this.id);readonly salesOpen=signal(!this.id);private manualSlug=!!this.id;
