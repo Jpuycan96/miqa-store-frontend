@@ -12,7 +12,7 @@
         <h1 id="product-title">{{ product.name }}</h1>
         <p class="description">{{ product.description }}</p>
         @if (product.configuration?.mode === 'ERP') {
-          <app-erp-configurator [product]="product" />
+          <app-erp-configurator [product]="product" (refreshConfiguration)="retry()" />
         } @else if (product.configuration?.mode === 'UNAVAILABLE') {
           <p role="status">Este producto no está disponible para configurar en este momento.</p>
         } @else {

@@ -6,3 +6,6 @@ fieldset { min-width: 0; display: grid; gap: .75rem; padding: 1rem; border: 1px 
 p { margin: 0 0 .5rem; color: #455065; font-size: .9rem; }
 :focus-visible { outline: 3px solid #175db3; outline-offset: 3px; }
 button { min-height: 44px; }
+
+.price-status:has(p) { padding: 1rem; border-radius: .5rem; background: #f3f5f8; }
+.price-amount { display: block; margin-bottom: .35rem; color: #17243b; font-size: 1.8rem; overflow-wrap: anywhere; }

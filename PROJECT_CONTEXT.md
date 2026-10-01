@@ -1,3 +1,21 @@
+## Fase 2B.5: precio público ERP en el configurador
+
+- El configurador ERP reutiliza las opciones y validaciones de 2B.4 y consulta únicamente `POST /api/public/pricing/evaluate` de MIQA mediante `STORE_API_CONFIG`. Envía `productId`, `quantity`, `erpMaterialId`, `erpModelId` y `measures`; nunca envía servicio, revisiones, nombres ni importes a este endpoint.
+- El total PEN se presenta desde el string decimal recibido, sin convertir el importe a Number, recalcular tarifas ni sumar IGV. Se indica «Incluye IGV» cuando la respuesta lo confirma y se identifica el precio como informativo. La respuesta pública no requiere `pricingRevision`.
+- Los cambios de selección invalidan el precio y cancelan la petición anterior inmediatamente. `switchMap` contiene una espera de 300 ms antes de evaluar; sin polling ni reintentos automáticos. Cambiar solo las notas no vuelve a consultar. Timeout de ocho segundos y destrucción del componente cancelan la evaluación.
+- «Precio por cotizar» y fallos temporales permiten continuar con la solicitud sin inventar precio. Configuración inválida/desactualizada bloquea el agregado y ofrece «Actualizar opciones», reutilizando el GET público de la ficha; requiere seleccionar nuevamente, sin bucles. Los errores y estados dinámicos usan mensajes comerciales y una región accesible de estado.
+- El preview permanece en el componente: no se persiste en el carrito ni se incluye en el POST v2. El backend vuelve a evaluar y conserva su propio snapshot; el contrato v2 y su reintento inmutable no cambian. LEGACY y UNAVAILABLE mantienen sus flujos existentes.
+- Se simplificó la ayuda de cantidad/medidas retirando límites técnicos del texto visible; sus validaciones permanecen. Se conserva la confirmación existente al agregar. Navegación/categorías y otras mejoras visuales siguen pendientes.
+
+## Pendientes UX/UI tras 2B.4 — 30 de septiembre de 2026
+
+Solo pendientes para una fase posterior; no implementados en esta investigación 2B.5.
+
+1. Revisar navegación y categorías públicas: actualmente se muestran categorías editoriales existentes aunque solo algunas publicaciones estén configuradas/vinculadas al ERP. Decidir cuáles mostrar según publicaciones disponibles, sin confundir categorías MIQA con categorías ERP.
+2. Simplificar textos técnicos del configurador ERP: evitar mostrar «máximo 99999999», «hasta seis decimales» o «límites 0.01–1000 metros», salvo que sean reglas comerciales necesarias.
+3. Revisar especialmente el límite MIQA de 0.01–1000 m y seis decimales: se introdujo como límite de transporte/validación ante la ausencia de límites dimensionales en el contrato ERP; no es una regla de negocio definitiva.
+4. Mejorar el feedback al agregar a cotización: actualmente aumenta el contador y aparece una confirmación; evaluar abrir automáticamente el panel o hacer más evidente el siguiente paso.
+
 ## Fase 2B.4: configurador público ERP y solicitudes v2 — 30 de septiembre de 2026
 
 - Partida verificada limpia en `feature/solicitudes-web`, frontend `f358f91`, backend `eefca0d`. Se conserva Admin 2B.3 y su seguridad. Sin commit/push/merge/deploy ni cambio de rama, ERP/GoPrint/producción intactos.

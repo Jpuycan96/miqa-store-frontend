@@ -1,4 +1,5 @@
 import { TestBed } from '@angular/core/testing';
+import { PublicPricing } from '../../../core/data/public-pricing';
 import { of } from 'rxjs';
 import { ProductCatalog } from '../../../core/data/product-catalog';
 import { QuoteStore } from '../../../core/quote/quote-store';
@@ -8,7 +9,7 @@ import { ErpConfigurator } from './erp-configurator';
 describe('Public ERP configurator', () => {
   beforeEach(() => {
     localStorage.clear();
-    TestBed.configureTestingModule({providers: [{provide: ProductCatalog,useValue: {list: () => of([])}}]});
+    TestBed.configureTestingModule({providers: [{provide: PublicPricing, useValue: {evaluate: () => of({status: 'QUOTE_REQUIRED'})}}, {provide: ProductCatalog,useValue: {list: () => of([])}}]});
   });
   afterEach(() => localStorage.clear());
   it.each(['M2','ESCALA','METRO_LINEAL'] as const)('renders %s contract fields and adds approved options', async form => {

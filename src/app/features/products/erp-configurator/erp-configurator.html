@@ -19,9 +19,9 @@
     <label for="erp-quantity">Cantidad ({{ config.cantidad.unidad }})</label>
     <input id="erp-quantity" type="number" formControlName="quantity" [attr.inputmode]="config.cantidad.permiteDecimales ? 'decimal' : 'numeric'"
       [min]="number(config.cantidad.minimo)" [max]="number(config.cantidad.maximo)" step="any" aria-describedby="erp-quantity-help">
-    <p id="erp-quantity-help">Mínimo {{ config.cantidad.minimo }}; máximo {{ config.cantidad.maximo }}.
+    <p id="erp-quantity-help">Mínimo {{ config.cantidad.minimo }}.
       @if (config.cantidad.multiploObligatorio) { En múltiplos de {{ config.cantidad.multiploObligatorio }}. }
-      @if (config.cantidad.permiteDecimales) { Hasta {{ config.cantidad.precision }} decimales. } @else { Cantidades enteras. }
+      @if (!config.cantidad.permiteDecimales) { Cantidades enteras. }
     </p>
     @if (fields().length) {
       <fieldset formGroupName="measures"><legend>Medidas de la pieza</legend>
@@ -29,12 +29,34 @@
           <label [for]="'erp-' + field">{{ labels[field] }} ({{ config.medidas.unidad }})</label>
           <input [id]="'erp-' + field" type="number" inputmode="decimal" min="0.01" max="1000" step="any" [formControlName]="field" aria-describedby="erp-measures-help">
         }
-        <p id="erp-measures-help">Entre 0.01 y 1000 metros, hasta seis decimales.</p>
+        <p id="erp-measures-help">Ingresa las medidas en metros.</p>
       </fieldset>
     }
     <label for="erp-notes">Detalles de tu proyecto (opcional)</label>
     <textarea id="erp-notes" formControlName="notes" rows="2" maxlength="1000"></textarea>
-    @if (!canAdd()) { <p role="status">Completa las opciones y revisa la cantidad y las medidas.</p> }
+    @if (!validSelection()) { <p role="status">Completa las opciones y revisa la cantidad y las medidas.</p> }
+    <div class="price-status" role="status" aria-live="polite" aria-atomic="true">
+      @let current = price();
+      @switch (current.status) {
+        @case ('LOADING') { <p>Calculando precio…</p> }
+        @case ('PRICE_AVAILABLE') {
+          <p>Precio total</p>
+          <strong class="price-amount">{{ formatPrice(current.amount) }}</strong>
+          @if (current.includesIgv) { <p>Incluye IGV</p> }
+          <p>Precio informativo. Se confirmará al enviar tu solicitud.</p>
+        }
+        @case ('QUOTE_REQUIRED') { <p>Precio por cotizar. Puedes continuar con tu solicitud.</p> }
+        @case ('CONFIGURATION_STALE') { <p>Las opciones de este producto cambiaron. Actualízalas para continuar.</p> }
+        @case ('CONFIGURATION_INVALID') { <p>No pudimos validar estas opciones. Revisa tu selección o actualiza las opciones.</p> }
+        @case ('TEMPORARILY_UNAVAILABLE') { <p>Precio no disponible temporalmente. Puedes reintentar o solicitar una cotización.</p> }
+      }
+    </div>
+    @if (price().status === 'CONFIGURATION_STALE' || price().status === 'CONFIGURATION_INVALID') {
+      <button type="button" (click)="refreshConfiguration.emit()">Actualizar opciones</button>
+    }
+    @if (price().status === 'TEMPORARILY_UNAVAILABLE') {
+      <button type="button" (click)="retryPrice()">Reintentar precio</button>
+    }
     <button class="primary-button" type="submit" [disabled]="!canAdd()">Agregar a cotización</button>
   </form>
 }
