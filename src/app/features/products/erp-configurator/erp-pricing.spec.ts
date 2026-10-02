@@ -52,6 +52,9 @@ describe('ERP public pricing preview', () => {
     req.flush(available); fixture.detectChanges();
     expect(fixture.nativeElement.textContent).toContain('S/ 105.00');
     expect(fixture.nativeElement.textContent).toContain('Incluye IGV');
+    expect(fixture.nativeElement.textContent).toContain('Total de este producto');
+    expect(fixture.nativeElement.textContent).toContain('Medidas en metros. Ej.: 50 cm = 0.5 m.');
+    expect(fixture.nativeElement.querySelector('#erp-notes').placeholder).toBe('Cuéntanos si necesitas algo especial.');
     const region: HTMLElement = fixture.nativeElement.querySelector('.price-status');
     expect(region.getAttribute('role')).toBe('status');
     expect(region.getAttribute('aria-live')).toBe('polite');
@@ -61,10 +64,10 @@ describe('ERP public pricing preview', () => {
     await vi.advanceTimersByTimeAsync(500); http.expectNone(endpoint);
   });
   it.each([
-    ['QUOTE_REQUIRED', 200, 'Precio por cotizar', true],
-    ['CONFIGURATION_STALE', 409, 'opciones de este producto cambiaron', false],
+    ['QUOTE_REQUIRED', 200, 'Precio por cotizar. Agrega el producto para solicitar una cotización.', true],
+    ['CONFIGURATION_STALE', 409, 'Las opciones de este producto cambiaron. Pulsa «Actualizar opciones» y vuelve a elegirlas.', false],
     ['CONFIGURATION_INVALID', 422, 'No pudimos validar', false],
-    ['TEMPORARILY_UNAVAILABLE', 503, 'Precio no disponible temporalmente', true]
+    ['TEMPORARILY_UNAVAILABLE', 503, 'Precio no disponible temporalmente. Reintenta o agrega el producto para solicitar una cotización.', true]
   ] as const)('handles %s without inventing a price', async (status, code, message, canAdd) => {
     const fixture = await setup(); const req = await evaluate();
     req.flush({ status, diagnostic: 'PRIVATE INTERNAL DETAIL' }, { status: code, statusText: 'Result' });
@@ -73,18 +76,18 @@ describe('ERP public pricing preview', () => {
     expect(fixture.nativeElement.textContent).not.toContain('PRIVATE INTERNAL DETAIL');
     expect(fixture.nativeElement.querySelector('.price-amount')).toBeNull();
     expect(fixture.componentInstance.canAdd()).toBe(canAdd);
-    fixture.componentInstance.add();
-    expect(TestBed.inject(QuoteStore).items().length).toBe(canAdd ? 1 : 0);
     if (status === 'CONFIGURATION_STALE' || status === 'CONFIGURATION_INVALID') {
       const refresh = vi.fn(); fixture.componentInstance.refreshConfiguration.subscribe(refresh);
-      fixture.nativeElement.querySelector('button[type=button]').click(); expect(refresh).toHaveBeenCalledOnce();
+      fixture.nativeElement.querySelector('.pricing button[type=button]').click(); expect(refresh).toHaveBeenCalledOnce();
       await vi.advanceTimersByTimeAsync(2000); http.expectNone(endpoint);
     }
     if (status === 'TEMPORARILY_UNAVAILABLE') {
-      fixture.nativeElement.querySelector('button[type=button]').click();
+      fixture.nativeElement.querySelector('.pricing button[type=button]').click();
       (await evaluate()).flush(available); fixture.detectChanges();
       expect(fixture.nativeElement.textContent).toContain('S/ 105.00');
     }
+    fixture.componentInstance.add();
+    expect(TestBed.inject(QuoteStore).items().length).toBe(canAdd ? 1 : 0);
   });
   it.each(['material', 'quantity', 'ancho', 'alto', 'model', 'product'] as const)('immediately removes old price on %s changes', async field => {
     const fixture = await setup(); (await evaluate()).flush(available); fixture.detectChanges();
@@ -151,4 +154,3 @@ describe('ERP public pricing preview', () => {
     expect(formatPen('10.5')).toBe('S/ 10.50');
   });
 });
-

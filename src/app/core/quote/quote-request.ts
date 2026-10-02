@@ -49,10 +49,10 @@ export function requestLimitError(request: QuoteRequest): string {
       continue;
     }
     if (!Number.isSafeInteger(item.quantity) || item.quantity < 1 || item.quantity > 1_000_000_000)
-      return 'Cada cantidad debe ser un entero entre 1 y 1 000 000 000.';
+      return 'Revisa la cantidad de los productos. Usa cantidades enteras y respeta el mínimo indicado.';
     if (item.saleType === 'AREA' && [item.widthMeters, item.heightMeters].some(value =>
       value === undefined || !Number.isFinite(value) || value < 0.01 || value > 1000 || Math.abs(value * 1e6 - Math.round(value * 1e6)) > 0.000001))
-      return 'Revisa las medidas: entre 0.01 y 1000 metros, con hasta seis decimales.';
+      return 'Revisa las medidas de los productos e ingrésalas en metros.';
   }
   if (new TextEncoder().encode(JSON.stringify(request)).length > 65536) return 'La solicitud es demasiado extensa. Reduce productos o notas.';
   return '';

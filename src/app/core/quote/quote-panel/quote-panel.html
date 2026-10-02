@@ -1,5 +1,5 @@
 <section aria-labelledby="quote-panel-title">
-  <div class="panel-heading"><h2 id="quote-panel-title">Mi cotización</h2><span class="count" aria-label="Productos configurados">{{ quote.totalItems() }}</span></div>
+  <div class="panel-heading"><h2 id="quote-panel-title" tabindex="-1">Mi cotización</h2><span class="count" aria-label="Productos configurados">{{ quote.totalItems() }}</span>@if (compact()) { <button class="collapse-quote" type="button" aria-label="Contraer cotización" (click)="collapsed.emit()">›</button> }</div>
   <div class="panel-items">
     @if (quote.persistenceWarning()) { <p class="hint" role="status">{{ quote.persistenceWarning() }}</p> }
     @if (quote.items().length) {
@@ -10,12 +10,21 @@
             <p class="configuration">{{ describe(item) }}</p>
             <p class="quantity-minimum">Mínimo {{ quote.quantityRules(item).minimum }} {{ item.erp ? item.unitLabel : (item.saleType === 'PACK' ? 'presentaciones' : 'unidades') }}</p>
             <div class="item-controls">
+              @if (compact()) {
+                <div class="item-thumbnail" aria-hidden="true">
+                  @if (item.productId === currentProduct()?.id && thumbnail(); as image) {
+                    <img [ngSrc]="image.url" width="44" height="44" alt="">
+                  } @else {
+                    <svg viewBox="0 0 24 24"><path d="M4 4h16v16H4zM4 16l5-5 4 4 3-3 4 4M15 8h.01"/></svg>
+                  }
+                </div>
+              }
               <div class="quantity-control" role="group" [attr.aria-label]="'Cantidad de ' + item.productName">
                 <button [attr.aria-label]="'Reducir cantidad de ' + item.productName" [disabled]="item.quantity <= quote.quantityRules(item).minimum" (click)="quote.changeQuantity(item, -quote.quantityRules(item).step)">−</button>
                 <input appQuantityInput [erpRules]="item.erp?.quantityRules" [quantity]="item.quantity" [minimum]="quote.quantityRules(item).minimum" (quantityChange)="quote.updateQuantity(item.id, $event)" [attr.aria-label]="'Cantidad de ' + item.productName">
                 <button [attr.aria-label]="'Aumentar cantidad de ' + item.productName" (click)="quote.changeQuantity(item, quote.quantityRules(item).step)">+</button>
               </div>
-              <button class="remove" [attr.aria-label]="'Eliminar ' + item.productName + ' de la cotización'" (click)="quote.removeItem(item.id)">Eliminar</button>
+              <button type="button" class="remove" [attr.title]="'Eliminar ' + item.productName" [attr.aria-label]="'Eliminar ' + item.productName + ' de la cotización'" (click)="quote.removeItem(item.id)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 10v7M14 10v7"/></svg></button>
             </div>
           </li>
         }
@@ -26,8 +35,11 @@
   </div>
   @if (quote.items().length || submission.pending() || submission.confirmed()) {
     <div class="panel-actions">
-      <app-quote-submit />
-      <button class="clear" (click)="quote.clear()">Vaciar cotización</button>
+      @if (compact() && quote.items().length) {
+        <div class="quote-total"><span>Total ({{ quote.totalItems() }} {{ quote.totalItems() === 1 ? "producto" : "productos" }})</span></div>
+      }
+      <app-quote-submit [compact]="compact()" />
+      <button type="button" class="clear" (click)="quote.clear()"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 10v7M14 10v7"/></svg> Vaciar cotización</button>
     </div>
   }
 </section>

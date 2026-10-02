@@ -8,6 +8,7 @@ import { QuoteStore, QUOTE_STORAGE_KEY } from './quote-store';
 import { QuoteSubmission, SUBMISSION_STORAGE_KEY } from './quote-submission';
 import { QuoteSubmit } from './quote-submit';
 import { quoteRequest, requestLimitError } from './quote-request';
+import { erpProduct, erpSelection } from '../../testing/erp.fixture';
 import { createQuoteItem } from './quote-utils';
 
 const endpoint = 'https://store-api.example.test/api/public/quote-requests';
@@ -26,6 +27,58 @@ describe('Persistent quote submission', () => {
     vi.spyOn(window, 'open').mockImplementation(() => null);
   });
   afterEach(() => { http.verify(); vi.restoreAllMocks(); localStorage.removeItem(QUOTE_STORAGE_KEY); sessionStorage.removeItem(SUBMISSION_STORAGE_KEY); });
+
+  it('keeps all six ERP configurations in the request message and freezes the registered reference', async () => {
+    store.clear();
+    const product = erpProduct();
+    product.configuration!.configuration!.cantidad.unidad = 'unidades';
+    for (let index = 0; index < 6; index++) {
+      expect(store.addItem(product, { quantity: index === 0 ? 2 : 1,
+        erp: erpSelection({ ancho: 2, alto: 1 + index * 0.1 }), notes: 'Detalle ' + index })).toBe(true);
+    }
+    expect(store.items()).toHaveLength(6);
+    submission.submit();
+    const request = http.expectOne(endpoint + '/v2');
+    expect(request.request.body.items).toHaveLength(6);
+    store.addItem(product, { quantity: 1, erp: erpSelection({ ancho: 1, alto: 1 }), notes: 'Posterior' });
+    request.flush(receipt);
+    const url = submission.confirmed()!.url;
+    const message = new URL(url).searchParams.get('text')!;
+    expect(message.split('\n').filter(line => line.startsWith('\u2022 '))).toHaveLength(6);
+    for (let index = 0; index < 6; index++) expect(message).toContain('Detalle ' + index);
+    expect(message).toContain('2 unidades'); expect(message).toContain('1 unidad');
+    expect(message).toContain('Material: Banner 13 Oz'); expect(message).toContain('Modelo: Modelo aprobado');
+    expect(message).toContain('Ancho: 2 m'); expect(message).not.toContain('unidadess');
+    expect(message).not.toContain('Posterior');
+    submission.submit(); http.expectNone(endpoint + '/v2');
+    expect(submission.confirmed()!.url).toBe(url);
+    const fixture = TestBed.createComponent(QuoteSubmit); await fixture.whenStable();
+    expect(fixture.componentInstance.confirmedMessage()).toBe(message);
+    expect(fixture.nativeElement.textContent).toContain('Para enviar el carrito actual');
+    expect(fixture.nativeElement.querySelector('a').textContent).toContain(receipt.reference);
+    submission.startNew(); submission.form.patchValue({ name: 'Cliente', phone: '999999999' });
+    submission.submit(); const next = http.expectOne(endpoint + '/v2');
+    expect(next.request.body.items).toHaveLength(7);
+    next.flush({ ...receipt, reference: 'MIQA-000124' });
+    const nextMessage = new URL(submission.confirmed()!.url).searchParams.get('text')!;
+    expect(nextMessage).toContain('MIQA-000124'); expect(nextMessage).toContain('Posterior');
+    expect(nextMessage.split('\n').filter(line => line.startsWith('\u2022 '))).toHaveLength(7);
+  });
+
+  it('restores a one-item registered message without mixing in five later cart configurations', () => {
+    submission.submit(); http.expectOne(endpoint).flush(receipt);
+    const originalUrl = submission.confirmed()!.url;
+    for (let index = 0; index < 5; index++) {
+      store.addItem(erpProduct(), { quantity: 1, erp: erpSelection({ ancho: 2, alto: 1 + index * 0.1 }) });
+    }
+    expect(store.items()).toHaveLength(6);
+    const restored = TestBed.runInInjectionContext(() => new QuoteSubmission());
+    restored.restore();
+    expect(restored.confirmed()!.url).toBe(originalUrl);
+    expect(new URL(restored.confirmed()!.url).searchParams.get('text')!.split('\n')
+      .filter(line => line.startsWith('\u2022 '))).toHaveLength(1);
+    restored.submit(); http.expectNone(endpoint);
+  });
 
   it('serializes QUANTITY, PACK, AREA, options and notes without labels, computed area or prices', () => {
     const items = [store.items()[0], createQuoteItem(PRODUCTS[0], { quantity: 3 }, 'pack')!,
@@ -66,6 +119,8 @@ describe('Persistent quote submission', () => {
     submission.submit(); const retry = http.expectOne(endpoint);
     expect(retry.request.body).toEqual(body); expect(retry.request.headers.get('Idempotency-Key')).toBe(key);
     retry.flush(receipt); expect(store.items()[0].quantity).toBe(62);
+    const message = new URL(submission.confirmed()!.url).searchParams.get('text')!;
+    expect(message).toContain('50 unidades'); expect(message).not.toContain('62 unidades');
   });
   it('restores the immutable attempt after reload without catalog reinterpretation', () => {
     submission.submit(); const first = http.expectOne(endpoint); const key = first.request.headers.get('Idempotency-Key');
@@ -97,7 +152,7 @@ describe('Persistent quote submission', () => {
     submission.form.patchValue({ name: ' ', phone: '12' }); submission.submit(); http.expectNone(endpoint);
     expect(submission.form.invalid).toBe(true); expect(store.items()).toHaveLength(1);
     submission.form.patchValue({ name: 'Cliente', phone: '999999999' }); store.updateQuantity(store.items()[0].id, 1_000_000_001);
-    submission.submit(); http.expectNone(endpoint); expect(submission.error()).toContain('1 000 000 000');
+    submission.submit(); http.expectNone(endpoint); expect(submission.error()).toBe('Revisa la cantidad de los productos. Usa cantidades enteras y respeta el mínimo indicado.');
   });
   it('keeps the retry available if the response cannot be trusted', () => {
     submission.submit(); http.expectOne(endpoint).flush({ reference: 'fake' });
@@ -107,6 +162,9 @@ describe('Persistent quote submission', () => {
     const fixture = TestBed.createComponent(QuoteSubmit); await fixture.whenStable();
     const element: HTMLElement = fixture.nativeElement;
     expect(element.querySelectorAll('input')).toHaveLength(3);
+    expect(element.querySelector('h3')?.textContent).toBe('Datos de contacto');
+    expect(element.textContent).toContain('Registraremos tu solicitud en MIQA. Después podrás continuar por WhatsApp.');
+    expect(element.querySelector('button[type=submit]')?.textContent).toContain('Enviar solicitud de cotización');
     expect(element.querySelector('a')).toBeNull();
     element.querySelector('form')!.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
     http.expectOne(endpoint).flush(receipt); await fixture.whenStable();

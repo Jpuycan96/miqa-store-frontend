@@ -1,3 +1,30 @@
+## Cierre del detalle ERP y cotizacion integrada - 2 de octubre de 2026
+
+Esta tanda fue aprobada visual y funcionalmente por el propietario; actualiza los antecedentes siguientes.
+
+- Desde 1120 px: imagen secundaria al abrir la tercera columna, cotizador con borde fino, panel con altura disponible bajo el header y scroll solo en la lista cuando no cabe. Breadcrumb/footer ocultos solo en detalle desktop; SEO y WhatsApp flotante conservados. Movil mantiene drawer y comportamiento anterior.
+- Pestana lateral con carrito/contador en el tercio superior, hover/foco y movimiento reducido. Agregado exitoso abre el panel, limpia medidas/notas y reinicia cantidad a 1; material/modelo validos se conservan o se elige la primera opcion valida al cargar. Carrito agregado intacto.
+- Panel sin precios ni textos Por cotizar; miniatura del producto abierto y papelera accesible. WhatsApp identifica la referencia y muestra el mensaje guardado de esa solicitud, sin mezclar cambios posteriores del carrito; pluralizacion unidad/unidades corregida. Pricing, contratos, persistencia y backend/ERP intactos.
+- Cierre: 182/182 tests en 32 archivos con maximo 2 workers (primera ejecucion sin limite agoto memoria). Tres pruebas adaptadas al comportamiento aprobado, sin cambios funcionales de produccion durante el cierre; limpieza de lineas vacias finales.
+- Un build de produccion offline aprobado: 13 URLs de sitemap y 14 rutas prerenderizadas; sitemap/redirects originales preservados. Warnings CSS sobre 4 kB: catalogo 4.11 kB (previo), detalle 4.95 kB y panel 4.36 kB (tanda actual). Sin ampliar presupuestos.
+- Axe existente ejecutado una vez, sin capturas: 40 auditorias del detalle a 390/768/1366/1440 px, cero infracciones, overflow horizontal ni errores JS; API simulada, no certificacion integral. Evidencias locales en .tmp/closure-tests-final.log, closure-build.log y closure-axe-results.json. Sin staging, commit, push, merge, deploy ni cambio de rama.
+
+## Ajuste de layout M2 según referencia directa
+
+Esta sección actualiza la composición compacta anterior, que se conserva debajo como antecedente.
+
+- Imagen ERP secundaria de 280 px de alto y máximo 440 px de ancho en escritorio; conserva proporción/calidad. Medidas M2 compactas a la izquierda y materiales/modelos visibles a la derecha desde 768 px.
+- M2 usa radios nativos con apariencia cuadrada: selección única, mismos FormControls e IDs enviados. Las listas tienen altura máxima de 176 px y scroll para muchas opciones. ESCALA y METRO_LINEAL conservan selectores.
+- Cantidad compacta debajo de medidas, precio a su derecha sin tarjeta de ancho completo; observación de dos líneas y CTA debajo. Botones −/+ sobre el control actual con múltiplo obligatorio o incremento sugerido, reutilizando validErpQuantity y conservando los límites existentes.
+- Móvil en una columna, con controles de al menos 44 px y scroll normal. LEGACY/UNAVAILABLE intactos. Sin cambios en pricing, debounce, validaciones de selección, carrito, drawer, contratos, persistencia ni WhatsApp.
+
+## Layout compacto del detalle ERP
+
+- Desde 1024 px, únicamente las fichas ERP usan columnas 2fr/3fr (imagen/cotizador), imagen de 320 px de alto y menores espacios de breadcrumb, título y descripción. Se conservan imagen, calidad, galería y contenido editorial completo.
+- Desde 768 px, material/modelo comparten fila cuando corresponde; cantidad y medidas se agrupan visualmente conservando el orden del DOM: Cantidad → Ancho → Alto. Se mantienen fieldset, labels, unidades, ayudas y controles de al menos 44 px. Textarea inicial de 52 px, ampliable; importe e IGV comparten línea cuando caben.
+- Móvil conserva una columna, imagen arriba y desplazamiento normal. LEGACY y UNAVAILABLE conservan su layout. No cambian pricing, debounce, validaciones, carrito, drawer, payloads, persistencia ni WhatsApp.
+- La visibilidad del CTA en la primera pantalla depende de la extensión del título/descripción, opciones y altura disponible; no se recorta contenido ni se fuerza una altura fija del formulario.
+
 ## Fase 2B.5: precio público ERP en el configurador
 
 - El configurador ERP reutiliza las opciones y validaciones de 2B.4 y consulta únicamente `POST /api/public/pricing/evaluate` de MIQA mediante `STORE_API_CONFIG`. Envía `productId`, `quantity`, `erpMaterialId`, `erpModelId` y `measures`; nunca envía servicio, revisiones, nombres ni importes a este endpoint.
@@ -9,12 +36,14 @@
 
 ## Pendientes UX/UI tras 2B.4 — 30 de septiembre de 2026
 
-Solo pendientes para una fase posterior; no implementados en esta investigación 2B.5.
+Estado actualizado tras el pulido comercial posterior a 2B.5; se conservan las decisiones y antecedentes de las secciones siguientes.
 
 1. Revisar navegación y categorías públicas: actualmente se muestran categorías editoriales existentes aunque solo algunas publicaciones estén configuradas/vinculadas al ERP. Decidir cuáles mostrar según publicaciones disponibles, sin confundir categorías MIQA con categorías ERP.
-2. Simplificar textos técnicos del configurador ERP: evitar mostrar «máximo 99999999», «hasta seis decimales» o «límites 0.01–1000 metros», salvo que sean reglas comerciales necesarias.
+2. Resuelto: ayudas comerciales en ERP y legacy, sin máximos técnicos ni precisión interna en el copy. Medidas ERP con ejemplo 50 cm = 0.5 m, placeholder de detalles opcionales, título «Total de este producto» y mensajes de precio orientados a la siguiente acción. Validaciones y límites internos intactos; se conserva el límite visible de 50 productos por solicitud.
 3. Revisar especialmente el límite MIQA de 0.01–1000 m y seis decimales: se introdujo como límite de transporte/validación ante la ausencia de límites dimensionales en el contrato ERP; no es una regla de negocio definitiva.
-4. Mejorar el feedback al agregar a cotización: actualmente aumenta el contador y aparece una confirmación; evaluar abrir automáticamente el panel o hacer más evidente el siguiente paso.
+4. Feedback al agregar: toast y apertura/cierre del drawer conservados sin cambios. El propietario observó apertura automática en su validación; el código local de 82f0d02 no llama open() desde addItem() ni desde el agregado ERP. Discrepancia reportada, pendiente de contrastar con el entorno observado; no se añadió una instrucción para abrir la cotización desde el encabezado.
+
+5. Resuelto: formulario compartido de panel/drawer con «Datos de contacto», explicación del registro en MIQA y botón «Enviar solicitud de cotización». Se conservan persistencia antes de WhatsApp, reintentos y confirmación con referencia. Sin cambios en pricing, payloads, carrito ni quote v2.
 
 ## Fase 2B.4: configurador público ERP y solicitudes v2 — 30 de septiembre de 2026
 

@@ -1,8 +1,10 @@
+import { QuotePanel } from '../../../core/quote/quote-panel/quote-panel';
+import { QuotePresentation } from '../../../core/quote/quote-presentation';
 import { QuantityInput } from '../../../shared/quantity-input';
 import { ErpConfigurator } from '../erp-configurator/erp-configurator';
 import { DecimalPipe } from '@angular/common';
 import { ProductImageGallery } from '../../../shared/product-images/product-image-gallery';
-import { ChangeDetectionStrategy, Component, computed, effect, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, DestroyRef, afterRenderEffect, ElementRef, signal, viewChild } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
@@ -17,7 +19,7 @@ import { productImages } from '../../../shared/product-images/product-images';
 interface ProductState { slug?: string; product?: Product; loading: boolean; error: boolean; }
 
 @Component({
-  selector: 'app-product-detail', imports: [ErpConfigurator, QuantityInput, ProductImageGallery, RouterLink, ReactiveFormsModule, DecimalPipe],
+  selector: 'app-product-detail', imports: [QuotePanel, ErpConfigurator, QuantityInput, ProductImageGallery, RouterLink, ReactiveFormsModule, DecimalPipe],
   templateUrl: './product-detail.html', styleUrl: './product-detail.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -26,6 +28,13 @@ export class ProductDetail {
   private readonly route = inject(ActivatedRoute);
   private readonly seo = inject(Seo);
   readonly quote = inject(QuoteStore);
+  readonly quotePresentation = inject(QuotePresentation);
+  readonly integratedOpen = computed(() => this.quotePresentation.integrated() && this.quote.isOpen());
+  private readonly quoteTab = viewChild<ElementRef<HTMLButtonElement>>('quoteTab');
+  private readonly quotePanel = viewChild('inlinePanel', { read: ElementRef });
+  private readonly focusQuote = signal<'tab' | 'panel' | null>(null);
+  collapseQuote() { this.quote.close(); this.focusQuote.set('tab'); }
+  reopenQuote() { this.quote.open(); this.focusQuote.set('panel'); }
   private readonly refresh = new Subject<void>();
   retry() { this.refresh.next(); }
   readonly state = toSignal(combineLatest([this.route.paramMap.pipe(
@@ -61,6 +70,18 @@ export class ProductDetail {
   });
 
   constructor() {
+    effect(() => this.quotePresentation.erpDetail.set(this.product()?.configuration?.mode === 'ERP'));
+    inject(DestroyRef).onDestroy(() => this.quotePresentation.erpDetail.set(false));
+    afterRenderEffect(() => {
+      const focus = this.focusQuote();
+      if (focus === 'tab' && !this.quote.isOpen()) {
+        this.quoteTab()?.nativeElement.focus();
+        this.focusQuote.set(null);
+      } else if (focus === 'panel' && this.integratedOpen()) {
+        this.quotePanel()?.nativeElement.querySelector('h2')?.focus();
+        this.focusQuote.set(null);
+      }
+    });
     effect(() => {
       const product = this.product();
       this.form.reset({ quantity: product?.minQuantity ?? 1, width: null, height: null, material: '', notes: '' });

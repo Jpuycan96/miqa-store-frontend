@@ -2,6 +2,7 @@ import { QuantityInput } from '../../shared/quantity-input';
 import { QuoteSubmit } from './quote-submit';
 import { QuoteSubmission } from './quote-submission';
 import { afterRenderEffect, ChangeDetectionStrategy, Component, DOCUMENT, ElementRef, inject, OnDestroy, viewChild } from '@angular/core';
+import { QuotePresentation } from './quote-presentation';
 import { QuoteStore } from './quote-store';
 import { describeQuoteItem } from './quote-utils';
 
@@ -15,6 +16,7 @@ import { describeQuoteItem } from './quote-utils';
 export class QuoteDrawer implements OnDestroy {
   readonly submission = inject(QuoteSubmission);
   readonly quote = inject(QuoteStore);
+  private readonly presentation = inject(QuotePresentation);
   readonly describe = describeQuoteItem;
   private readonly document = inject(DOCUMENT);
   private readonly dialog = viewChild.required<ElementRef<HTMLDialogElement>>('drawer');
@@ -25,16 +27,17 @@ export class QuoteDrawer implements OnDestroy {
   constructor() {
     afterRenderEffect(() => {
       const dialog = this.dialog().nativeElement;
-      if (this.quote.isOpen() && !dialog.open) {
+      const open = this.quote.isOpen() && !this.presentation.integrated();
+      if (open && !dialog.open) {
         this.returnFocus = this.document.activeElement as HTMLElement | null;
         this.previousOverflow = this.document.body.style.overflow;
         this.document.body.style.overflow = 'hidden';
         this.locked = true;
         dialog.showModal();
-      } else if (!this.quote.isOpen() && dialog.open) {
+      } else if (!open && dialog.open) {
         dialog.close();
         this.unlock();
-        if (this.returnFocus?.isConnected) this.returnFocus.focus();
+        if (!this.presentation.integrated() && this.returnFocus?.isConnected) this.returnFocus.focus();
       }
     });
   }

@@ -4,11 +4,16 @@ import { TestBed } from '@angular/core/testing';
 import { PRODUCTS } from '../data/products.mock';
 import { WHATSAPP_NUMBER } from '../config/whatsapp';
 import { QuoteStore, QUOTE_STORAGE_KEY } from './quote-store';
-import { buildQuoteMessage, calculateArea, createQuoteItem, getQuoteItemIdentity } from './quote-utils';
+import { buildQuoteMessage, calculateArea, createQuoteItem, getQuoteItemIdentity, quantityLabel } from './quote-utils';
 
 beforeEach(() => TestBed.configureTestingModule({ providers: [provideTestCatalog()] }));
 
 describe('Quote calculations and message', () => {
+  it.each(['unidad', 'unidades'])('formats singular and plural quantities from %s', unit => {
+    expect(quantityLabel(1, unit)).toBe('1 unidad');
+    expect(quantityLabel(2, unit)).toBe('2 unidades');
+    expect(quantityLabel(6, unit)).toBe('6 unidades');
+  });
   it('calculates area and rejects invalid dimensions', () => {
     expect(calculateArea(2.5, 1.2)).toBe(3);
     for (const value of [0, -1, NaN, Infinity]) expect(calculateArea(value, 2)).toBe(0);

@@ -10,3 +10,20 @@ textarea { resize: vertical; }
 :focus-visible { outline: 3px solid #075b87; outline-offset: 3px; }
 .hint { color: #536174; } .error { color: #9f1730; margin-top: 12px; }
 .snapshot { white-space: pre-wrap; } summary { cursor: pointer; min-height: 44px; font-size: 13px; }
+
+h3 { margin: 0; font-size: 16px; font-weight: 600; line-height: 1.4; }
+
+@media (min-width: 1120px) {
+  :host(.compact) form { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 10px; }
+  :host(.compact) form > :not(label) { grid-column: 1 / -1; }
+  :host(.compact) label { min-width: 0; }
+  :host(.compact) textarea { height: 36px; min-height: 36px; }
+  :host(.compact) h3 { font-size: 14px; }
+  :host(.compact) p { font-size: 12px; line-height: 1.4; margin-bottom: 6px; }
+  :host(.compact) label { font-size: 12px; gap: 3px; }
+}
+@media (min-width: 1120px) and (pointer: fine) {
+  :host(.compact) input { min-height: 36px; padding: 6px 8px; }
+  :host(.compact) textarea { min-height: 36px; height: 36px; padding: 6px 8px; }
+  :host(.compact) .submit-action { min-height: 40px; padding: 7px 10px; }
+}

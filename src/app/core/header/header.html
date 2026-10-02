@@ -20,7 +20,7 @@
    }
   </div>
   <div class="controls">
-   <button class="icon-button quote-toggle" [attr.aria-label]="'Abrir cotización: ' + quote.totalItems() + ' productos configurados'" aria-controls="quote-drawer" aria-haspopup="dialog" [attr.aria-expanded]="quote.isOpen()" (click)="navigate(); quote.open()"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5H5v16h14V5h-3M8 3h8v4H8zM8 12h8M8 16h5"/></svg><span class="quote-count" aria-hidden="true">{{quote.totalItems()}}</span></button>
+   <button class="icon-button quote-toggle" [attr.aria-label]="'Abrir cotización: ' + quote.totalItems() + ' productos configurados'" [attr.aria-controls]="quotePresentation.integrated() ? 'integrated-quote-panel' : 'quote-drawer'" [attr.aria-haspopup]="quotePresentation.integrated() ? null : 'dialog'"  [attr.aria-expanded]="quote.isOpen()" (click)="navigate(); quote.open()"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5H5v16h14V5h-3M8 3h8v4H8zM8 12h8M8 16h5"/></svg><span class="quote-count" aria-hidden="true">{{quote.totalItems()}}</span></button>
    <button #searchToggle class="icon-button search-toggle" aria-label="Buscar productos" [attr.aria-expanded]="searchOpen()" aria-controls="site-search" (click)="toggleSearch()"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg></button>
    <button #menu class="icon-button mobile-toggle" [attr.aria-expanded]="menuOpen()" aria-controls="mobile-nav" [attr.aria-label]="menuOpen() ? 'Cerrar menú' : 'Abrir menú'" (click)="searchOpen.set(false);menuOpen.set(!menuOpen())"><svg viewBox="0 0 24 24" aria-hidden="true"><path [attr.d]="menuOpen() ? 'M6 6l12 12M6 18L18 6' : 'M4 8h16M4 16h16'"/></svg></button>
   </div>

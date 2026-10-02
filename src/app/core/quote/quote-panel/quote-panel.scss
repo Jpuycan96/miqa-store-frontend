@@ -30,3 +30,35 @@ li.updated { background: #e9fafa; box-shadow: inset 3px 0 #16b8c4; }
   text-decoration: underline;
   text-underline-offset: 3px;
 }
+
+@media (min-width: 1120px) {
+  :host(.compact) { display: block; position: static; align-self: stretch; height: 100%; min-height: 0; }
+  :host(.compact) section { height: 100%; max-height: none; overflow: visible; padding-left: 14px; }
+  :host(.compact) .panel-heading { gap: 8px; padding-block: 0 8px; flex-shrink: 0; }
+  :host(.compact) h2 { font-size: 18px; margin: 0; }
+  :host(.compact) .count { margin-left: auto; }
+  .collapse-quote { min-width: 44px; min-height: 44px; border: 1px solid #c4cbd4; border-radius: 8px; background: white; font-size: 26px; }
+  :host(.compact) .panel-items { min-height: 0; flex: 0 1 auto; max-height: none; overflow-y: auto; overscroll-behavior: contain; }
+  :host(.compact) li { padding-block: 8px; }
+  :host(.compact) h3 { margin: 0; font-size: 14px; }
+  :host(.compact) .configuration { margin-block: 4px; line-height: 1.4; }
+  :host(.compact) .panel-actions { padding-top: 8px; }
+  :host(.compact) :focus-visible { outline: 3px solid #075b87; outline-offset: -3px; }
+}
+@media (min-width: 1120px) and (pointer: coarse) {
+  :host(.compact) .quantity-control button, :host(.compact) .quantity-control input, :host(.compact) .remove, :host(.compact) .clear { min-height: 44px; min-width: 44px; }
+}
+
+
+.remove { display: inline-grid; place-items: center; min-width: 36px; border-radius: 8px; text-decoration: none; }
+.remove:hover, .clear:hover { background: #eef9f9; }
+.remove svg, .clear svg, .item-thumbnail svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.clear { display: flex; align-items: center; justify-content: center; gap: 6px; }
+@media (min-width: 1120px) {
+  :host(.compact) .quantity-minimum { display: none; }
+  :host(.compact) .item-controls { display: grid; grid-template-columns: 44px minmax(0, 1fr) 36px; gap: 8px; margin-top: 6px; }
+  .item-thumbnail { width: 44px; height: 44px; display: grid; place-items: center; border-radius: 6px; background: #f3f5f7; overflow: hidden; }
+  .item-thumbnail img { width: 44px; height: 44px; object-fit: contain; }
+  .quote-total { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; font-size: 13px; }
+  :host(.compact) .quantity-control { justify-self: start; }
+}

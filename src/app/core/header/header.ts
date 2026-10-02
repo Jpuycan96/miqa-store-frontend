@@ -5,6 +5,7 @@ import { NavigationEnd, Router, RouterLink } from '@angular/router';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { catchError, debounceTime, filter, map, of, startWith, switchMap } from 'rxjs';
 import { ProductCatalog } from '../data/product-catalog';
+import { QuotePresentation } from '../quote/quote-presentation';
 import { QuoteStore } from '../quote/quote-store';
 import { FloatingWhatsApp } from '../whatsapp/floating-whatsapp';
 @Component({
@@ -13,6 +14,7 @@ import { FloatingWhatsApp } from '../whatsapp/floating-whatsapp';
 })
 export class Header {
  readonly quote = inject(QuoteStore);
+ readonly quotePresentation = inject(QuotePresentation);
  private readonly router = inject(Router);
  private readonly source = inject(ProductCatalog);
  readonly catalogMode = input(false);

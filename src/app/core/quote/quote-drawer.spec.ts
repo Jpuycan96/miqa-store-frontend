@@ -21,7 +21,7 @@ describe('Quote drawer', () => {
     await fixture.whenStable();
     expect(dialog.open).toBe(true);
     expect(document.body.style.overflow).toBe('hidden');
-    expect(element.querySelector('app-quote-submit')?.textContent).toContain('Enviar solicitud por WhatsApp');
+    expect(element.querySelector('app-quote-submit')?.textContent).toContain('Enviar solicitud de cotización');
     dialog.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
     await fixture.whenStable();
     expect(store.isOpen()).toBe(false);

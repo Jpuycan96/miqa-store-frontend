@@ -4,7 +4,7 @@
     <fieldset><legend>Medidas de la pieza</legend><div class="dimensions">
       <div><label for="area-width">Ancho (m)</label><input id="area-width" type="number" inputmode="decimal" min="0.01" step="0.01" formControlName="width" placeholder="2.50" aria-describedby="measure-help"></div>
       <div><label for="area-height">Alto (m)</label><input id="area-height" type="number" inputmode="decimal" min="0.01" step="0.01" formControlName="height" placeholder="1.20" aria-describedby="measure-help"></div>
-    </div><p class="area" aria-live="polite">Área aproximada: {{ area().toFixed(2) }} m²</p><p class="help" id="measure-help">Medidas positivas desde 0.01 m. El área corresponde a una pieza.</p></fieldset>
+    </div><p class="area" aria-live="polite">Área aproximada: {{ area().toFixed(2) }} m²</p><p class="help" id="measure-help">Ingresa las medidas de cada pieza en metros.</p></fieldset>
     @if (product().materials?.length) {
       <fieldset><legend>Material <span>(elige uno)</span></legend><div class="options">
         @for (material of product().materials; track material.id) { <label class="option"><input type="radio" formControlName="material" [value]="material.id">{{ material.name }}</label> }

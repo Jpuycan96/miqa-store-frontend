@@ -48,7 +48,9 @@ export function normalizeQuantity(quantity: number, minimum = 1): number {
 
 export function quantityLabel(quantity: number, unit: string): string {
   const plurals: Record<string, string> = { millar: 'millares', ciento: 'cientos', unidad: 'unidades', pieza: 'piezas', 'm²': 'm²' };
-  return `${quantity} ${quantity === 1 ? unit : (plurals[unit] ?? `${unit}s`)}`;
+  const label = unit.trim();
+  const singular = Object.entries(plurals).find(([, plural]) => plural === label)?.[0] ?? label;
+  return `${quantity} ${quantity === 1 ? singular : (plurals[singular] ?? (label.endsWith('s') ? label : `${label}s`))}`;
 }
 
 export function createQuoteItem(product: Product, config: QuoteConfiguration, id: string): QuoteItem | null {
