@@ -1,3 +1,16 @@
+## Admin editorial ERP V10 - 4 de octubre de 2026
+
+- Admin reutiliza contratos V10 existentes: products con catalogMode, categories con erpCategoryId, POST erp-catalog/sync y GET bindings/{productId} para estado tecnico. Sin endpoints inventados ni cambios backend.
+- Productos y resumen priorizan fichas ERP; sincronizar refresca productos/categorias/estados sin publicar automaticamente. ERP permite titulo, slug, ambas descripciones, SEO, orden, destacado, publicacion e imagenes; categoria inmutable y campos tecnicos null al guardar. No editor de materiales ni vinculacion para fichas ERP.
+- Categorias ERP de solo lectura. Legacy separado como historial/compatibilidad, conserva edicion existente sin gobernar el catalogo publico. Retiradas acciones de creacion; ruta productos/nuevo redirige al listado. Sidebar y estilos conservados.
+- Validacion focalizada Admin: 49 casos cubiertos; 30 aprobados y 19 de catalogo/V10 repetidos y aprobados tras corregir visibilidad de acciones ERP. Build final offline aprobado (14 rutas), warnings CSS previos de catalogo, detalle y panel. Sin prueba autenticada contra DEV ni sincronizacion real ejecutada; contratos comprobados en fuente backend y HTTP simulado. Cambios previos ProductDetail/Quote preservados, rama main sin cambiar, sin staging/commit/push/deploy.
+
+## Presentacion compartida del detalle - 4 de octubre de 2026
+
+- La imagen compacta y la cotizacion integrada ya no dependen del modo ERP: ficha cargada + viewport >=1120 px habilitan QuotePresentation.productDetail/integrated. Incluye legacy e indisponible; este ultimo conserva su mensaje sin formulario ni agregado. La clase visual se llama compact-detail.
+- configuration.mode sigue seleccionando ERP, UNAVAILABLE o formulario legacy, sin mezclar opciones, reglas ni pricing. QuotePanel, QuoteSubmit, QuoteStore y galeria se reutilizan. Un agregado legacy exitoso abre el panel solo en presentacion integrada; movil conserva su comportamiento anterior. ERP mantiene apertura, reset y opciones actuales.
+- Validacion: seis pruebas focalizadas aprobadas; 100/100 tests relacionados en 14 archivos con dos workers. Build offline correcto, 14 rutas; warnings CSS: detalle 4.98 kB, panel 4.36 kB y catalogo 4.11 kB frente a 4 kB. Sin backend, commit, push ni deploy. Se encontro main y no se cambio de rama.
+
 ## Cierre del detalle ERP y cotizacion integrada - 2 de octubre de 2026
 
 Esta tanda fue aprobada visual y funcionalmente por el propietario; actualiza los antecedentes siguientes.

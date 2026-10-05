@@ -39,7 +39,7 @@ button:disabled { opacity: .5; cursor: not-allowed; }
 }
 
 @media (min-width: 1024px) {
-  .erp-detail {
+  .compact-detail {
     padding-top: 12px;
     .breadcrumb { margin-bottom: 8px; }
     .detail-layout { grid-template-columns: minmax(0, 2fr) minmax(0, 3fr); gap: 32px; align-items: start; }
@@ -50,9 +50,9 @@ button:disabled { opacity: .5; cursor: not-allowed; }
 }
 
 @media (min-width: 1120px) {
-  .erp-detail .detail-layout.quote-expanded { grid-template-columns: minmax(112px, .32fr) minmax(390px, 1.2fr) minmax(360px, 1fr); gap: 20px; }
+  .compact-detail .detail-layout.quote-expanded { grid-template-columns: minmax(112px, .32fr) minmax(390px, 1.2fr) minmax(360px, 1fr); gap: 20px; }
   .quote-expanded .visual-column { min-width: 0; }
-  .erp-detail .quote-expanded .detail-image { height: 132px; max-width: 100%; --product-image-padding: 8px; }
+  .compact-detail .quote-expanded .detail-image { height: 132px; max-width: 100%; --product-image-padding: 8px; }
   app-quote-panel[hidden] { display: none; }
   .quote-tab { position: fixed; right: 0; top: max(156px, 27dvh); z-index: 60; display: flex; align-items: center; gap: 8px; min-height: 48px; padding: 10px 14px; border: 1px solid #c4cbd4; border-radius: 12px 0 0 12px; background: var(--miqa-navy); color: white; cursor: pointer; box-shadow: 0 3px 12px #001c3020; }
   .quote-tab svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 1.6; }

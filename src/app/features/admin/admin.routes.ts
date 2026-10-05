@@ -5,7 +5,7 @@ export const adminRoutes:Routes=[
  {path:'',canActivate:[adminGuard],canActivateChild:[adminGuard],loadComponent:()=>import('./layout').then(m=>m.AdminLayout),children:[
   {path:'',pathMatch:'full',loadComponent:()=>import('./summary').then(m=>m.AdminSummary)},
   {path:'productos',loadComponent:()=>import('./product-list').then(m=>m.AdminProductList)},
-  {path:'productos/nuevo',loadComponent:()=>import('./product-form').then(m=>m.AdminProductForm)},
+  {path:'productos/nuevo',redirectTo:'productos',pathMatch:'full'},
   {path:'productos/:id/editar',loadComponent:()=>import('./product-form').then(m=>m.AdminProductForm)},
   {path:'categorias',loadComponent:()=>import('./categories').then(m=>m.AdminCategories)}
  ]}

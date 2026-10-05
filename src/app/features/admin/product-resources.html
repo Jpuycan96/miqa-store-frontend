@@ -1,4 +1,4 @@
-<app-option-editor [productId]="product().id" kind="materials" [initial]="product().materials" />
+@if(product().catalogMode!=='ERP'){<app-option-editor [productId]="product().id" kind="materials" [initial]="product().materials" />}
 <section class="section" aria-labelledby="product-images-title">
   <h2 id="product-images-title">Imágenes del producto</h2>
   <p class="muted">Puedes subir hasta 3 imágenes. JPG, PNG o WebP. Máximo 5 MB por imagen.</p>

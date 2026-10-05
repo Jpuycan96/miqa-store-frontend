@@ -2,9 +2,9 @@ import { afterNextRender, computed, DestroyRef, DOCUMENT, inject, Injectable, si
 
 @Injectable({ providedIn: 'root' })
 export class QuotePresentation {
-  readonly erpDetail = signal(false);
+  readonly productDetail = signal(false);
   private readonly desktop = signal(false);
-  readonly integrated = computed(() => this.erpDetail() && this.desktop());
+  readonly integrated = computed(() => this.productDetail() && this.desktop());
 
   constructor() {
     const document = inject(DOCUMENT);

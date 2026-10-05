@@ -17,14 +17,14 @@ describe('Admin catalog forms',()=>{
  afterEach(()=>http.verify());
  function flushErp(){http.expectOne(base+'/erp-catalog/services').flush([]);http.expectOne(base+'/erp-catalog/bindings/p1').flush({}, {status:404,statusText:'Not Found'});}
  it('lists API products and sends publish action',()=>{
-  const f=TestBed.createComponent(AdminProductList);http.expectOne(base+'/categories').flush([category]);http.expectOne(base+'/products').flush([product]);f.detectChanges();expect(f.nativeElement.textContent).toContain('Producto');
-  f.componentInstance.toggle(product,'published');const patch=http.expectOne(base+'/products/p1/published');expect(patch.request.body).toEqual({published:true});patch.flush({...product,published:true});http.expectOne(base+'/products').flush([{...product,published:true}]);expect(f.componentInstance.state().products[0].published).toBe(true);
+  const f=TestBed.createComponent(AdminProductList);http.expectOne(base+'/categories').flush([category]);http.expectOne(base+'/products').flush([product]);f.componentInstance.origin.set('LEGACY');f.detectChanges();expect(f.nativeElement.textContent).toContain('Producto');
+  f.componentInstance.toggle(product,'published');const patch=http.expectOne(base+'/products/p1/published');expect(patch.request.body).toEqual({published:true});patch.flush({...product,published:true});http.expectOne(base+'/categories').flush([category]);http.expectOne(base+'/products').flush([{...product,published:true}]);expect(f.componentInstance.state().products[0].published).toBe(true);
  });
  it('sorts products and toggles featured through the star independently of publication',()=>{
-  const f=TestBed.createComponent(AdminProductList);http.expectOne(base+'/categories').flush([category]);http.expectOne(base+'/products').flush([{...product,id:'p2',name:'Zeta'},{...product,name:'Álbum'}]);f.detectChanges();
+  const f=TestBed.createComponent(AdminProductList);http.expectOne(base+'/categories').flush([category]);http.expectOne(base+'/products').flush([{...product,id:'p2',name:'Zeta'},{...product,name:'Álbum'}]);f.componentInstance.origin.set('LEGACY');f.detectChanges();
   expect(f.componentInstance.state().products.map(p=>p.name)).toEqual(['Álbum','Zeta']);
   const star=f.nativeElement.querySelector('button.star') as HTMLButtonElement;expect(star.getAttribute('aria-pressed')).toBe('false');star.click();
-  const req=http.expectOne(base+'/products/p1/featured');expect(req.request.body).toEqual({featured:true});req.flush({...product,featured:true});http.expectOne(base+'/products').flush([{...product,featured:true}]);f.detectChanges();
+  const req=http.expectOne(base+'/products/p1/featured');expect(req.request.body).toEqual({featured:true});req.flush({...product,featured:true});http.expectOne(base+'/categories').flush([category]);http.expectOne(base+'/products').flush([{...product,featured:true}]);f.detectChanges();
   expect(f.nativeElement.querySelector('button.star').getAttribute('aria-pressed')).toBe('true');expect(f.componentInstance.state().products[0].published).toBe(false);
  });
  it('uses a single description and preserves internal order when editing legacy products',()=>{
@@ -57,8 +57,8 @@ describe('Admin catalog forms',()=>{
   route.snapshot.paramMap=convertToParamMap({id:'p1'});const f=TestBed.createComponent(AdminProductForm);http.expectOne(base+'/categories').flush([category]);http.expectOne(base+'/products/p1').flush({...product,seoTitle:'Existing SEO',materials:[{id:'m1',name:'Hidden',active:false,displayOrder:0}]});
   f.componentInstance.form.controls.name.setValue('Editado');f.componentInstance.save();const req=http.expectOne(base+'/products/p1');expect(req.request.method).toBe('PUT');expect(req.request.body.seoTitle).toBe('Existing SEO');req.flush({...product,name:'Editado'});expect(f.componentInstance.message()).toContain('guardado');
  });
- it('creates and deactivates categories through API',()=>{
-  const f=TestBed.createComponent(AdminCategories);http.expectOne(base+'/categories').flush([]);const c=f.componentInstance;c.edit();c.form.controls.name.setValue('Nueva categoría');expect(c.slugPreview()).toBe('nueva-categoria');c.save();const req=http.expectOne(base+'/categories');expect(req.request.method).toBe('POST');expect(req.request.body.slug).toBeUndefined();req.flush(category);http.expectOne(base+'/categories').flush([category]);c.toggle(category);http.expectOne(base+'/categories/c1/active').flush({...category,active:false});http.expectOne(base+'/categories').flush([{...category,active:false}]);expect(c.items()[0].active).toBe(false);
+ it('does not create categories and retains legacy activation',()=>{
+  const f=TestBed.createComponent(AdminCategories);http.expectOne(base+'/categories').flush([category]);const c=f.componentInstance;c.edit();expect(c.editing()).toBe(false);c.save();http.expectNone(base+'/categories');c.toggle(category);http.expectOne(base+'/categories/c1/active').flush({...category,active:false});http.expectOne(base+'/categories').flush([{...category,active:false}]);expect(c.items()[0].active).toBe(false);
  });
  it('previews category editorial changes locally and persists them only on save',()=>{
   const f=TestBed.createComponent(AdminCategories);http.expectOne(base+'/categories').flush([category]);f.componentInstance.edit(category);f.detectChanges();
@@ -88,9 +88,7 @@ describe('Admin catalog forms',()=>{
   const req=http.expectOne(base+'/categories/c1');
   expect(req.request.body).toMatchObject({name:'Nueva Zeta',displayOrder:3});
   req.flush(categories[0]);http.expectOne(base+'/categories').flush(categories);
-  f.componentInstance.edit();f.componentInstance.form.patchValue({name:'Nueva'});f.componentInstance.save();
-  const create=http.expectOne(base+'/categories');expect(create.request.body.displayOrder).toBe(0);
-  create.flush(category);http.expectOne(base+'/categories').flush(categories);
+
  });
  it('shows generated URL read-only, warns on rename and deletes through the API',()=>{
   const confirmSpy=vi.spyOn(window,'confirm').mockReturnValue(true);

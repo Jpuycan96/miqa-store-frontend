@@ -23,3 +23,7 @@ export interface ErpBindingInput {
   erpServiceId: string;
   active: boolean;
 }
+export interface ErpSyncStatus {
+  outcome: string; attemptedAt: string | null; succeededAt: string | null;
+  received: number; changed: number; missing: number;
+}

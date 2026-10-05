@@ -70,8 +70,8 @@ export class ProductDetail {
   });
 
   constructor() {
-    effect(() => this.quotePresentation.erpDetail.set(this.product()?.configuration?.mode === 'ERP'));
-    inject(DestroyRef).onDestroy(() => this.quotePresentation.erpDetail.set(false));
+    effect(() => this.quotePresentation.productDetail.set(!!this.product()));
+    inject(DestroyRef).onDestroy(() => this.quotePresentation.productDetail.set(false));
     afterRenderEffect(() => {
       const focus = this.focusQuote();
       if (focus === 'tab' && !this.quote.isOpen()) {
@@ -105,6 +105,6 @@ export class ProductDetail {
   }
   add() {
     const product = this.product();
-    if (product) this.quote.addItem(product, this.configuration());
+    if (product && this.quote.addItem(product, this.configuration()) && this.quotePresentation.integrated()) this.quote.open();
   }
 }

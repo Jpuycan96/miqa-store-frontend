@@ -1,13 +1,14 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
 import { timeout } from 'rxjs';
-import { ErpBindingInput, ErpServiceProjection, ProductErpBinding } from './erp-catalog.models';
+import { ErpBindingInput, ErpServiceProjection, ErpSyncStatus, ProductErpBinding } from './erp-catalog.models';
 import { STORE_API_CONFIG } from '../../core/config/store-api';
 import { AdminCategory, AdminProduct, CategoryInput, ProductInput, AdminOption, OptionInput, AdminImage, ImageInput } from './admin.models';
 @Injectable({providedIn:'root'})
 export class AdminApi {
  private readonly http=inject(HttpClient);
  private readonly base=inject(STORE_API_CONFIG).baseUrl.replace(/\/+$/,'')+'/api/admin';
+ syncErp(){return this.http.post<ErpSyncStatus>(this.base+'/erp-catalog/sync',{}).pipe(timeout(60000));}
  erpServices(){return this.http.get<ErpServiceProjection[]>(this.base+'/erp-catalog/services').pipe(timeout(10000));}
  erpBinding(id:string){return this.http.get<ProductErpBinding>(this.base+'/erp-catalog/bindings/'+encodeURIComponent(id)).pipe(timeout(10000));}
  saveErpBinding(id:string,input:ErpBindingInput){return this.http.put<ProductErpBinding>(this.base+'/erp-catalog/bindings/'+encodeURIComponent(id),input).pipe(timeout(10000));}
