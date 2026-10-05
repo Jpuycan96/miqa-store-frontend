@@ -16,18 +16,18 @@
         </fieldset>
       }
       <div class="option-fields">
+        <fieldset class="material-options">
+          <legend>Material</legend>
+          <div class="choice-list">
+            @for (material of config.materiales; track material.erpMaterialId) {
+              <label class="choice">
+                <input type="radio" formControlName="material" [value]="material.erpMaterialId">
+                <span>{{ material.nombreReferencia }}</span>
+              </label>
+            }
+          </div>
+        </fieldset>
         @if (config.formaCotizacion === 'M2') {
-          <fieldset class="material-options">
-            <legend>Material</legend>
-            <div class="choice-list">
-              @for (material of config.materiales; track material.erpMaterialId) {
-                <label class="choice">
-                  <input type="radio" formControlName="material" [value]="material.erpMaterialId">
-                  <span>{{ material.nombreReferencia }}</span>
-                </label>
-              }
-            </div>
-          </fieldset>
           @if (material(); as material) {
             @if (material.modoModelos !== 'SIN_MODELO') {
               <fieldset class="model-options">
@@ -44,15 +44,6 @@
             }
           }
         } @else {
-          <div class="field">
-            <label for="erp-material">Material</label>
-            <select id="erp-material" formControlName="material">
-              @if (config.modoMaterial !== 'FIJO') { <option value="">Selecciona un material</option> }
-              @for (material of config.materiales; track material.erpMaterialId) {
-                <option [value]="material.erpMaterialId">{{ material.nombreReferencia }}</option>
-              }
-            </select>
-          </div>
           @if (material(); as material) {
             @if (material.modoModelos !== 'SIN_MODELO') {
               <div class="field">

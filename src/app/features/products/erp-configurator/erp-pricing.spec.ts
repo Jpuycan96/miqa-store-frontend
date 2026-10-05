@@ -153,4 +153,31 @@ describe('ERP public pricing preview', () => {
     expect(formatPen('0')).toBe('S/ 0.00');
     expect(formatPen('10.5')).toBe('S/ 10.50');
   });
+  it('reevaluates scale pricing with the exact manual/button quantity without losing technical options', async () => {
+    const product = erpProduct('ESCALA');
+    product.configuration!.configuration!.cantidad = {unidad: 'unidades', minimo: '50', incrementoSugerido: '50',
+      multiploObligatorio: null, permiteDecimales: false, precision: 0, maximo: '1000'};
+    const fixture = TestBed.createComponent(ErpConfigurator);
+    fixture.componentRef.setInput('product', product); fixture.detectChanges();
+    const initial = await evaluate(); expect(initial.request.body.quantity).toBe(50); initial.flush(available);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+    for (const quantity of [75,100,500]) {
+      const input: HTMLInputElement = fixture.nativeElement.querySelector('#erp-quantity');
+      input.value = String(quantity); input.dispatchEvent(new Event('input')); fixture.detectChanges();
+      const request = await evaluate();
+      expect(request.request.body).toEqual({productId: product.id, quantity, erpMaterialId: '10', erpModelId: '20', measures: {}});
+      request.flush(available); fixture.detectChanges();
+      expect(component.form.controls.quantity.value).toBe(quantity);
+      expect(component.canAdd()).toBe(true);
+      expect(fixture.nativeElement.textContent).not.toContain('Actualizar opciones');
+    }
+    component.stepQuantity(1); fixture.detectChanges();
+    const plus = await evaluate(); expect(plus.request.body.quantity).toBe(550); plus.flush({status: 'QUOTE_REQUIRED'});
+    fixture.detectChanges(); component.stepQuantity(-1); fixture.detectChanges();
+    const minus = await evaluate(); expect(minus.request.body.quantity).toBe(500); minus.flush(available);
+    fixture.detectChanges(); component.add();
+    expect(TestBed.inject(QuoteStore).items()[0].quantity).toBe(500);
+  });
+
 });

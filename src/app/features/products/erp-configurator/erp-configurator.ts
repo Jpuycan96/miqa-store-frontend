@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, effect, inject, input, output, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, input, output, signal, untracked } from '@angular/core';
 import { FormControl, FormGroup, FormRecord, ReactiveFormsModule } from '@angular/forms';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { distinctUntilChanged, map, merge, of, Subject, switchMap, timer } from 'rxjs';
@@ -79,7 +79,8 @@ export class ErpConfigurator {
     const current = this.values().quantity;
     if (!rules || current == null || !validErpQuantity(current, rules)) return null;
     const step = Number(rules.multiploObligatorio ?? rules.incrementoSugerido);
-    const next = Math.round((current + direction * step) * 1e6) / 1e6;
+    const next = Math.max(Number(rules.minimo), Math.round((current + direction * step) * 1e6) / 1e6);
+    if (next === current) return null;
     return validErpQuantity(next, rules) ? next : null;
   }
 
@@ -112,11 +113,32 @@ export class ErpConfigurator {
           map(result => ({ key, result }))) : of({ key, result: null });
       }), takeUntilDestroyed()
     ).subscribe(state => this.evaluated.set(state));
+    let initializedProductId: string | undefined;
     effect(() => {
-      const options = this.selectedOptions();
-      for (const key of Object.keys(this.form.controls.measures.controls)) this.form.controls.measures.removeControl(key);
-      for (const field of this.fields()) this.form.controls.measures.addControl(field, new FormControl<number | null>(null));
-      this.form.reset({ quantity: 1, ...options, notes: '' });
+      const product = this.product();
+      const config = this.config();
+      const fields = this.fields();
+      // Only a new product/configuration may reconcile the form, never a draft edit.
+      untracked(() => {
+        const current = this.form.getRawValue();
+        const preserve = initializedProductId === product.id;
+        const options = this.selectedOptions();
+        for (const key of Object.keys(this.form.controls.measures.controls)) {
+          if (!fields.includes(key)) this.form.controls.measures.removeControl(key, { emitEvent: false });
+        }
+        for (const field of fields) {
+          if (!this.form.controls.measures.contains(field)) {
+            this.form.controls.measures.addControl(field, new FormControl<number | null>(null), { emitEvent: false });
+          }
+        }
+        this.form.reset({
+          quantity: preserve && current.quantity != null && config && validErpQuantity(current.quantity, config.cantidad)
+            ? current.quantity : Number(config?.cantidad.minimo ?? 1),
+          ...options, notes: preserve ? current.notes : '',
+          measures: Object.fromEntries(fields.map(field => [field, preserve ? current.measures[field] ?? null : null]))
+        });
+        initializedProductId = product.id;
+      });
     });
     effect(() => {
       const material = this.material();
@@ -130,7 +152,7 @@ export class ErpConfigurator {
     if (!this.canAdd() || !this.quote.addItem(this.product(), this.selection())) return;
     const { material, model } = this.selectedOptions();
     this.form.reset({
-      quantity: 1, material, model, notes: '',
+      quantity: Number(this.config()?.cantidad.minimo ?? 1), material, model, notes: '',
       measures: Object.fromEntries(Object.keys(this.form.controls.measures.controls).map(key => [key, null]))
     });
     this.added.emit();

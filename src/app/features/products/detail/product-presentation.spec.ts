@@ -2,7 +2,9 @@ import { TestBed } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
-import { of } from 'rxjs';
+import { of, Subject } from 'rxjs';
+import { By } from '@angular/platform-browser';
+import { ErpConfigurator } from '../erp-configurator/erp-configurator';
 import { ProductDetail } from './product-detail';
 import { ProductCatalog } from '../../../core/data/product-catalog';
 import { PublicPricing } from '../../../core/data/public-pricing';
@@ -73,4 +75,23 @@ describe('Shared product detail presentation', () => {
     await fixture.whenStable(); expect(TestBed.inject(QuoteStore).items()).toHaveLength(1);
     expect(TestBed.inject(QuoteStore).isOpen()).toBe(true); expect(el.querySelector('.quote-expanded')).not.toBeNull();
   });
+  it('keeps the configurator mounted and preserves valid drafts during an ERP options refresh', async () => {
+    const product = erpProduct();
+    const fixture = await setup(product);
+    const configurator = fixture.debugElement.query(By.directive(ErpConfigurator)).componentInstance as ErpConfigurator;
+    configurator.form.patchValue({ quantity: 2.5, material: '19', notes: 'Mi proyecto', measures: {ancho: 2, alto: 3} });
+    await fixture.whenStable();
+    const response = new Subject<Product | undefined>();
+    vi.spyOn(TestBed.inject(ProductCatalog), 'findBySlug').mockReturnValue(response);
+    fixture.componentInstance.retry(); await fixture.whenStable();
+    expect(fixture.componentInstance.state().loading).toBe(true);
+    expect(fixture.debugElement.query(By.directive(ErpConfigurator)).componentInstance).toBe(configurator);
+    const revised = structuredClone(product); revised.configuration!.configurationVersion = '5';
+    response.next(revised); response.complete(); await fixture.whenStable();
+    expect(fixture.debugElement.query(By.directive(ErpConfigurator)).componentInstance).toBe(configurator);
+    expect(configurator.form.getRawValue()).toEqual({quantity: 2.5, material: '19', model: '', notes: 'Mi proyecto', measures: {ancho: 2, alto: 3}});
+    expect(configurator.selection().erp.configurationVersion).toBe('5');
+    expect(configurator.canAdd()).toBe(true);
+  });
+
 });

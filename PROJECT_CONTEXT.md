@@ -1,3 +1,12 @@
+## Correccion del configurador ERP - 5 de octubre de 2026
+
+- Materiales de M2/ESCALA/METRO_LINEAL reutilizan la misma lista de radios cuadrados y seleccion unica; modelos mantienen su presentacion existente. Sin condiciones por producto, nombres ni IDs.
+- Cantidad inicial y posterior al agregado usa cantidad.minimo del contrato ERP. Sin multiplo obligatorio, incrementoSugerido controla los botones y la entrada manual valida no requiere multiplos. El decremento se limita al minimo; las reglas explicitas de multiplos, precision y maximo se conservan.
+- El efecto de reconciliacion depende de producto/configuracion, con operaciones del formulario en untracked. Conserva cantidad valida, materiales/modelos disponibles, medidas compatibles y notas ante revisiones del mismo producto. No calcula tarifas: el evaluador existente recibe la cantidad exacta.
+- La recarga ERP en ProductDetail conserva el componente durante la carga de la misma ficha. Antes el estado loading lo desmontaba y recreaba, perdiendo el borrador; solo se ajusto ese ciclo, sin redisenar el detalle ni el panel.
+- El aviso CONFIGURATION_STALE sigue procediendo de pricing/HTTP 409; la edicion de cantidad por si sola no lo produce en las pruebas. No se verifico el motivo de una respuesta 409 real del ERP ni se modifico backend.
+- Validacion focalizada: 48 tests aprobados en cuatro archivos; despues, siete tests de presentacion aprobados incluyendo la nueva recarga asincrona (49 casos distintos). Build offline aprobado con 14 rutas prerenderizadas; warnings CSS previos: detalle 4.98 kB, catalogo 4.11 kB y panel 4.36 kB. Sin commit, push, deploy ni cambio de rama main.
+
 ## Admin editorial ERP V10 - 4 de octubre de 2026
 
 - Admin reutiliza contratos V10 existentes: products con catalogMode, categories con erpCategoryId, POST erp-catalog/sync y GET bindings/{productId} para estado tecnico. Sin endpoints inventados ni cambios backend.

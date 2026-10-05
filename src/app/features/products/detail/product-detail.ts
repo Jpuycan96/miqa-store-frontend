@@ -37,11 +37,16 @@ export class ProductDetail {
   reopenQuote() { this.quote.open(); this.focusQuote.set('panel'); }
   private readonly refresh = new Subject<void>();
   retry() { this.refresh.next(); }
+  private loadedProduct: { slug: string; product: Product | undefined } | undefined;
   readonly state = toSignal(combineLatest([this.route.paramMap.pipe(
     map(params => params.get('slug') ?? ''), distinctUntilChanged()), this.refresh.pipe(startWith(undefined))]).pipe(
     switchMap(([slug]) => this.catalog.findBySlug(slug).pipe(
-      map(product => ({ slug, product, loading: false, error: false } as ProductState)),
-      startWith({ slug, loading: true, error: false } as ProductState),
+      map(product => {
+        this.loadedProduct = { slug, product };
+        return { slug, product, loading: false, error: false } as ProductState;
+      }),
+      startWith({ slug, product: this.loadedProduct?.slug === slug && this.loadedProduct.product?.configuration?.mode === 'ERP'
+        ? this.loadedProduct.product : undefined, loading: true, error: false } as ProductState),
       catchError(() => of({ slug, loading: false, error: true } as ProductState))
     ))
   ), { initialValue: { loading: true, error: false } as ProductState });
