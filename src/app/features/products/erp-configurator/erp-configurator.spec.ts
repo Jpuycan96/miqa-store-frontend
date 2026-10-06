@@ -155,16 +155,19 @@ describe('Public ERP configurator', () => {
     expect(component.form.controls.quantity.value).toBe(2.5);
   });
 
-  it.each(['ESCALA', 'M2', 'METRO_LINEAL'] as const)('places primary fields before vertical materials for %s', async mode => {
+  it.each(['ESCALA', 'M2', 'METRO_LINEAL'] as const)('places quantity below material/model options and retains measures for %s', async mode => {
     const fixture = TestBed.createComponent(ErpConfigurator);
     fixture.componentRef.setInput('product', erpProduct(mode)); await fixture.whenStable();
     const el: HTMLElement = fixture.nativeElement;
     const columns = el.querySelector('.configuration-fields')!;
-    expect(columns.children[0].classList.contains(mode === 'ESCALA' ? 'primary-fields' : 'measures')).toBe(true);
-    expect(columns.children[1].classList.contains('option-fields')).toBe(true);
+    expect(columns.querySelector('.measures') !== null).toBe(mode !== 'ESCALA');
+    expect(columns.querySelector('.option-fields')).not.toBeNull();
     expect(el.querySelectorAll('#erp-quantity')).toHaveLength(1);
-    expect(columns.querySelector('#erp-quantity') !== null).toBe(mode === 'ESCALA');
-    expect(el.querySelector('.quantity-price #erp-quantity') !== null).toBe(mode !== 'ESCALA');
+    expect(columns.querySelector('#erp-quantity')).toBeNull();
+    expect(el.querySelector('.quantity-price #erp-quantity')).not.toBeNull();
+    const lower = el.querySelector('.quantity-price')!;
+    expect(lower.children[0].classList.contains('quantity-field')).toBe(true);
+    expect(lower.children[1].classList.contains('pricing')).toBe(true);
     expect(el.querySelector('form')!.classList.contains('without-measures')).toBe(mode === 'ESCALA');
     const choices = columns.querySelectorAll('.material-options .choice-list > .choice');
     expect(choices).toHaveLength(2);
@@ -233,6 +236,16 @@ describe('Public ERP configurator', () => {
     fixture.componentRef.setInput('product', product); await fixture.whenStable();
     expect(fixture.nativeElement.querySelector('.model-options')).toBeNull();
     expect(fixture.componentInstance.canAdd()).toBe(false);
+  });
+
+  it('hides empty material/model sections without removing quantity', async () => {
+    const product = erpProduct('ESCALA');
+    product.configuration!.configuration!.materiales = [];
+    const fixture = TestBed.createComponent(ErpConfigurator);
+    fixture.componentRef.setInput('product', product); await fixture.whenStable();
+    expect(fixture.nativeElement.querySelector('.material-options')).toBeNull();
+    expect(fixture.nativeElement.querySelector('.model-options')).toBeNull();
+    expect(fixture.nativeElement.querySelector('#erp-quantity')).not.toBeNull();
   });
 
 });

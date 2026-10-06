@@ -30,10 +30,8 @@
           <p id="erp-measures-help">Medidas en metros. Ej.: 50 cm = 0.5 m.</p>
         </fieldset>
       }
-      @if (!fields().length) {
-        <div class="primary-fields"><ng-container [ngTemplateOutlet]="quantityField" /></div>
-      }
       <div class="option-fields">
+        @if (config.materiales.length > 0) {
         <fieldset class="material-options">
           <legend>Material</legend>
           <div class="choice-list">
@@ -45,6 +43,7 @@
             }
           </div>
         </fieldset>
+        }
         @if (material(); as material) {
           @if (material.modoModelos !== 'SIN_MODELO' && material.modelos.length > 0) {
             <fieldset class="model-options">
@@ -63,7 +62,7 @@
       </div>
     </div>
     <div class="quantity-price">
-      @if (fields().length) { <ng-container [ngTemplateOutlet]="quantityField" /> }
+      <ng-container [ngTemplateOutlet]="quantityField" />
       <div class="pricing">
         <div class="price-status" role="status" aria-live="polite" aria-atomic="true">
           @let current = price();

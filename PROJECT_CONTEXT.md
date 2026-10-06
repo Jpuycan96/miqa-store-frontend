@@ -1,3 +1,9 @@
+## Layout final del configurador ERP - 6 de octubre de 2026
+
+- Material y Modelo comparten dos columnas desde 768 px; modelos verticales sin borde ni fondo de tarjeta. En movil se apilan Material, Modelo, Cantidad y Precio. Cantidad se renderiza una sola vez debajo de las opciones; medidas existentes conservadas.
+- Sin opciones de material/modelo se ocultan sus fieldsets. El contrato actual anida modelos en materiales, por lo que no ofrece modelos independientes. Sin cambios de FormControls, TypeScript, pricing, contratos o backend.
+- Validacion focalizada: 43/43 tests aprobados, incluidos seleccion de modelos, reevaluacion ERP, cantidad, medidas y ausencia de bloques vacios. Sin commit/push/deploy ni cambio de rama.
+
 ## Modelos ERP como radio-cards - 6 de octubre de 2026
 
 - M2, ESCALA y METRO_LINEAL comparten un fieldset Modelo con radios nativos y tarjetas responsive; usan nombreReferencia y erpModelId del contrato. No hay bloque vacio ni select de Modelo. Materiales y layout de cantidad previos conservados.

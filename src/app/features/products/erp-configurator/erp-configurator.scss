@@ -15,7 +15,7 @@ button { min-height: 44px; }
 .choice-list { display: grid; grid-template-columns: minmax(0, 1fr); max-height: 176px; overflow-y: auto; overscroll-behavior: contain; padding: 4px; }
 .choice { display: flex; align-items: center; gap: 10px; min-height: 44px; padding: 4px 6px; box-sizing: border-box; cursor: pointer; border-radius: 4px; font-weight: 400; }
 .choice span { overflow-wrap: anywhere; }
-.choice:has(:checked) { background: #eef9f9; }
+
 .choice input { appearance: none; flex: 0 0 18px; width: 18px; height: 18px; margin: 0; border: 1px solid #697386; border-radius: 3px; display: grid; place-content: center; }
 .choice input:checked { background: var(--miqa-navy); border-color: var(--miqa-navy); }
 .choice input:checked::after { content: '✓'; color: white; font-size: 14px; font-weight: 700; }
@@ -31,8 +31,8 @@ button:disabled { opacity: .45; cursor: default; }
 .price-note { margin-top: 6px; font-size: 12px; }
 @media (min-width: 768px) {
   .measure-fields { grid-template-columns: repeat(2, minmax(0, 124px)); }
-  .configuration-fields, .quantity-price { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 24px; align-items: start; }
-  .without-measures .quantity-price { grid-template-columns: minmax(0, 1fr); }
+  .option-fields:has(.material-options):has(.model-options) { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; align-items: start; }
+  .configuration-fields:has(.measures) { grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); gap: 16px; align-items: start; }
   textarea { height: 56px; }
 }
 @media (forced-colors: active) {
@@ -56,12 +56,8 @@ button:disabled { opacity: .45; cursor: default; }
   .primary-button { min-height: 40px; padding-block: 8px; }
 }
 
-.model-cards { display: flex; flex-wrap: wrap; gap: 6px; }
-.model-card { display: inline-flex; align-items: center; gap: 8px; min-width: 0; max-width: 100%; min-height: 44px; padding: 8px 12px; box-sizing: border-box; border: 1px solid #697386; border-radius: 8px; background: #fff; color: #17243b; cursor: pointer; }
+.model-cards { display: grid; gap: 0; }
+.model-card { display: flex; align-items: center; gap: 8px; min-width: 0; min-height: 44px; padding: 4px 6px; box-sizing: border-box; color: #17243b; cursor: pointer; font-weight: 400; }
 .model-card input { flex: 0 0 16px; margin: 0; width: 16px; height: 16px; accent-color: var(--miqa-navy); }
-.model-card span { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.model-card:has(:checked) { border: 2px solid var(--miqa-navy); padding: 7px 11px; background: #eef9f9; }
-.model-card:has(:focus-visible) { outline: 3px solid #175db3; outline-offset: 3px; }
-@media (forced-colors: active) {
-  .model-card:has(:checked) { border-color: Highlight; }
-}
+.model-card span { min-width: 0; overflow-wrap: anywhere; }
+.model-card:has(:focus-visible) { outline: 3px solid #175db3; outline-offset: 2px; }
