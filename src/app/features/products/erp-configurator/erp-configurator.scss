@@ -25,13 +25,14 @@ button { min-height: 44px; }
 .quantity-stepper input::-webkit-inner-spin-button, .quantity-stepper input::-webkit-outer-spin-button { appearance: none; margin: 0; }
 .quantity-stepper :focus-visible { outline-offset: -3px; }
 button:disabled { opacity: .45; cursor: default; }
-.pricing { min-width: 0; }
+.pricing { min-width: 0; min-height: 132px; }
 .price-label { color: var(--miqa-navy); font-weight: 600; }
 .price-amount { display: block; margin-block: 4px; color: var(--miqa-navy); font-size: 1.8rem; line-height: 1.2; overflow-wrap: anywhere; }
 .price-note { margin-top: 6px; font-size: 12px; }
 @media (min-width: 768px) {
   .measure-fields { grid-template-columns: repeat(2, minmax(0, 124px)); }
-  .option-fields:has(.material-options):has(.model-options) { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; align-items: start; }
+  .option-fields:has(.material-options):has(.model-options) { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; align-items: start; position: relative; }
+  .option-fields:has(.material-options):has(.model-options)::after { content: ""; position: absolute; top: 0; bottom: 0; left: 50%; width: 1px; background: #d8dee8; pointer-events: none; }
   .configuration-fields:has(.measures) { grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); gap: 16px; align-items: start; }
   textarea { height: 56px; }
 }
