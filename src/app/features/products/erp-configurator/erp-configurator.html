@@ -1,5 +1,20 @@
 @if (config(); as config) {
-  <form [formGroup]="form" (ngSubmit)="add()" [class.m2-layout]="config.formaCotizacion === 'M2'">
+  <form [formGroup]="form" (ngSubmit)="add()" [class.m2-layout]="config.formaCotizacion === 'M2'" [class.without-measures]="!fields().length">
+    <ng-template #quantityField>
+      <div class="field quantity-field">
+        <label for="erp-quantity">Cantidad ({{ config.cantidad.unidad }})</label>
+        <div class="quantity-stepper">
+          <button type="button" aria-label="Reducir cantidad" [disabled]="steppedQuantity(-1) === null" (click)="stepQuantity(-1)">−</button>
+          <input id="erp-quantity" type="number" formControlName="quantity" [attr.inputmode]="config.cantidad.permiteDecimales ? 'decimal' : 'numeric'"
+            [min]="number(config.cantidad.minimo)" [max]="number(config.cantidad.maximo)" step="any" aria-describedby="erp-quantity-help">
+          <button type="button" aria-label="Aumentar cantidad" [disabled]="steppedQuantity(1) === null" (click)="stepQuantity(1)">+</button>
+        </div>
+        <p id="erp-quantity-help">Mínimo {{ config.cantidad.minimo }}.
+          @if (config.cantidad.multiploObligatorio) { En múltiplos de {{ config.cantidad.multiploObligatorio }}. }
+          @if (!config.cantidad.permiteDecimales) { Cantidades enteras. }
+        </p>
+      </div>
+    </ng-template>
     <div class="configuration-fields">
       @if (fields().length) {
         <fieldset class="measures" formGroupName="measures">
@@ -15,6 +30,9 @@
           <p id="erp-measures-help">Medidas en metros. Ej.: 50 cm = 0.5 m.</p>
         </fieldset>
       }
+      @if (!fields().length) {
+        <div class="primary-fields"><ng-container [ngTemplateOutlet]="quantityField" /></div>
+      }
       <div class="option-fields">
         <fieldset class="material-options">
           <legend>Material</legend>
@@ -27,51 +45,25 @@
             }
           </div>
         </fieldset>
-        @if (config.formaCotizacion === 'M2') {
-          @if (material(); as material) {
-            @if (material.modoModelos !== 'SIN_MODELO') {
-              <fieldset class="model-options">
-                <legend>Modelo</legend>
-                <div class="choice-list">
-                  @for (model of material.modelos; track model.erpModelId) {
-                    <label class="choice">
-                      <input type="radio" formControlName="model" [value]="model.erpModelId">
-                      <span>{{ model.nombreReferencia }}</span>
-                    </label>
-                  }
-                </div>
-              </fieldset>
-            }
-          }
-        } @else {
-          @if (material(); as material) {
-            @if (material.modoModelos !== 'SIN_MODELO') {
-              <div class="field">
-                <label for="erp-model">Modelo</label>
-                <select id="erp-model" formControlName="model">
-                  @if (material.modoModelos !== 'FIJO') { <option value="">Selecciona un modelo</option> }
-                  @for (model of material.modelos; track model.erpModelId) { <option [value]="model.erpModelId">{{ model.nombreReferencia }}</option> }
-                </select>
+        @if (material(); as material) {
+          @if (material.modoModelos !== 'SIN_MODELO' && material.modelos.length > 0) {
+            <fieldset class="model-options">
+              <legend>Modelo</legend>
+              <div class="model-cards">
+                @for (model of material.modelos; track model.erpModelId) {
+                  <label class="model-card">
+                    <input type="radio" name="model" formControlName="model" [value]="model.erpModelId">
+                    <span>{{ model.nombreReferencia }}</span>
+                  </label>
+                }
               </div>
-            }
+            </fieldset>
           }
         }
       </div>
     </div>
     <div class="quantity-price">
-      <div class="field quantity-field">
-        <label for="erp-quantity">Cantidad ({{ config.cantidad.unidad }})</label>
-        <div class="quantity-stepper">
-          <button type="button" aria-label="Reducir cantidad" [disabled]="steppedQuantity(-1) === null" (click)="stepQuantity(-1)">−</button>
-          <input id="erp-quantity" type="number" formControlName="quantity" [attr.inputmode]="config.cantidad.permiteDecimales ? 'decimal' : 'numeric'"
-            [min]="number(config.cantidad.minimo)" [max]="number(config.cantidad.maximo)" step="any" aria-describedby="erp-quantity-help">
-          <button type="button" aria-label="Aumentar cantidad" [disabled]="steppedQuantity(1) === null" (click)="stepQuantity(1)">+</button>
-        </div>
-        <p id="erp-quantity-help">Mínimo {{ config.cantidad.minimo }}.
-          @if (config.cantidad.multiploObligatorio) { En múltiplos de {{ config.cantidad.multiploObligatorio }}. }
-          @if (!config.cantidad.permiteDecimales) { Cantidades enteras. }
-        </p>
-      </div>
+      @if (fields().length) { <ng-container [ngTemplateOutlet]="quantityField" /> }
       <div class="pricing">
         <div class="price-status" role="status" aria-live="polite" aria-atomic="true">
           @let current = price();

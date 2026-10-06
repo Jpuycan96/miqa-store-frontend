@@ -59,7 +59,7 @@ describe('Public ERP configurator', () => {
     expect(fixture.componentInstance.form.controls.model.value).toBe('');
     expect(el.querySelector('input[formcontrolname=model]')).toBeNull();
   });
-  it('steps quantity with the configured multiple and preserves min/max and invalid drafts', async () => {
+  it('steps quantity with the configured increment and preserves min/max and invalid drafts', async () => {
     const fixture = TestBed.createComponent(ErpConfigurator);
     fixture.componentRef.setInput('product', erpProduct()); await fixture.whenStable();
     const component = fixture.componentInstance;
@@ -70,7 +70,7 @@ describe('Public ERP configurator', () => {
     component.form.controls.quantity.setValue(0.5); await fixture.whenStable();
     expect(minus.disabled).toBe(true);
     plus.click(); await fixture.whenStable();
-    expect(component.form.controls.quantity.value).toBe(1);
+    expect(component.form.controls.quantity.value).toBe(1.5);
     minus.click(); await fixture.whenStable();
     expect(component.form.controls.quantity.value).toBe(0.5);
     component.form.controls.quantity.setValue(100); await fixture.whenStable();
@@ -153,6 +153,86 @@ describe('Public ERP configurator', () => {
     expect(component.form.controls.material.value).toBe('10');
     expect(component.form.controls.model.value).toBe('20');
     expect(component.form.controls.quantity.value).toBe(2.5);
+  });
+
+  it.each(['ESCALA', 'M2', 'METRO_LINEAL'] as const)('places primary fields before vertical materials for %s', async mode => {
+    const fixture = TestBed.createComponent(ErpConfigurator);
+    fixture.componentRef.setInput('product', erpProduct(mode)); await fixture.whenStable();
+    const el: HTMLElement = fixture.nativeElement;
+    const columns = el.querySelector('.configuration-fields')!;
+    expect(columns.children[0].classList.contains(mode === 'ESCALA' ? 'primary-fields' : 'measures')).toBe(true);
+    expect(columns.children[1].classList.contains('option-fields')).toBe(true);
+    expect(el.querySelectorAll('#erp-quantity')).toHaveLength(1);
+    expect(columns.querySelector('#erp-quantity') !== null).toBe(mode === 'ESCALA');
+    expect(el.querySelector('.quantity-price #erp-quantity') !== null).toBe(mode !== 'ESCALA');
+    expect(el.querySelector('form')!.classList.contains('without-measures')).toBe(mode === 'ESCALA');
+    const choices = columns.querySelectorAll('.material-options .choice-list > .choice');
+    expect(choices).toHaveLength(2);
+    for (const choice of choices) expect(choice.querySelector('input[type=radio]')).not.toBeNull();
+  });
+  it('uses the increment for buttons while independently enforcing a mandatory multiple', async () => {
+    const product = erpProduct('ESCALA');
+    product.configuration!.configuration!.cantidad = {unidad: 'unidades', minimo: '50', incrementoSugerido: '100',
+      multiploObligatorio: '50', permiteDecimales: false, precision: 0, maximo: '1000'};
+    const fixture = TestBed.createComponent(ErpConfigurator);
+    fixture.componentRef.setInput('product', product); await fixture.whenStable();
+    fixture.componentInstance.stepQuantity(1); await fixture.whenStable();
+    expect(fixture.componentInstance.form.controls.quantity.value).toBe(150);
+    fixture.componentInstance.form.controls.quantity.setValue(75); await fixture.whenStable();
+    expect(fixture.componentInstance.canAdd()).toBe(false);
+  });
+
+  it.each(['M2', 'ESCALA', 'METRO_LINEAL'] as const)('renders ERP model cards with the existing selection and form state for %s', async mode => {
+    const product = erpProduct(mode);
+    product.configuration!.configuration!.materiales[0].modelos = [
+      { erpModelId: 'model-a', nombreReferencia: 'Modelo A' },
+      { erpModelId: 'model-b', nombreReferencia: 'Modelo B' },
+      { erpModelId: 'model-c', nombreReferencia: 'Modelo C' }
+    ];
+    const fixture = TestBed.createComponent(ErpConfigurator);
+    fixture.componentRef.setInput('product', product); await fixture.whenStable();
+    const el: HTMLElement = fixture.nativeElement;
+    expect(el.querySelector('select')).toBeNull();
+    expect(el.querySelector('.model-options legend')?.textContent).toBe('Modelo');
+    const cards = el.querySelectorAll<HTMLLabelElement>('.model-card');
+    const radios = el.querySelectorAll<HTMLInputElement>('.model-card input[type=radio]');
+    expect(cards).toHaveLength(3);
+    expect(Array.from(cards, card => card.textContent?.trim())).toEqual(['Modelo A', 'Modelo B', 'Modelo C']);
+    expect(radios[0].checked).toBe(true);
+    expect(radios[1].checked).toBe(false);
+    expect(radios[0].name).toBe(radios[1].name);
+    expect(radios[0].name).not.toBe('');
+    fixture.componentInstance.form.controls.quantity.setValue(2.5);
+    cards[1].click(); await fixture.whenStable();
+    expect(fixture.componentInstance.form.controls.model.value).toBe('model-b');
+    expect(radios[0].checked).toBe(false);
+    expect(radios[1].checked).toBe(true);
+    expect(fixture.componentInstance.form.controls.quantity.value).toBe(2.5);
+    expect(fixture.componentInstance.form.controls.material.value).toBe('10');
+    el.querySelectorAll<HTMLInputElement>('.material-options input')[1].click();
+    await fixture.whenStable();
+    expect(fixture.componentInstance.form.controls.model.value).toBe('');
+    expect(el.querySelector('.model-options')).toBeNull();
+  });
+  it('renders a fixed single model as a selected card', async () => {
+    const product = erpProduct('ESCALA');
+    product.configuration!.configuration!.materiales[0].modoModelos = 'FIJO';
+    const fixture = TestBed.createComponent(ErpConfigurator);
+    fixture.componentRef.setInput('product', product); await fixture.whenStable();
+    const radios = fixture.nativeElement.querySelectorAll('.model-card input');
+    expect(radios).toHaveLength(1);
+    expect(radios[0].checked).toBe(true);
+    expect(fixture.componentInstance.form.controls.model.value).toBe('20');
+  });
+  it('does not render an empty model fieldset for a contract without model options', async () => {
+    const product = erpProduct('ESCALA');
+    product.configuration!.configuration!.materiales = [{
+      erpMaterialId: 'only-material', nombreReferencia: 'Material', modoModelos: 'SELECCION', modelos: []
+    }];
+    const fixture = TestBed.createComponent(ErpConfigurator);
+    fixture.componentRef.setInput('product', product); await fixture.whenStable();
+    expect(fixture.nativeElement.querySelector('.model-options')).toBeNull();
+    expect(fixture.componentInstance.canAdd()).toBe(false);
   });
 
 });

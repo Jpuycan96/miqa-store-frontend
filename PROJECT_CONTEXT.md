@@ -1,3 +1,17 @@
+## Modelos ERP como radio-cards - 6 de octubre de 2026
+
+- M2, ESCALA y METRO_LINEAL comparten un fieldset Modelo con radios nativos y tarjetas responsive; usan nombreReferencia y erpModelId del contrato. No hay bloque vacio ni select de Modelo. Materiales y layout de cantidad previos conservados.
+- Misma form.controls.model y reevaluacion ERP existente; sin cambios en TypeScript funcional, cantidad, precios, revisiones, contratos o backend.
+- Validacion: 42 tests focalizados aprobados (6 casos nuevos), build Angular local aprobado con tres warnings CSS previos; seis casos Edge/axe M2/ESCALA/METRO_LINEAL a 1440/390 px con API simulada, navegacion ArrowRight correcta, cero infracciones axe, errores JS u overflow horizontal. No certifica datos ni pricing reales de produccion.
+- Sin commit, push, deploy ni cambio de rama main. Cambios locales anteriores y ERP_PRICING_DIAGNOSTIC.md preservados. Evidencia temporal ignorada en .tmp/erp-model-cards-results.json.
+
+## Diagnostico real de pricing y layout ERP generico - 5 de octubre de 2026
+
+- Verificacion directa de API publica: LLAVERO cantidades 50/75/100/500 devuelve HTTP 409 CONFIGURATION_STALE; IMPRESION UV material Banner 13 Oz, cantidad 1 y medidas 1x1 m devuelve HTTP 200 PRICE_AVAILABLE, 35.00 PEN. Payloads/revisiones y limites documentados en ERP_PRICING_DIAGNOSTIC.md.
+- El POST publico no recibe revisiones del frontend: MIQA usa su snapshot de catalogo al llamar ERP. Sin credenciales ERP locales ni motivos publicos, no se ha confirmado cual revision upstream difiere ni si requiere corregir MIQA o ERP. No suprimir 409 ni dar por resuelto pricing. Helper temporal ignorado .tmp/diagnose-erp-pricing.mjs listo para una sesion configurada; aqui NOT_CONFIGURED. No logging/codigo backend modificado.
+- Layout ERP sin medidas coloca cantidad a izquierda/materiales a derecha y pricing debajo; M2 conserva composicion anterior. Materiales siempre verticales; un unico template de cantidad y CSS generico. Botones usan incrementoSugerido; multiploObligatorio valida independientemente.
+- Validacion: 53 tests enfocados aprobados, cuatro pruebas de sanitizacion del helper aprobadas y cuatro casos Edge M2/ESCALA a 1440/390 px sin errores JS, overflow ni infracciones axe. Build offline aprobado, 14 rutas, tres warnings CSS previos. Sin commit/push/deploy ni cambio de main.
+
 ## Correccion del configurador ERP - 5 de octubre de 2026
 
 - Materiales de M2/ESCALA/METRO_LINEAL reutilizan la misma lista de radios cuadrados y seleccion unica; modelos mantienen su presentacion existente. Sin condiciones por producto, nombres ni IDs.

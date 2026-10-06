@@ -1,3 +1,4 @@
+import { NgTemplateOutlet } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, effect, inject, input, output, signal, untracked } from '@angular/core';
 import { FormControl, FormGroup, FormRecord, ReactiveFormsModule } from '@angular/forms';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
@@ -9,7 +10,7 @@ import { QuoteStore } from '../../../core/quote/quote-store';
 import { createQuoteItem } from '../../../core/quote/quote-utils';
 
 @Component({
-  selector: 'app-erp-configurator', imports: [ReactiveFormsModule],
+  selector: 'app-erp-configurator', imports: [ReactiveFormsModule, NgTemplateOutlet],
   templateUrl: './erp-configurator.html', styleUrl: './erp-configurator.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -78,7 +79,7 @@ export class ErpConfigurator {
     const rules = this.config()?.cantidad;
     const current = this.values().quantity;
     if (!rules || current == null || !validErpQuantity(current, rules)) return null;
-    const step = Number(rules.multiploObligatorio ?? rules.incrementoSugerido);
+    const step = Number(rules.incrementoSugerido);
     const next = Math.max(Number(rules.minimo), Math.round((current + direction * step) * 1e6) / 1e6);
     if (next === current) return null;
     return validErpQuantity(next, rules) ? next : null;

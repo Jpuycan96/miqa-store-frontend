@@ -40,6 +40,32 @@ describe('ERP public pricing preview', () => {
     await vi.advanceTimersByTimeAsync(300);
     return http.expectOne(endpoint);
   }
+  it('changing a model card reevaluates through the existing ERP request and preserves quantity', async () => {
+    const product = erpProduct('ESCALA');
+    product.configuration!.configuration!.materiales[0].modelos = [...product.configuration!.configuration!.materiales[0].modelos, { erpModelId: 'second-model', nombreReferencia: 'Segundo modelo' }];
+    const fixture = TestBed.createComponent(ErpConfigurator);
+    fixture.componentRef.setInput('product', product);
+    fixture.detectChanges();
+    (await evaluate()).flush(available);
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('S/ 105.00');
+    fixture.nativeElement.querySelectorAll('.model-card')[1].click();
+    fixture.detectChanges();
+    expect(fixture.componentInstance.form.controls.model.value).toBe('second-model');
+    expect(fixture.componentInstance.price().status).toBe('LOADING');
+    await vi.advanceTimersByTimeAsync(299); http.expectNone(endpoint);
+    await vi.advanceTimersByTimeAsync(1);
+    const request = http.expectOne(endpoint);
+    expect(request.request.method).toBe('POST');
+    expect(request.request.body).toEqual({ productId: product.id, quantity: 0.5,
+      erpMaterialId: '10', erpModelId: 'second-model', measures: {} });
+    request.flush({ ...available, amount: '77.50' });
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('S/ 77.50');
+    expect(fixture.componentInstance.form.controls.quantity.value).toBe(0.5);
+    fixture.componentInstance.add();
+    expect(TestBed.inject(QuoteStore).items()[0].erp?.erpModelId).toBe('second-model');
+  });
   it('debounces valid selections and sends only the public allowlist', async () => {
     const fixture = await setup();
     await vi.advanceTimersByTimeAsync(299); http.expectNone(endpoint);
