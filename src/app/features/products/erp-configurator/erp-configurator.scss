@@ -56,11 +56,11 @@ button:disabled { opacity: .45; cursor: default; }
   .primary-button { min-height: 40px; padding-block: 8px; }
 }
 
-.model-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 112px), 1fr)); gap: 8px; }
-.model-card { display: grid; grid-template-rows: auto 1fr; gap: 8px; min-width: 0; min-height: 76px; padding: 10px; box-sizing: border-box; border: 1px solid #697386; border-radius: 8px; background: #fff; color: #17243b; cursor: pointer; }
-.model-card input { margin: 0; width: 18px; height: 18px; accent-color: var(--miqa-navy); }
-.model-card span { align-self: center; text-align: center; overflow-wrap: anywhere; }
-.model-card:has(:checked) { border: 2px solid var(--miqa-navy); padding: 9px; background: #eef9f9; }
+.model-cards { display: flex; flex-wrap: wrap; gap: 6px; }
+.model-card { display: inline-flex; align-items: center; gap: 8px; min-width: 0; max-width: 100%; min-height: 44px; padding: 8px 12px; box-sizing: border-box; border: 1px solid #697386; border-radius: 8px; background: #fff; color: #17243b; cursor: pointer; }
+.model-card input { flex: 0 0 16px; margin: 0; width: 16px; height: 16px; accent-color: var(--miqa-navy); }
+.model-card span { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.model-card:has(:checked) { border: 2px solid var(--miqa-navy); padding: 7px 11px; background: #eef9f9; }
 .model-card:has(:focus-visible) { outline: 3px solid #175db3; outline-offset: 3px; }
 @media (forced-colors: active) {
   .model-card:has(:checked) { border-color: Highlight; }
