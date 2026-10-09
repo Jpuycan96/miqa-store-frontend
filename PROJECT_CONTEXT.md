@@ -1,3 +1,8 @@
+## Footer publico compacto - 9 de octubre de 2026
+
+- Footer compartido conserva solo la franja de copyright, con el year dinamico existente y 12 px de padding vertical. Retirados bloques de marca/eslogan, navegacion y contacto del footer, junto con estilos/imports exclusivos. CTA de contacto de Inicio y FloatingWhatsApp independientes conservados.
+- Validacion: 4/4 tests focalizados de footer/WhatsApp; nueve casos Edge a 390/768/1440 px en Inicio, catalogo y 404, sin overflow ni infracciones axe del footer. Franja menor de 50 px; URL/target/rel del WhatsApp flotante conservados. Sin commit/push/deploy ni cambios backend; ERP_PRICING_DIAGNOSTIC.md intacto.
+
 ## Cotizacion responsive y galeria editorial - 9 de octubre de 2026
 
 - Sobre 6e5dfcc, unificados los breakpoints de catalogo/ficha/panel en 1280 px. Desde ese ancho, cotizacion integrada a la derecha y ficha con galeria/configurador/cotizacion; sin lineas no hay columna de cotizacion. Por debajo, el mismo QuotePanel sale del flujo y se consulta desde una pestana fija derecha con carrito/contador, o la cabecera. No se reintroduce QuoteDrawer ni se duplica QuoteSubmit o QuoteStore.

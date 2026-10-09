@@ -9,26 +9,17 @@ import { Footer } from './footer';
 beforeEach(() => TestBed.configureTestingModule({ providers: [provideTestCatalog()] }));
 
 describe('Footer', () => {
-  it('renders the brand, valid navigation, general contact and current copyright', async () => {
+  it('renders only the current copyright without the removed blocks', async () => {
     const fixture = TestBed.createComponent(Footer);
     await fixture.whenStable();
     const footer: HTMLElement = fixture.nativeElement.querySelector('footer');
     expect(footer).toBeTruthy();
-    expect(footer.querySelector('img')?.alt).toBe('MIQA Soluciones Gráficas');
-    expect(footer.textContent).toContain('Hacemos visible tu marca.');
-    expect([...footer.querySelectorAll('nav a')].map(a => [a.textContent, a.getAttribute('href')])).toEqual([
-      ['Productos', '/productos'], ['Servicios', '/#servicios'], ['Proyectos', '/proyectos']
-    ]);
-    const contact = footer.querySelector<HTMLAnchorElement>('.footer-contact')!;
-    expect(contact.textContent).toContain('Conversemos por WhatsApp');
-    expect(contact.getAttribute('href')).toBe(contactWhatsAppUrl());
-    expect(contact.target).toBe('_blank');
-    expect(contact.rel).toBe('noopener noreferrer');
-    expect(footer.querySelector('a[href="#"]')).toBeNull();
+    expect(footer.querySelector('.footer-layout, .footer-brand, nav, .footer-contact, img, a')).toBeNull();
+    expect(footer.querySelectorAll('p')).toHaveLength(1);
     expect(footer.textContent).toContain(`© ${new Date().getFullYear()} MIQA. Todos los derechos reservados.`);
   });
 
-  it('closes Home after the contact CTA and links to existing destinations', async () => {
+  it('keeps Home contact content and floating WhatsApp outside the compact footer', async () => {
     TestBed.configureTestingModule({ providers: [provideRouter(routes)] });
     const harness = await RouterTestingHarness.create('/');
     const home = harness.routeNativeElement!;
@@ -36,6 +27,12 @@ describe('Footer', () => {
     expect(home.querySelector('main')?.lastElementChild?.classList.contains('home-final-snap')).toBe(true);
     expect(home.querySelector('.home-final-snap')?.lastElementChild?.tagName).toBe('APP-HOME-CONTACT');
     expect(home.querySelector('#servicios')).toBeNull();
+    const whatsapp = home.querySelector<HTMLAnchorElement>('app-floating-whatsapp a')!;
+    expect(whatsapp.getAttribute('href')).toBe(contactWhatsAppUrl());
+    expect(whatsapp.target).toBe('_blank');
+    expect(whatsapp.rel).toBe('noopener noreferrer');
+    expect(home.querySelector('app-footer a')).toBeNull();
+
     for (const path of ['/productos', '/proyectos']) {
       await harness.navigateByUrl(path);
       expect(harness.routeNativeElement?.querySelector('h1')).toBeTruthy();
