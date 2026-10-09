@@ -1,4 +1,5 @@
-import { ProductImageGallery } from '../../../shared/product-images/product-image-gallery';
+import { ProductImageView } from '../../../shared/product-images/product-image';
+import { productImages } from '../../../shared/product-images/product-images';
 import { ChangeDetectionStrategy, Component, computed, effect, inject, signal, DestroyRef } from '@angular/core';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -11,7 +12,7 @@ import { QuotePanel } from '../../../core/quote/quote-panel/quote-panel';
 import { breadcrumb, PAGE_SEO, Seo } from '../../../core/seo/seo';
 
 @Component({
-  selector: 'app-catalog', imports: [RouterLink, ProductImageGallery, QuotePanel],
+  selector: 'app-catalog', imports: [RouterLink, ProductImageView, QuotePanel],
   templateUrl: './catalog.html', styleUrl: './catalog.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -27,6 +28,7 @@ export class Catalog {
     else delete tree.queryParams['buscar'];
     return this.router.serializeUrl(tree);
   }
+  imageFor(product: Product): import('../../../shared/models/product').ProductImage | undefined { return productImages(product)[0]; }
   addFromCatalog(product: Product) {
     return this.router.navigate(['/productos', product.slug], {
       queryParams: { regresar: this.catalogReturn() }

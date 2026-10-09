@@ -18,7 +18,7 @@ input { width: 100%; min-width: 0; min-height: 44px; border: 1px solid #c4cbd4; 
 .product-image:hover { background: #d8dfe3; }
 .product-image:focus-visible { outline: 3px solid #087e8a; outline-offset: 3px; }
 .category-name { margin-top: 10px; color: var(--muted); font-size: 9px; letter-spacing: .06em; text-transform: uppercase; }
-h2 { margin-block: 5px 8px; font-size: 20px; font-weight: 600; color: var(--miqa-navy); letter-spacing: -.025em; } h2 a:hover { text-decoration: underline; text-underline-offset: 4px; }
+h2 { margin-block: 5px 8px; font-size: 20px; font-weight: 600; color: var(--miqa-navy); letter-spacing: -.025em; }
 .quick-quote { margin-top: auto; }
 .presentation { font-size: 12px; margin-bottom: 6px; }
 .purchase-row { display: flex; align-items: center; gap: 10px; }
@@ -64,4 +64,9 @@ h2 { margin-block: 5px 8px; font-size: 20px; font-weight: 600; color: var(--miqa
   text-underline-offset: 3px;
 }
 
-@media (max-width: 1279px) { app-quote-panel { margin-top: 24px; } }
+
+
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .product-image app-product-image { transition: transform 250ms ease; }
+  .product-image:hover app-product-image { transform: scale(1.03); }
+}

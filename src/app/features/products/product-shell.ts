@@ -10,7 +10,7 @@ import { Footer } from '../../core/footer/footer';
     <app-header [catalogMode]="true" />
     <main id="catalog-content" tabindex="-1"><router-outlet /></main>
     <app-footer />`,
-  styles: `@media (min-width: 1120px) {
+  styles: `@media (min-width: 1280px) {
     :host:has(app-product-detail) { display: grid; grid-template-rows: auto minmax(0, 1fr); height: 100dvh; }
     :host:has(app-product-detail) main { min-height: 0; }
     :host:has(app-product-detail) > app-footer { display: none; }

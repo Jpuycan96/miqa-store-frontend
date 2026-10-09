@@ -15,11 +15,11 @@
     <div class="product-grid">
       @for (product of filtered(); track product.id; let index = $index) {
         <article class="catalog-card" [attr.data-product]="product.slug">
-          <div class="product-image">
-            <app-product-image-gallery [product]="product" [priority]="index < 6" sizes="(min-width: 1280px) 24vw, (min-width: 1024px) 30vw, (min-width: 600px) 45vw, 90vw" />
-          </div>
+          <a class="product-image" [routerLink]="['/productos', product.slug]" [queryParams]="{ regresar: catalogReturn() }" [attr.aria-label]="'Ver producto: ' + product.name">
+            <app-product-image [src]="imageFor(product)?.url ?? ''" [alt]="imageFor(product)?.altText || product.name" [priority]="index < 6" sizes="(min-width: 1280px) 24vw, (min-width: 1024px) 30vw, (min-width: 600px) 45vw, 90vw" />
+          </a>
           <p class="category-name">{{ categoryName(product.categorySlug) }}</p>
-          <h2><a [routerLink]="['/productos', product.slug]" [queryParams]="{ regresar: catalogReturn() }">{{ product.name }}</a></h2>
+          <h2>{{ product.name }}</h2>
           <div class="quick-quote">
             @if (product.configuration?.mode === 'UNAVAILABLE') {
               <p role="status">Temporalmente no disponible para configurar.</p>

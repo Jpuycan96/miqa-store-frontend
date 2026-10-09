@@ -88,21 +88,14 @@ describe('Quick catalog quoting', () => {
     expect(TestBed.inject(QuoteStore).items()[0].areaSquareMeters).toBe(4);
   });
 
-  it('opens an accessible image viewer and navigates from the product name', async () => {
+  it('navigates from the image while the name remains plain text', async () => {
     const h = await RouterTestingHarness.create('/productos');
-    const image = h.routeNativeElement!.querySelector<HTMLButtonElement>('.product-image .open-image')!;
-    expect(image.getAttribute('tabindex')).not.toBe('-1');
-    expect(image.getAttribute('aria-hidden')).not.toBe('true');
-    image.click();
-    await h.fixture.whenStable();
-    expect(h.routeNativeElement!.querySelector('app-product-image-lightbox dialog[open]')).toBeTruthy();
-    expect(h.routeNativeElement!.querySelector('#catalog-title')).toBeTruthy();
-    expect(TestBed.inject(QuoteStore).totalItems()).toBe(0);
-    h.routeNativeElement!.querySelector<HTMLButtonElement>('[aria-label="Cerrar visor"]')!.click();
-    await h.fixture.whenStable();
-    h.routeNativeElement!.querySelector<HTMLAnchorElement>('[data-product="roll-up"] h2 a')!.click();
+    expect(h.routeNativeElement!.querySelector('.catalog-card h2 a')).toBeNull();
+    h.routeNativeElement!.querySelector<HTMLAnchorElement>('[data-product="roll-up"] .product-image')!.click();
     await h.fixture.whenStable();
     expect(h.routeNativeElement!.querySelector('#product-title')?.textContent).toContain('Roll Up');
+    expect(h.routeNativeElement!.querySelector('app-product-image-lightbox')).toBeNull();
+    expect(TestBed.inject(QuoteStore).totalItems()).toBe(0);
   });
 
   it.each(['/productos', '/productos/merchandising?buscar=llavero', '/productos/letreros-publicitarios?buscar=acrilico', '/productos?categoria=imprenta-papeleria&buscar=Tarjetas'])('returns to the safe catalog origin %s without losing lines', async origin => {

@@ -31,7 +31,7 @@ li.updated { background: #e9fafa; box-shadow: inset 3px 0 #16b8c4; }
   text-underline-offset: 3px;
 }
 
-@media (min-width: 1120px) {
+@media (min-width: 1280px) {
   :host(.compact) { display: block; position: static; align-self: stretch; height: 100%; min-height: 0; }
   :host(.compact) section { height: 100%; max-height: none; overflow: visible; padding-left: 14px; }
   :host(.compact) .panel-heading { gap: 8px; padding-block: 0 8px; flex-shrink: 0; }
@@ -44,7 +44,7 @@ li.updated { background: #e9fafa; box-shadow: inset 3px 0 #16b8c4; }
   :host(.compact) .panel-actions { padding-top: 8px; }
   :host(.compact) :focus-visible { outline: 3px solid #075b87; outline-offset: -3px; }
 }
-@media (min-width: 1120px) and (pointer: coarse) {
+@media (min-width: 1280px) and (pointer: coarse) {
   :host(.compact) .quantity-control button, :host(.compact) .quantity-control input, :host(.compact) .remove, :host(.compact) .clear { min-height: 44px; min-width: 44px; }
 }
 
@@ -53,7 +53,7 @@ li.updated { background: #e9fafa; box-shadow: inset 3px 0 #16b8c4; }
 .remove:hover, .clear:hover { background: #eef9f9; }
 .remove svg, .clear svg, .item-thumbnail svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
 .clear { display: flex; align-items: center; justify-content: center; gap: 6px; }
-@media (min-width: 1120px) {
+@media (min-width: 1280px) {
   :host(.compact) .quantity-minimum { display: none; }
   :host(.compact) .item-controls { display: grid; grid-template-columns: 44px minmax(0, 1fr) 36px; gap: 8px; margin-top: 6px; }
   .item-thumbnail { width: 44px; height: 44px; display: grid; place-items: center; border-radius: 6px; background: #f3f5f7; overflow: hidden; }
@@ -79,5 +79,19 @@ h3 { margin: 0; }
 .quote-total p { margin: 0; font-size: 12px; }
 .quote-total small { font-size: 11px; }
 @media (min-width: 1280px) { section { max-height: calc(100dvh - 128px); border-top: 0; padding-top: 0; border-left: 1px solid #dce0e7; padding-left: 20px; overflow: auto; } }
-@media (min-width: 1120px) { :host(.compact) section { border-top: 0; padding-top: 0; border-left: 1px solid #dce0e7; } }
-@media (max-width: 1119px) { .quantity-control button, .quantity-control input, .remove { min-height: 44px; min-width: 44px; } }
+@media (min-width: 1280px) { :host(.compact) section { border-top: 0; padding-top: 0; border-left: 1px solid #dce0e7; } }
+@media (max-width: 1279px) { .quantity-control button, .quantity-control input, .remove { min-height: 44px; min-width: 44px; } }
+
+dialog { position: static; margin: 0; border: 0; padding: 0; width: 100%; max-width: none; max-height: none; background: transparent; color: inherit; }
+dialog[open] { display: block; }
+:host(.lateral) { position: fixed; width: 0; height: 0; }
+:host(.lateral) dialog { position: fixed; inset: 0 0 0 auto; margin: 0; width: min(440px, 100vw); height: 100dvh; max-height: 100dvh; box-sizing: border-box; padding: 20px; background: #fff; overflow-y: auto; }
+:host(.lateral) dialog::backdrop { background: rgb(16 32 52 / .35); }
+:host(.lateral) section { min-height: 100%; border: 0; padding: 0; }
+:host(.lateral) .panel-items { overflow: visible; }
+.close-panel { flex-shrink: 0; width: 44px; height: 44px; border: 0; border-radius: 50%; background: #eef4f5; }
+.quote-tab { position: fixed; right: 0; top: 28dvh; z-index: 60; min-height: 52px; padding: 12px; display: flex; gap: 8px; align-items: center; border: 0; border-radius: 12px 0 0 12px; background: var(--miqa-navy); color: white; }
+.quote-tab svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
+@media (hover: hover) and (prefers-reduced-motion: no-preference) { .quote-tab { transition: padding 220ms ease; } .quote-tab:hover { padding-right: 18px; } }
+
+.quote-tab[hidden] { display: none; }

@@ -87,4 +87,29 @@ describe('One integrated quotation in the public flow', () => {
     expect(h.routeNativeElement!.querySelector('#quote-drawer')).toBeNull();
     expect(TestBed.inject(QuotePresentation).showEmpty()).toBe(false);
   });
+  it('opens the same panel from its lateral tab, restores focus on Escape and resets on return', async () => {
+    Object.defineProperty(HTMLDialogElement.prototype, 'showModal', { configurable: true, value: function(this: HTMLDialogElement) { this.open = true; } });
+    Object.defineProperty(HTMLDialogElement.prototype, 'close', { configurable: true, value: function(this: HTMLDialogElement) { this.open = false; } });
+    try {
+      const h = await RouterTestingHarness.create('/productos/roll-up?regresar=%2Fproductos%3Fbuscar%3DRoll');
+      const presentation = TestBed.inject(QuotePresentation);
+      presentation.lateral.set(true);
+      const store = TestBed.inject(QuoteStore); store.addItem(PRODUCTS[2], {quantity: 3});
+      await h.fixture.whenStable();
+      const tab = h.routeNativeElement!.querySelector<HTMLButtonElement>('.quote-tab')!;
+      expect(tab).toBeTruthy(); expect(h.routeNativeElement!.querySelector('dialog')?.open).toBe(false);
+      tab.focus(); tab.click(); await h.fixture.whenStable();
+      expect(h.routeNativeElement!.querySelectorAll('app-quote-panel')).toHaveLength(1);
+      expect(document.body.style.overflow).toBe('hidden');
+      expect(document.activeElement?.id).toBe('quote-panel-title');
+      h.routeNativeElement!.querySelector('dialog')!.dispatchEvent(new Event('cancel',{cancelable:true}));
+      await h.fixture.whenStable();
+      expect(document.body.style.overflow).not.toBe('hidden'); expect(document.activeElement?.className).toBe('quote-tab');
+      presentation.requestPanel(); await h.fixture.whenStable();
+      h.routeNativeElement!.querySelector<HTMLAnchorElement>('.return-products')!.click(); await h.fixture.whenStable();
+      expect(presentation.sideOpen()).toBe(false);expect(document.body.style.overflow).not.toBe('hidden');
+      expect(store.items()[0].quantity).toBe(3);expect(TestBed.inject(Router).url).toBe('/productos?buscar=Roll');
+    } finally { Reflect.deleteProperty(HTMLDialogElement.prototype,'showModal'); Reflect.deleteProperty(HTMLDialogElement.prototype,'close'); }
+  });
+
 });

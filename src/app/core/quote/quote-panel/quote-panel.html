@@ -1,5 +1,11 @@
+@if (presentation.lateral() && quote.totalItems()) {
+  <button type="button" class="quote-tab" [hidden]="presentation.sideOpen()" aria-label="Abrir Mi cotizaci?n" aria-controls="quote-surface" aria-expanded="false" (click)="presentation.requestPanel()">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h2l3 12h11l2-9H6M9 20h.01M18 20h.01"/></svg><span>{{ quote.totalItems() }}</span>
+  </button>
+}
+<dialog #surface id="quote-surface" [attr.open]="presentation.lateral() ? null : ''" aria-labelledby="quote-panel-title" (cancel)="cancel($event)" (click)="backdrop($event)">
 <section aria-labelledby="quote-panel-title">
-  <div class="panel-heading"><h2 id="quote-panel-title" tabindex="-1">Mi cotización</h2><span class="count" aria-label="Productos configurados">{{ quote.totalItems() }}</span></div>
+  <div class="panel-heading"><h2 id="quote-panel-title" tabindex="-1">Mi cotización</h2><span class="count" aria-label="Productos configurados">{{ quote.totalItems() }}</span>@if (presentation.lateral()) { <button type="button" class="close-panel" aria-label="Cerrar Mi cotizaci?n" (click)="closeSide()">?</button> }</div>
   <div class="panel-items">
     @if (quote.persistenceWarning()) { <p class="hint" role="status">{{ quote.persistenceWarning() }}</p> }
     @if (quote.items().length) {
@@ -55,3 +61,5 @@
     </div>
   }
 </section>
+
+</dialog>

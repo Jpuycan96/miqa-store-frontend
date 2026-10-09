@@ -19,7 +19,7 @@ describe('Shared product detail presentation', () => {
   let mediaEvents: EventTarget;
   beforeEach(() => {
     localStorage.clear(); sessionStorage.clear(); desktop = true; mediaEvents = new EventTarget();
-    vi.stubGlobal('matchMedia', () => ({ get matches() { return desktop; },
+    vi.stubGlobal('matchMedia', (query: string) => ({ get matches() { return query.includes('max-width') ? !desktop : desktop; },
       addEventListener: mediaEvents.addEventListener.bind(mediaEvents),
       removeEventListener: mediaEvents.removeEventListener.bind(mediaEvents) }));
   });
