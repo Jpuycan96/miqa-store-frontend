@@ -21,6 +21,17 @@ export function formatPen(amount: string): string {
   return `S/ ${whole.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}.${fraction.padEnd(2, '0')}`;
 }
 
+/** Add evaluated line amounts exactly; this does not derive any ERP tariff or tax. */
+export function sumAmounts(amounts: readonly string[]): string {
+  const scale = Math.max(2, ...amounts.map(amount => amount.split('.')[1]?.length ?? 0));
+  const sum = amounts.reduce((total, amount) => {
+    const [whole, fraction = ''] = amount.split('.');
+    return total + BigInt(whole + fraction.padEnd(scale, '0'));
+  }, 0n);
+  const digits = sum.toString().padStart(scale + 1, '0');
+  return `${digits.slice(0, -scale)}.${digits.slice(-scale)}`;
+}
+
 function publicResult(value: unknown): PricingResult {
   if (value && typeof value === 'object' && 'status' in value) {
     if (value.status === 'PRICE_AVAILABLE' && 'amount' in value && typeof value.amount === 'string'

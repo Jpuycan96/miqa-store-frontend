@@ -1,9 +1,6 @@
-import { firstValueFrom } from 'rxjs';
-import { PublicPricing } from '../../../core/data/public-pricing';
-import { directErpSelection } from '../../../core/quote/erp-quote';
 import { ProductImageGallery } from '../../../shared/product-images/product-image-gallery';
 import { ChangeDetectionStrategy, Component, computed, effect, inject, signal, DestroyRef } from '@angular/core';
-import { toObservable, toSignal, takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { catchError, combineLatest, debounceTime, distinctUntilChanged, map, of, startWith, Subject, switchMap } from 'rxjs';
 import { ProductCatalog } from '../../../core/data/product-catalog';
@@ -21,9 +18,7 @@ import { breadcrumb, PAGE_SEO, Seo } from '../../../core/seo/seo';
 export class Catalog {
   private readonly source = inject(ProductCatalog);
   private readonly router = inject(Router);
-  private readonly pricing = inject(PublicPricing);
   private readonly destroyRef = inject(DestroyRef);
-  readonly adding = signal<string | null>(null);
   catalogReturn() {
     const tree = this.router.parseUrl(this.router.url);
     tree.queryParams = { ...tree.queryParams };
@@ -32,27 +27,10 @@ export class Catalog {
     else delete tree.queryParams['buscar'];
     return this.router.serializeUrl(tree);
   }
-  async addFromCatalog(product: Product) {
-    if (this.adding()) return;
-    const open = () => this.router.navigate(['/productos', product.slug], {
+  addFromCatalog(product: Product) {
+    return this.router.navigate(['/productos', product.slug], {
       queryParams: { regresar: this.catalogReturn() }
     });
-    if (!directErpSelection(product)) { await open(); return; }
-    this.adding.set(product.id);
-    try {
-      const fresh = await firstValueFrom(this.source.findBySlug(product.slug).pipe(takeUntilDestroyed(this.destroyRef)));
-      if (this.destroyRef.destroyed) return;
-      const selection = fresh && directErpSelection(fresh);
-      if (!fresh || !selection?.erp) { await open(); return; }
-      const result = await firstValueFrom(this.pricing.evaluate({
-        productId: fresh.id, quantity: selection.quantity,
-        erpMaterialId: selection.erp.erpMaterialId, erpModelId: selection.erp.erpModelId ?? null,
-        measures: selection.erp.measures
-      }).pipe(takeUntilDestroyed(this.destroyRef)));
-      if (this.destroyRef.destroyed) return;
-      if (result.status !== 'PRICE_AVAILABLE' || !this.quote.addItem(fresh, selection)) await open();
-    } catch { if (!this.destroyRef.destroyed) await open(); }
-    finally { this.adding.set(null); }
   }
   private readonly route = inject(ActivatedRoute);
   private readonly params = toSignal(this.route.queryParamMap, { initialValue: this.route.snapshot.queryParamMap });

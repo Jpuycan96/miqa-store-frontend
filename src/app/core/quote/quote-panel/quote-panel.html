@@ -17,6 +17,17 @@
                 <button [attr.aria-label]="'Aumentar cantidad de ' + item.productName" (click)="quote.changeQuantity(item, quote.quantityRules(item).step)">+</button>
               </div>
               <button type="button" class="remove" [attr.title]="'Eliminar ' + item.productName" [attr.aria-label]="'Eliminar ' + item.productName + ' de la cotización'" (click)="quote.removeItem(item.id)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 10v7M14 10v7"/></svg></button>
+            </div>
+            @let linePrice = quote.priceFor(item);
+            <div class="line-price" role="status" aria-live="polite">
+              @switch (linePrice.status) {
+                @case ('PRICE_AVAILABLE') { <span>Subtotal: <strong>{{ formatPrice(linePrice.amount) }}</strong></span>@if (linePrice.includesIgv) { <small>Incluye IGV</small> } }
+                @case ('LOADING') { <span>Evaluando subtotal…</span> }
+                @case ('QUOTE_REQUIRED') { <span>Por cotizar</span> }
+                @case ('CONFIGURATION_STALE') { <span>Las opciones cambiaron.</span><a [routerLink]="['/productos', item.productSlug]" [queryParams]="{ regresar: catalogOrigin() }">Reconfigurar producto</a> }
+                @case ('CONFIGURATION_INVALID') { <span>Revisa la configuración.</span><a [routerLink]="['/productos', item.productSlug]" [queryParams]="{ regresar: catalogOrigin() }">Reconfigurar producto</a> }
+                @case ('TEMPORARILY_UNAVAILABLE') { <span>No pudimos evaluar el subtotal.</span><button type="button" (click)="quote.retryPrice(item.id)">Reintentar precio</button> }
+              }
             </div></div>
           </li>
         }
@@ -28,8 +39,16 @@
   </div>
   @if (quote.items().length || submission.pending() || submission.confirmed()) {
     <div class="panel-actions">
-      @if (compact() && quote.items().length) {
-        <div class="quote-total"><span>{{ quote.totalItems() }} {{ quote.totalItems() === 1 ? "producto" : "productos" }}</span></div>
+      @if (quote.items().length) {
+        @let summary = quote.priceSummary();
+        <div class="quote-total" role="status" aria-live="polite">
+          <span>{{ quote.totalItems() }} {{ quote.totalItems() === 1 ? "producto" : "productos" }}</span>
+          <strong>{{ summary.complete ? 'Total de la cotización' : 'Importes disponibles' }}</strong>
+          @if (summary.amount; as amount) { <strong>{{ formatPrice(amount) }}</strong> }
+          @if (summary.includesIgv) { <small>Incluye IGV{{ summary.complete ? '' : ' en los importes disponibles' }}</small> }
+          @if (!summary.complete) { <p>El total está pendiente de confirmar.@if (summary.pending) { {{ summary.pending }} {{ summary.pending === 1 ? 'producto pendiente' : 'productos pendientes' }} de precio. }@if (summary.mixedTax) { Los importes tienen un tratamiento de IGV distinto. }</p> }
+          <small>Precios informativos. Se reevaluarán al registrar la solicitud.</small>
+        </div>
       }
       <app-quote-submit [compact]="compact()" [showClear]="true" />
 

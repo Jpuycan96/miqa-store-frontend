@@ -72,6 +72,12 @@ h3 { margin: 0; }
 :host(.compact) .item-controls { display: flex; }
 
 .dismiss-empty { min-height: 44px; border: 0; background: transparent; text-decoration: underline; }
+.line-price { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; font-size: 12px; margin-top: 6px; overflow-wrap: anywhere; }
+.line-price small { flex-basis: 100%; }
+.line-price a, .line-price button { min-height: 44px; display: inline-flex; align-items: center; color: inherit; text-decoration: underline; border: 0; background: transparent; font: inherit; }
+.quote-total { display: grid; gap: 4px; margin-bottom: 10px; font-size: 13px; overflow-wrap: anywhere; }
+.quote-total p { margin: 0; font-size: 12px; }
+.quote-total small { font-size: 11px; }
 @media (min-width: 1280px) { section { max-height: calc(100dvh - 128px); border-top: 0; padding-top: 0; border-left: 1px solid #dce0e7; padding-left: 20px; overflow: auto; } }
 @media (min-width: 1120px) { :host(.compact) section { border-top: 0; padding-top: 0; border-left: 1px solid #dce0e7; } }
 @media (max-width: 1119px) { .quantity-control button, .quantity-control input, .remove { min-height: 44px; min-width: 44px; } }

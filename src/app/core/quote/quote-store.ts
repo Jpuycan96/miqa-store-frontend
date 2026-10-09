@@ -1,6 +1,7 @@
 import { isPlatformBrowser } from '@angular/common';
-import { afterNextRender, computed, DestroyRef, DOCUMENT, inject, Injectable, PLATFORM_ID, signal } from '@angular/core';
-import { take } from 'rxjs';
+import { afterNextRender, computed, DestroyRef, DOCUMENT, inject, Injectable, Injector, PLATFORM_ID, signal } from '@angular/core';
+import { catchError, of, Subscription, switchMap, take, timer, timeout } from 'rxjs';
+import { PricingResult, PublicPricing, sumAmounts } from '../data/public-pricing';
 import { ProductCatalog } from '../data/product-catalog';
 import { Product } from '../../shared/models/product';
 import { ErpSelection, validErpQuantity } from '../../shared/models/erp-configuration';
@@ -12,6 +13,73 @@ export const QUOTE_STORAGE_KEY = 'miqa.quote.v1';
 
 @Injectable({ providedIn: 'root' })
 export class QuoteStore {
+  private readonly injector = inject(Injector);
+  // Informative session previews only: never persisted or sent in a quote request.
+  private readonly evaluatedPrices = signal<ReadonlyMap<string, { key: string; result: PricingResult }>>(new Map());
+  private readonly priceRequests = new Map<string, { key: string; subscription: Subscription }>();
+  private priceKey(item: QuoteItem) { return JSON.stringify([getQuoteItemIdentity(item), item.quantity]); }
+  priceFor(item: QuoteItem): PricingResult | { status: 'LOADING' } {
+    if (!item.erp) return { status: 'QUOTE_REQUIRED' };
+    const price = this.evaluatedPrices().get(item.id);
+    return price?.key === this.priceKey(item) ? price.result : { status: 'LOADING' };
+  }
+  readonly priceSummary = computed(() => {
+    const prices = this.items().map(item => this.priceFor(item));
+    const available = prices.filter((price): price is Extract<PricingResult, { status: 'PRICE_AVAILABLE' }> => price.status === 'PRICE_AVAILABLE');
+    const sameTax = available.every(price => price.includesIgv === available[0]?.includesIgv);
+    return {
+      amount: available.length ? sumAmounts(available.map(price => price.amount)) : null,
+      complete: prices.length > 0 && available.length === prices.length && sameTax,
+      pending: prices.length - available.length,
+      includesIgv: available.length > 0 && available.every(price => price.includesIgv),
+      mixedTax: !sameTax
+    };
+  });
+
+  /** Reconcile only while the existing panel is mounted; unchanged lines keep their requests. */
+  refreshPrices() {
+    const items = this.items();
+    for (const [id, request] of this.priceRequests) {
+      if (!items.some(item => item.id === id && this.priceKey(item) === request.key)) {
+        request.subscription.unsubscribe(); this.priceRequests.delete(id);
+        this.evaluatedPrices.update(prices => { const next = new Map(prices); next.delete(id); return next; });
+      }
+    }
+    for (const item of items) {
+      const erp = item.erp;
+      const key = this.priceKey(item);
+      if (!erp || this.priceRequests.get(item.id)?.key === key) continue;
+      // Check the stored revisions: the public pricing endpoint uses MIQA's current snapshot.
+      const subscription = timer(300).pipe(
+        switchMap(() => this.catalog.findBySlug(item.productSlug).pipe(take(1), timeout(8000))),
+        switchMap(product => {
+          const binding = product?.configuration;
+          if (!product || product.id !== item.productId || !product.published || binding?.mode !== 'ERP')
+            return of<PricingResult>({ status: 'CONFIGURATION_INVALID' });
+          if (binding.catalogRevision !== erp.catalogRevision || binding.configurationVersion !== erp.configurationVersion
+              || binding.erpServiceId !== erp.erpServiceId) return of<PricingResult>({ status: 'CONFIGURATION_STALE' });
+          if (!createQuoteItem(product, { quantity: item.quantity, erp }, 'preview'))
+            return of<PricingResult>({ status: 'CONFIGURATION_INVALID' });
+          return this.injector.get(PublicPricing).evaluate({ productId: item.productId, quantity: item.quantity,
+            erpMaterialId: erp.erpMaterialId, erpModelId: erp.erpModelId ?? null, measures: erp.measures });
+        }),
+        catchError(() => of<PricingResult>({ status: 'TEMPORARILY_UNAVAILABLE' }))
+      ).subscribe(result => {
+        if (!this.items().some(current => current.id === item.id && this.priceKey(current) === key)) return;
+        this.evaluatedPrices.update(prices => new Map(prices).set(item.id, { key, result }));
+      });
+      this.priceRequests.set(item.id, { key, subscription });
+    }
+  }
+  stopPrices() {
+    for (const request of this.priceRequests.values()) request.subscription.unsubscribe();
+    this.priceRequests.clear(); this.evaluatedPrices.set(new Map());
+  }
+  retryPrice(id: string) {
+    this.priceRequests.get(id)?.subscription.unsubscribe(); this.priceRequests.delete(id);
+    this.evaluatedPrices.update(prices => { const next = new Map(prices); next.delete(id); return next; });
+    this.refreshPrices();
+  }
   private readonly browser = isPlatformBrowser(inject(PLATFORM_ID));
   private readonly document = inject(DOCUMENT);
   private readonly catalog = inject(ProductCatalog);
@@ -39,6 +107,7 @@ export class QuoteStore {
   readonly persistenceWarning = signal('');
 
   constructor() {
+    inject(DestroyRef).onDestroy(() => this.stopPrices());
     inject(DestroyRef).onDestroy(() => { clearTimeout(this.confirmationTimer); clearTimeout(this.highlightTimer); });
     // Browser data is restored after hydration; SSR and the first client render stay identical.
     afterNextRender(() => this.restore());

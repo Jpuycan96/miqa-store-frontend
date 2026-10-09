@@ -40,6 +40,22 @@ describe('ERP public pricing preview', () => {
     await vi.advanceTimersByTimeAsync(300);
     return http.expectOne(endpoint);
   }
+  it('preselects the unique valid options, evaluates their price and waits for explicit confirmation', async () => {
+    const product = erpProduct('ESCALA');
+    product.configuration!.configuration!.materiales = [product.configuration!.configuration!.materiales[0]];
+    const fixture = TestBed.createComponent(ErpConfigurator);
+    fixture.componentRef.setInput('product', product); fixture.detectChanges();
+    expect(fixture.componentInstance.form.getRawValue()).toMatchObject({ material: '10', model: '20', quantity: 0.5 });
+    expect(TestBed.inject(QuoteStore).items()).toHaveLength(0);
+    (await evaluate()).flush(available); fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('S/ 105.00');
+    expect(TestBed.inject(QuoteStore).items()).toHaveLength(0);
+    const button = fixture.nativeElement.querySelector('button[type=submit]') as HTMLButtonElement;
+    expect(button.textContent).toContain('Agregar al carrito'); button.click(); fixture.detectChanges();
+    expect(TestBed.inject(QuoteStore).items()).toHaveLength(1);
+    expect(TestBed.inject(QuoteStore).items()[0].erp).toMatchObject({ erpMaterialId: '10', erpModelId: '20', measures: {} });
+    fixture.destroy();
+  });
   it('changing a model card reevaluates through the existing ERP request and preserves quantity', async () => {
     const product = erpProduct('ESCALA');
     product.configuration!.configuration!.materiales[0].modelos = [...product.configuration!.configuration!.materiales[0].modelos, { erpModelId: 'second-model', nombreReferencia: 'Segundo modelo' }];
