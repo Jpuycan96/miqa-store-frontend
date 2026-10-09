@@ -53,14 +53,7 @@ button:disabled { opacity: .5; cursor: not-allowed; }
   .compact-detail .detail-layout.quote-expanded { grid-template-columns: minmax(112px, .32fr) minmax(390px, 1.2fr) minmax(360px, 1fr); gap: 20px; }
   .quote-expanded .visual-column { min-width: 0; }
   .compact-detail .quote-expanded .detail-image { height: 132px; max-width: 100%; --product-image-padding: 8px; }
-  app-quote-panel[hidden] { display: none; }
-  .quote-tab { position: fixed; right: 0; top: max(156px, 27dvh); z-index: 60; display: flex; align-items: center; gap: 8px; min-height: 48px; padding: 10px 14px; border: 1px solid #c4cbd4; border-radius: 12px 0 0 12px; background: var(--miqa-navy); color: white; cursor: pointer; box-shadow: 0 3px 12px #001c3020; }
-  .quote-tab svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 1.6; }
-  .quote-tab:focus-visible { outline: 3px solid #075b87; outline-offset: -4px; box-shadow: 0 6px 20px #001c3040; }
-  .quote-tab { transition: transform 200ms ease, box-shadow 200ms ease; }
-  .quote-tab:focus-visible { transform: translateX(-4px); }
-  @media (hover: hover) { .quote-tab:hover { transform: translateX(-4px); box-shadow: 0 6px 20px #001c3040; } }
-  @media (prefers-reduced-motion: reduce) { .quote-tab { transition: none; } .quote-tab:hover, .quote-tab:focus-visible { transform: none; } }
+
 }
 
 
@@ -73,3 +66,5 @@ button:disabled { opacity: .5; cursor: not-allowed; }
 }
 
 .return-products { display: inline-flex; align-items: center; min-height: 44px; margin-bottom: 8px; color: var(--miqa-navy); text-decoration: underline; }
+
+@media (max-width: 1119px) { app-quote-panel { grid-column: 1 / -1; } }

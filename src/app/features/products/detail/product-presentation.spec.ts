@@ -38,33 +38,32 @@ describe('Shared product detail presentation', () => {
       configuration: mode === 'ERP' ? source.configuration : mode === 'UNAVAILABLE' ? { ...erpProduct().configuration!, mode: 'UNAVAILABLE' } : undefined };
     const fixture = await setup(product); const el: HTMLElement = fixture.nativeElement;
     expect(el.querySelector('.compact-detail')).not.toBeNull();
-    expect(el.querySelector('#integrated-quote-panel')).not.toBeNull();
+    expect(el.querySelector('#integrated-quote-panel')).toBeNull();
     expect(!!el.querySelector('app-erp-configurator')).toBe(mode === 'ERP');
     expect(!!el.querySelector('.add-button')).toBe(mode === 'LEGACY');
-    expect(TestBed.inject(QuotePresentation).integrated()).toBe(true);
+    expect(TestBed.inject(QuotePresentation).productDetail()).toBe(true);
     fixture.destroy(); expect(TestBed.inject(QuotePresentation).productDetail()).toBe(false);
   });
-  it('opens after a legacy addition, collapses and reopens with the counter', async () => {
+  it('shows the integrated panel after adding and removes it with the last line', async () => {
     const fixture = await setup(PRODUCTS[2]); const el: HTMLElement = fixture.nativeElement;
     el.querySelector<HTMLButtonElement>('.add-button')!.click(); await fixture.whenStable();
-    const store = TestBed.inject(QuoteStore); expect(store.items()).toHaveLength(1); expect(store.isOpen()).toBe(true);
+    const store = TestBed.inject(QuoteStore);
+    expect(store.items()).toHaveLength(1);
     expect(el.querySelector('.quote-expanded')).not.toBeNull();
-    el.querySelector<HTMLButtonElement>('.collapse-quote')!.click(); await fixture.whenStable();
-    expect(store.isOpen()).toBe(false); expect(el.querySelector('.quote-tab')?.textContent?.trim()).toBe('1');
-    el.querySelector<HTMLButtonElement>('.quote-tab')!.click(); await fixture.whenStable();
-    expect(store.isOpen()).toBe(true); expect(el.querySelector('.quote-tab')).toBeNull();
-    desktop = false; mediaEvents.dispatchEvent(new Event('change')); await fixture.whenStable();
-    expect(TestBed.inject(QuotePresentation).integrated()).toBe(false);
+    expect(el.querySelectorAll('app-quote-panel')).toHaveLength(1);
+    expect(el.querySelector('app-quote-drawer')).toBeNull();
+    store.close(); await fixture.whenStable();
+    expect(el.querySelector('#integrated-quote-panel')).not.toBeNull();
+    store.removeItem(store.items()[0].id); await fixture.whenStable();
     expect(el.querySelector('#integrated-quote-panel')).toBeNull();
-    desktop = true; mediaEvents.dispatchEvent(new Event('change')); await fixture.whenStable();
-    expect(el.querySelector('.quote-expanded')).not.toBeNull();
+    expect(el.querySelector('.quote-expanded')).toBeNull();
   });
-  it('preserves the mobile legacy addition behavior and leaves presentation to the drawer', async () => {
+  it('uses the same integrated panel on mobile after a legacy addition', async () => {
     desktop = false; const fixture = await setup(PRODUCTS[2]);
     fixture.componentInstance.add(); await fixture.whenStable();
     expect(TestBed.inject(QuoteStore).items()).toHaveLength(1);
-    expect(TestBed.inject(QuoteStore).isOpen()).toBe(false);
-    expect(fixture.nativeElement.querySelector('#integrated-quote-panel')).toBeNull();
+    expect(fixture.nativeElement.querySelector('#integrated-quote-panel')).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('app-quote-drawer')).toBeNull();
   });
   it('still opens the quotation after an ERP addition', async () => {
     const fixture = await setup(erpProduct()); const el: HTMLElement = fixture.nativeElement;
@@ -73,7 +72,7 @@ describe('Shared product detail presentation', () => {
     }
     await fixture.whenStable(); el.querySelector<HTMLButtonElement>('app-erp-configurator button[type=submit]')!.click();
     await fixture.whenStable(); expect(TestBed.inject(QuoteStore).items()).toHaveLength(1);
-    expect(TestBed.inject(QuoteStore).isOpen()).toBe(true); expect(el.querySelector('.quote-expanded')).not.toBeNull();
+    expect(TestBed.inject(QuoteStore).isOpen()).toBe(false); expect(el.querySelector('.quote-expanded')).not.toBeNull();
   });
   it('keeps the configurator mounted and preserves valid drafts during an ERP options refresh', async () => {
     const product = erpProduct();

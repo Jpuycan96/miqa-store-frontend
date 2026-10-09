@@ -1,4 +1,3 @@
-import { QuoteDrawer } from '../../core/quote/quote-drawer';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
@@ -67,14 +66,12 @@ it.each(['/productos/roll-up'])('initializes and edits quantities with relative 
   expect(TestBed.inject(QuoteStore).items()[0].quantity).toBe(50);
 });
 
-it.each(['app-quote-panel', 'app-quote-drawer'])('preserves manual quantities and exact WhatsApp text from %s', async selector => {
+it.each(['app-quote-panel'])('preserves manual quantities and exact WhatsApp text from %s', async selector => {
   const h = await RouterTestingHarness.create('/productos');
   const store = TestBed.inject(QuoteStore);
   expect(store.addItem(product, { quantity: 50 })).toBe(true);
-  const drawer = selector === 'app-quote-drawer' ? TestBed.createComponent(QuoteDrawer) : null;
-  if (drawer) { drawer.detectChanges(); store.open(); }
   await h.fixture.whenStable();
-  const panel: HTMLElement = drawer ? drawer.nativeElement : h.routeNativeElement!.querySelector(selector)!;
+  const panel = h.routeNativeElement!.querySelector<HTMLElement>(selector)!;
   const input = panel.querySelector<HTMLInputElement>('.quantity-control input')!;
   expect(input.value).toBe('50');
   type(input, '55', false); await h.fixture.whenStable();

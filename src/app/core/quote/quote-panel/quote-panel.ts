@@ -5,7 +5,8 @@ import { productImages } from '../../../shared/product-images/product-images';
 import { QuantityInput } from '../../../shared/quantity-input';
 import { QuoteSubmit } from '../quote-submit';
 import { QuoteSubmission } from '../quote-submission';
-import { ChangeDetectionStrategy, Component, inject, input, output } from '@angular/core';
+import { afterRenderEffect, ChangeDetectionStrategy, Component, ElementRef, inject, input } from '@angular/core';
+import { QuotePresentation } from '../quote-presentation';
 import { QuoteStore } from '../quote-store';
 import { describeQuoteItem } from '../quote-utils';
 
@@ -26,7 +27,20 @@ export class QuotePanel {
     const product = this.quote.productFor(item);
     return product ? productImages(product)[0]?.url ?? '' : '';
   }
-  readonly collapsed = output<void>();
+  readonly presentation = inject(QuotePresentation);
+  private readonly element = inject<ElementRef<HTMLElement>>(ElementRef);
+  dismissEmpty() {
+    this.presentation.dismissEmpty();
+    this.element.nativeElement.ownerDocument.querySelector<HTMLButtonElement>('.quote-toggle')?.focus();
+  }
+  constructor() {
+    afterRenderEffect(() => {
+      if (!this.presentation.focusRequested()) return;
+      this.element.nativeElement.scrollIntoView?.({ block: 'start', behavior: 'auto' });
+      this.element.nativeElement.querySelector('h2')?.focus({ preventScroll: true });
+      this.presentation.focusRequested.set(false);
+    });
+  }
   readonly submission = inject(QuoteSubmission);
   readonly quote = inject(QuoteStore);
   readonly describe = describeQuoteItem;

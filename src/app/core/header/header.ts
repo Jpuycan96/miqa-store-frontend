@@ -54,4 +54,12 @@ export class Header {
  closeSearch() { this.searchOpen.set(false); this.searchToggle()?.nativeElement.focus(); }
  closeMenu() { this.menuOpen.set(false); }
  navigate() { this.closeMenu();this.searchOpen.set(false); }
+ async openQuote() {
+  this.navigate();
+  this.quote.close();
+  if (!this.quotePresentation.catalogPage() && !this.quotePresentation.productDetail()) {
+   if (!await this.router.navigate(['/productos'])) return;
+  }
+  this.quotePresentation.requestPanel();
+ }
 }

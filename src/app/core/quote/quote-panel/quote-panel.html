@@ -1,5 +1,5 @@
 <section aria-labelledby="quote-panel-title">
-  <div class="panel-heading"><h2 id="quote-panel-title" tabindex="-1">Mi cotización</h2><span class="count" aria-label="Productos configurados">{{ quote.totalItems() }}</span>@if (compact()) { <button class="collapse-quote" type="button" aria-label="Contraer cotización" (click)="collapsed.emit()">›</button> }</div>
+  <div class="panel-heading"><h2 id="quote-panel-title" tabindex="-1">Mi cotización</h2><span class="count" aria-label="Productos configurados">{{ quote.totalItems() }}</span></div>
   <div class="panel-items">
     @if (quote.persistenceWarning()) { <p class="hint" role="status">{{ quote.persistenceWarning() }}</p> }
     @if (quote.items().length) {
@@ -23,6 +23,7 @@
       </ul>
     } @else {
       <p class="empty">Agrega productos y reúne aquí lo que necesitas para tu proyecto.</p>
+      <button type="button" class="dismiss-empty" (click)="dismissEmpty()">Continuar viendo productos</button>
     }
   </div>
   @if (quote.items().length || submission.pending() || submission.confirmed()) {

@@ -1,21 +1,23 @@
-import { afterNextRender, computed, DestroyRef, DOCUMENT, inject, Injectable, signal } from '@angular/core';
+import { computed, effect, inject, Injectable, signal } from '@angular/core';
+import { QuoteStore } from './quote-store';
 
 @Injectable({ providedIn: 'root' })
 export class QuotePresentation {
   readonly productDetail = signal(false);
-  private readonly desktop = signal(false);
-  readonly integrated = computed(() => this.productDetail() && this.desktop());
+  readonly catalogPage = signal(false);
+  readonly showEmpty = signal(false);
+  readonly focusRequested = signal(false);
+  private readonly quote = inject(QuoteStore);
+  readonly panelVisible = computed(() => this.quote.totalItems() > 0 || this.showEmpty());
+
+  requestPanel() {
+    this.showEmpty.set(this.quote.totalItems() === 0);
+    this.focusRequested.set(true);
+  }
+
+  dismissEmpty() { this.showEmpty.set(false); this.focusRequested.set(false); }
 
   constructor() {
-    const document = inject(DOCUMENT);
-    const destroy = inject(DestroyRef);
-    afterNextRender(() => {
-      const media = document.defaultView?.matchMedia?.('(min-width: 1120px)');
-      if (!media) return;
-      const update = () => this.desktop.set(media.matches);
-      update();
-      media.addEventListener('change', update);
-      destroy.onDestroy(() => media.removeEventListener('change', update));
-    });
+    effect(() => { if (this.quote.totalItems()) this.showEmpty.set(false); });
   }
 }

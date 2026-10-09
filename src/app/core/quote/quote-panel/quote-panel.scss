@@ -1,5 +1,5 @@
-:host { display: none; min-width: 0; }
-section { display: flex; flex-direction: column; max-height: calc(100dvh - 128px); overflow-y: auto; border-left: 1px solid #dce0e7; padding-left: 20px; color: var(--miqa-navy); }
+:host { display: block; scroll-margin-top: 112px; min-width: 0; }
+section { display: flex; flex-direction: column; max-height: none; overflow-y: visible; border-top: 1px solid #dce0e7; padding-top: 16px; color: var(--miqa-navy); }
 .panel-heading { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding-block: 4px 16px; } h2 { font-size: 21px; font-weight: 600; letter-spacing: -.03em; } .count { background: var(--surface); border-radius: 99px; padding: 4px 9px; font-size: 12px; }
 .panel-items { flex-shrink: 0; padding-right: 4px; }
 ul { list-style: none; margin: 0; padding: 0; } li { padding-block: 14px; border-top: 1px solid #e0e3e8; }
@@ -37,7 +37,6 @@ li.updated { background: #e9fafa; box-shadow: inset 3px 0 #16b8c4; }
   :host(.compact) .panel-heading { gap: 8px; padding-block: 0 8px; flex-shrink: 0; }
   :host(.compact) h2 { font-size: 18px; margin: 0; }
   :host(.compact) .count { margin-left: auto; }
-  .collapse-quote { min-width: 44px; min-height: 44px; border: 1px solid #c4cbd4; border-radius: 8px; background: white; font-size: 26px; }
   :host(.compact) .panel-items { min-height: 0; flex: 0 1 auto; max-height: none; overflow-y: auto; overscroll-behavior: contain; }
   :host(.compact) li { padding-block: 8px; }
   :host(.compact) h3 { margin: 0; font-size: 14px; }
@@ -71,3 +70,8 @@ h3 { margin: 0; }
 .panel-items { min-height: 0; flex: 1 1 auto; overflow-y: auto; overscroll-behavior: contain; }
 .panel-actions { margin-top: auto; padding-top: 8px; }
 :host(.compact) .item-controls { display: flex; }
+
+.dismiss-empty { min-height: 44px; border: 0; background: transparent; text-decoration: underline; }
+@media (min-width: 1280px) { section { max-height: calc(100dvh - 128px); border-top: 0; padding-top: 0; border-left: 1px solid #dce0e7; padding-left: 20px; overflow: auto; } }
+@media (min-width: 1120px) { :host(.compact) section { border-top: 0; padding-top: 0; border-left: 1px solid #dce0e7; } }
+@media (max-width: 1119px) { .quantity-control button, .quantity-control input, .remove { min-height: 44px; min-width: 44px; } }

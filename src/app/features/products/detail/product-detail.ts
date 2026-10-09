@@ -4,7 +4,7 @@ import { QuantityInput } from '../../../shared/quantity-input';
 import { ErpConfigurator } from '../erp-configurator/erp-configurator';
 import { DecimalPipe } from '@angular/common';
 import { ProductImageGallery } from '../../../shared/product-images/product-image-gallery';
-import { ChangeDetectionStrategy, Component, computed, effect, inject, DestroyRef, afterRenderEffect, ElementRef, signal, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, DestroyRef } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -38,12 +38,8 @@ export class ProductDetail {
   private readonly seo = inject(Seo);
   readonly quote = inject(QuoteStore);
   readonly quotePresentation = inject(QuotePresentation);
-  readonly integratedOpen = computed(() => this.quotePresentation.integrated() && this.quote.isOpen() && this.quote.totalItems() > 0);
-  private readonly quoteTab = viewChild<ElementRef<HTMLButtonElement>>('quoteTab');
-  private readonly quotePanel = viewChild('inlinePanel', { read: ElementRef });
-  private readonly focusQuote = signal<'tab' | 'panel' | null>(null);
-  collapseQuote() { this.quote.close(); this.focusQuote.set('tab'); }
-  reopenQuote() { this.quote.open(); this.focusQuote.set('panel'); }
+  readonly integratedOpen = this.quotePresentation.panelVisible;
+  returnToCatalog() { this.quote.close(); this.quotePresentation.dismissEmpty(); }
   private readonly refresh = new Subject<void>();
   retry() { this.refresh.next(); }
   private loadedProduct: { slug: string; product: Product | undefined } | undefined;
@@ -85,17 +81,7 @@ export class ProductDetail {
 
   constructor() {
     effect(() => this.quotePresentation.productDetail.set(!!this.product()));
-    inject(DestroyRef).onDestroy(() => this.quotePresentation.productDetail.set(false));
-    afterRenderEffect(() => {
-      const focus = this.focusQuote();
-      if (focus === 'tab' && !this.quote.isOpen()) {
-        this.quoteTab()?.nativeElement.focus();
-        this.focusQuote.set(null);
-      } else if (focus === 'panel' && this.integratedOpen()) {
-        this.quotePanel()?.nativeElement.querySelector('h2')?.focus();
-        this.focusQuote.set(null);
-      }
-    });
+    inject(DestroyRef).onDestroy(() => { this.quotePresentation.productDetail.set(false); this.quotePresentation.dismissEmpty(); });
     effect(() => {
       const product = this.product();
       this.form.reset({ quantity: product?.minQuantity ?? 1, width: null, height: null, material: '', notes: '' });
@@ -119,6 +105,6 @@ export class ProductDetail {
   }
   add() {
     const product = this.product();
-    if (product && this.quote.addItem(product, this.configuration()) && this.quotePresentation.integrated()) this.quote.open();
+    if (product) this.quote.addItem(product, this.configuration());
   }
 }

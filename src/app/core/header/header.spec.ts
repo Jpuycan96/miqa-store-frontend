@@ -29,7 +29,7 @@ describe('Public header',()=>{
   const nav=vi.spyOn(TestBed.inject(Router),'navigate').mockResolvedValue(true);
   f.componentRef.setInput('catalogMode',true);f.componentInstance.search.setValue('  tarjetas  ');await new Promise(resolve=>setTimeout(resolve,300));
   expect(nav).toHaveBeenCalledWith(['productos'],{queryParams:{buscar:'tarjetas'},replaceUrl:true});
-  const open=vi.spyOn(f.componentInstance.quote,'open');f.nativeElement.querySelector('.quote-toggle').click();expect(open).toHaveBeenCalledOnce();
+  const access=vi.spyOn(f.componentInstance.quotePresentation,'requestPanel');f.nativeElement.querySelector('.quote-toggle').click();await f.whenStable();expect(access).toHaveBeenCalledOnce();
  });
  it('renders asynchronously received categories rather than fixed category names',async()=>{
   const received=new Subject<readonly ProductCategory[]>();

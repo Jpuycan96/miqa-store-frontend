@@ -1,2 +1,2 @@
 <router-outlet />
-<app-quote-drawer />
+<div class="quote-toast" role="status" aria-atomic="true" [class.visible]="quote.confirmation()">{{ quote.confirmation() }}</div>

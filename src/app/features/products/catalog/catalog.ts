@@ -9,6 +9,7 @@ import { catchError, combineLatest, debounceTime, distinctUntilChanged, map, of,
 import { ProductCatalog } from '../../../core/data/product-catalog';
 import { Product } from '../../../shared/models/product';
 import { QuoteStore } from '../../../core/quote/quote-store';
+import { QuotePresentation } from '../../../core/quote/quote-presentation';
 import { QuotePanel } from '../../../core/quote/quote-panel/quote-panel';
 import { breadcrumb, PAGE_SEO, Seo } from '../../../core/seo/seo';
 
@@ -84,7 +85,13 @@ export class Catalog {
   readonly filtered = computed(() => this.state().products);
   retry() { this.refresh.next(); }
   readonly quote = inject(QuoteStore);
+  readonly quotePresentation = inject(QuotePresentation);
   constructor() {
+    this.quotePresentation.catalogPage.set(true);
+    this.destroyRef.onDestroy(() => {
+      this.quotePresentation.catalogPage.set(false);
+      this.quotePresentation.dismissEmpty();
+    });
     const seo=inject(Seo);
     effect(()=>{
       this.query.set(this.requestedSearch());

@@ -7,7 +7,7 @@
     }
   </div>
   @if (categoryState().error) { <p class="status" role="alert">No pudimos cargar las categorías. <button type="button" (click)="retry()">Reintentar</button></p> }
-  <div class="catalog-layout" [class.has-quote]="quote.totalItems() > 0"><div class="catalog-main">
+  <div class="catalog-layout" [class.has-quote]="quotePresentation.panelVisible()"><div class="catalog-main">
   @if (state().loading) { <p class="status" role="status">Cargando productos…</p> }
   @else if (state().error) { <p class="status" role="alert">No pudimos cargar los productos. <button type="button" (click)="retry()">Reintentar</button></p> }
   @else {
@@ -37,5 +37,5 @@
     </div>
     <p class="image-note">Imágenes referenciales. Los detalles de producción se confirman con nuestro equipo.</p>
   }
-  </div>@if (quote.totalItems()) { <app-quote-panel /> }</div>
+  </div>@if (quotePresentation.panelVisible()) { <app-quote-panel id="integrated-quote-panel" /> }</div>
 </section>
