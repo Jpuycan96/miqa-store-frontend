@@ -7,7 +7,7 @@ import { ProductImageGallery } from '../../../shared/product-images/product-imag
 import { ChangeDetectionStrategy, Component, computed, effect, inject, DestroyRef, afterRenderEffect, ElementRef, signal, viewChild } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { catchError, combineLatest, Subject, distinctUntilChanged, map, of, startWith, switchMap } from 'rxjs';
 import { ProductCatalog } from '../../../core/data/product-catalog';
 import { QuoteStore } from '../../../core/quote/quote-store';
@@ -26,10 +26,19 @@ interface ProductState { slug?: string; product?: Product; loading: boolean; err
 export class ProductDetail {
   private readonly catalog = inject(ProductCatalog);
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
+  private readonly returnParams = toSignal(this.route.queryParamMap ?? of(this.route.snapshot.queryParamMap));
+  readonly returnToProducts = computed(() => {
+    const target = this.returnParams()?.get('regresar') ?? '';
+    const path = target.split('?')[0];
+    const safe = (path === '/productos' || this.categories().some(category => path === `/productos/${category.slug}`))
+      && !target.includes('\\') && !target.includes('#');
+    return this.router.parseUrl(safe ? target : '/productos');
+  });
   private readonly seo = inject(Seo);
   readonly quote = inject(QuoteStore);
   readonly quotePresentation = inject(QuotePresentation);
-  readonly integratedOpen = computed(() => this.quotePresentation.integrated() && this.quote.isOpen());
+  readonly integratedOpen = computed(() => this.quotePresentation.integrated() && this.quote.isOpen() && this.quote.totalItems() > 0);
   private readonly quoteTab = viewChild<ElementRef<HTMLButtonElement>>('quoteTab');
   private readonly quotePanel = viewChild('inlinePanel', { read: ElementRef });
   private readonly focusQuote = signal<'tab' | 'panel' | null>(null);

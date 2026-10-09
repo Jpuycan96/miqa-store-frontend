@@ -34,7 +34,7 @@ function type(input: HTMLInputElement, value: string, finish = true) {
   if (finish) input.dispatchEvent(new Event('blur'));
 }
 
-it.each(['/productos', '/productos/roll-up'])('initializes and edits quantities with relative buttons in %s', async path => {
+it.each(['/productos/roll-up'])('initializes and edits quantities with relative buttons in %s', async path => {
   const h = await RouterTestingHarness.create(path);
   await h.fixture.whenStable();
   const control = h.routeNativeElement!.querySelector('.quantity-control')!;

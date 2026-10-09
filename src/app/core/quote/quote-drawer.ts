@@ -1,4 +1,7 @@
 import { QuantityInput } from '../../shared/quantity-input';
+import { ProductImageView } from '../../shared/product-images/product-image';
+import { productImages } from '../../shared/product-images/product-images';
+import { QuoteItem } from '../../shared/models/quote-item';
 import { QuoteSubmit } from './quote-submit';
 import { QuoteSubmission } from './quote-submission';
 import { afterRenderEffect, ChangeDetectionStrategy, Component, DOCUMENT, ElementRef, inject, OnDestroy, viewChild } from '@angular/core';
@@ -7,7 +10,7 @@ import { QuoteStore } from './quote-store';
 import { describeQuoteItem } from './quote-utils';
 
 @Component({
-  imports: [QuantityInput, QuoteSubmit],
+  imports: [ProductImageView, QuantityInput, QuoteSubmit],
   selector: 'app-quote-drawer',
   templateUrl: './quote-drawer.html',
   styleUrl: './quote-drawer.scss',
@@ -16,6 +19,10 @@ import { describeQuoteItem } from './quote-utils';
 export class QuoteDrawer implements OnDestroy {
   readonly submission = inject(QuoteSubmission);
   readonly quote = inject(QuoteStore);
+  imageFor(item: QuoteItem) {
+    const product = this.quote.productFor(item);
+    return product ? productImages(product)[0]?.url ?? '' : '';
+  }
   private readonly presentation = inject(QuotePresentation);
   readonly describe = describeQuoteItem;
   private readonly document = inject(DOCUMENT);

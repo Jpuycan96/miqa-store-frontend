@@ -6,21 +6,28 @@
     <details><summary>Ver productos de esta solicitud</summary><p class="snapshot">{{ message }}</p></details>
   }
   <button type="button" class="secondary" (click)="submission.startNew()">Preparar otra solicitud</button>
+  @if (showClear()) { <button type="button" class="clear-action" (click)="quote.clear()">Vaciar cotización</button> }
 } @else {
-  <form [formGroup]="submission.form" (ngSubmit)="submission.submit()" [attr.aria-busy]="submission.state() === 'sending'">
-    <h3>Datos de contacto</h3>
+  <form novalidate [formGroup]="submission.form" (ngSubmit)="submit()" [attr.aria-busy]="submission.state() === 'sending'">
+    <button class="contact-toggle" type="button" [attr.aria-expanded]="contactOpen()" (click)="contactOpen.set(!contactOpen())">Datos de contacto <span aria-hidden="true">{{ contactOpen() ? '⌃' : '⌄' }}</span></button>
+    <div class="contact-fields" [hidden]="!contactOpen()">
     <p>Registraremos tu solicitud en MIQA. Después podrás continuar por WhatsApp.</p>
     <label>Nombre <input formControlName="name" autocomplete="name" maxlength="160" required [attr.aria-invalid]="submission.form.controls.name.touched && submission.form.controls.name.invalid"></label>
     <label>WhatsApp / teléfono <input formControlName="phone" type="tel" autocomplete="tel" maxlength="32" required [attr.aria-invalid]="submission.form.controls.phone.touched && submission.form.controls.phone.invalid"></label>
     <label>Email (opcional) <input formControlName="email" type="email" autocomplete="email" maxlength="254" [attr.aria-invalid]="submission.form.controls.email.touched && submission.form.controls.email.invalid"></label>
-    <label>Notas generales (opcional) <textarea formControlName="notes" rows="2" maxlength="1000"></textarea></label>
+    <label>Notas generales (opcional) <textarea formControlName="notes" rows="2" maxlength="1000" [attr.aria-invalid]="submission.form.controls.notes.touched && submission.form.controls.notes.invalid"></textarea></label>
+    @if (submission.form.touched && submission.form.invalid) { <p class="error" role="alert">Revisa los datos de contacto. El nombre y teléfono son obligatorios; el correo debe ser válido.</p> }
+    </div>
     @if (submission.pending(); as attempt) {
       <p class="hint">Este envío conserva {{ attempt.request.items.length }} productos y los datos originales. Los cambios posteriores en tu cotización serán para otra solicitud.</p>
       <details><summary>Ver el contenido de este envío</summary><p class="snapshot">{{ attempt.message }}</p></details>
     }
+    <div class="bottom-actions">
+    @if (showClear()) { <button type="button" class="clear-action" (click)="quote.clear()" [disabled]="submission.state() === 'sending'">Vaciar cotización</button> }
     <button type="submit" class="submit-action" [disabled]="submission.state() === 'sending'">
       {{ submission.state() === 'sending' ? 'Registrando solicitud…' : submission.pending() ? 'Reintentar el mismo envío' : 'Enviar solicitud de cotización' }}
     </button>
+    </div>
     @if (submission.pending() && submission.state() !== 'sending') {
       <button type="button" class="secondary" (click)="submission.startNew()">Modificar solicitud</button>
     }

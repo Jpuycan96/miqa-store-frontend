@@ -31,7 +31,7 @@ h2 { margin-block: 5px 8px; font-size: 20px; font-weight: 600; color: var(--miqa
 .status, .empty { grid-column: 1 / -1; padding-block: 24px; } .empty p { margin-block: 12px; color: var(--muted); } .empty button { min-height: 44px; border: 0; background: none; text-decoration: underline; }
 @media (min-width: 600px) { .product-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (min-width: 1024px) { .catalog-heading { flex-direction: row; align-items: center; justify-content: space-between; gap: 24px; } .field { width: 280px; } .product-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
-@media (min-width: 1280px) { .catalog-layout { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 1fr); gap: 24px; } }
+@media (min-width: 1280px) { .catalog-layout.has-quote { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 1fr); gap: 24px; } }
 
 @media (min-width: 1024px) {
   .catalog { padding-block: 12px 24px; }

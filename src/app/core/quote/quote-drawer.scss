@@ -40,3 +40,7 @@ li.updated { background: #e9fafa; box-shadow: inset 3px 0 #16b8c4; }
   text-decoration: underline;
   text-underline-offset: 3px;
 }
+
+.drawer-content li { display: grid; grid-template-columns: 60px minmax(0, 1fr); gap: 10px; padding-block: 10px; }
+.item-thumbnail { width: 60px; height: 76px; overflow: hidden; border-radius: 6px; }
+.item-summary { min-width: 0; }

@@ -27,3 +27,11 @@ h3 { margin: 0; font-size: 16px; font-weight: 600; line-height: 1.4; }
   :host(.compact) textarea { min-height: 36px; height: 36px; padding: 6px 8px; }
   :host(.compact) .submit-action { min-height: 40px; padding: 7px 10px; }
 }
+
+.contact-toggle { display: flex; justify-content: space-between; align-items: center; min-height: 44px; border: 0; background: transparent; color: inherit; font: inherit; font-weight: 600; cursor: pointer; padding: 0; }
+.contact-fields { display: grid; gap: 8px; }
+.contact-fields[hidden] { display: none; }
+.bottom-actions { display: flex; align-items: stretch; gap: 8px; }
+.bottom-actions > button { flex: 1; min-width: 0; }
+.clear-action { border: 1px solid #8390a0; border-radius: 20px; background: transparent; color: inherit; font-size: 12px; cursor: pointer; min-height: 44px; padding: 8px; }
+@media (max-width: 380px) { .bottom-actions { flex-direction: column; } }

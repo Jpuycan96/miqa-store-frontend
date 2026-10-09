@@ -1,25 +1,58 @@
-import { QuantityInput } from '../../../shared/quantity-input';
+import { firstValueFrom } from 'rxjs';
+import { PublicPricing } from '../../../core/data/public-pricing';
+import { directErpSelection } from '../../../core/quote/erp-quote';
 import { ProductImageGallery } from '../../../shared/product-images/product-image-gallery';
-import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
-import { toObservable, toSignal } from '@angular/core/rxjs-interop';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, signal, DestroyRef } from '@angular/core';
+import { toObservable, toSignal, takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { catchError, combineLatest, debounceTime, distinctUntilChanged, map, of, startWith, Subject, switchMap } from 'rxjs';
 import { ProductCatalog } from '../../../core/data/product-catalog';
 import { Product } from '../../../shared/models/product';
 import { QuoteStore } from '../../../core/quote/quote-store';
-import { createQuoteItem, normalizeQuantity } from '../../../core/quote/quote-utils';
-import { AreaConfigurator } from '../area-configurator/area-configurator';
 import { QuotePanel } from '../../../core/quote/quote-panel/quote-panel';
 import { breadcrumb, PAGE_SEO, Seo } from '../../../core/seo/seo';
 
 @Component({
-  selector: 'app-catalog', imports: [QuantityInput, RouterLink, ProductImageGallery, AreaConfigurator, QuotePanel],
+  selector: 'app-catalog', imports: [RouterLink, ProductImageGallery, QuotePanel],
   templateUrl: './catalog.html', styleUrl: './catalog.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class Catalog {
   private readonly source = inject(ProductCatalog);
   private readonly router = inject(Router);
+  private readonly pricing = inject(PublicPricing);
+  private readonly destroyRef = inject(DestroyRef);
+  readonly adding = signal<string | null>(null);
+  catalogReturn() {
+    const tree = this.router.parseUrl(this.router.url);
+    tree.queryParams = { ...tree.queryParams };
+    const search = this.query().trim();
+    if (search) tree.queryParams['buscar'] = search;
+    else delete tree.queryParams['buscar'];
+    return this.router.serializeUrl(tree);
+  }
+  async addFromCatalog(product: Product) {
+    if (this.adding()) return;
+    const open = () => this.router.navigate(['/productos', product.slug], {
+      queryParams: { regresar: this.catalogReturn() }
+    });
+    if (!directErpSelection(product)) { await open(); return; }
+    this.adding.set(product.id);
+    try {
+      const fresh = await firstValueFrom(this.source.findBySlug(product.slug).pipe(takeUntilDestroyed(this.destroyRef)));
+      if (this.destroyRef.destroyed) return;
+      const selection = fresh && directErpSelection(fresh);
+      if (!fresh || !selection?.erp) { await open(); return; }
+      const result = await firstValueFrom(this.pricing.evaluate({
+        productId: fresh.id, quantity: selection.quantity,
+        erpMaterialId: selection.erp.erpMaterialId, erpModelId: selection.erp.erpModelId ?? null,
+        measures: selection.erp.measures
+      }).pipe(takeUntilDestroyed(this.destroyRef)));
+      if (this.destroyRef.destroyed) return;
+      if (result.status !== 'PRICE_AVAILABLE' || !this.quote.addItem(fresh, selection)) await open();
+    } catch { if (!this.destroyRef.destroyed) await open(); }
+    finally { this.adding.set(null); }
+  }
   private readonly route = inject(ActivatedRoute);
   private readonly params = toSignal(this.route.queryParamMap, { initialValue: this.route.snapshot.queryParamMap });
   private readonly routeData = toSignal(this.route.data, { initialValue: this.route.snapshot.data });
@@ -51,13 +84,6 @@ export class Catalog {
   readonly filtered = computed(() => this.state().products);
   retry() { this.refresh.next(); }
   readonly quote = inject(QuoteStore);
-  readonly selected = signal<Product | null>(null);
-  readonly quantities = signal<Record<string, number>>({});
-  quantity(product: Product) { return this.quantities()[product.id] ?? product.minQuantity ?? 1; }
-  setQuantity(product: Product, quantity: number) { this.quantities.update(values => ({ ...values, [product.id]: quantity })); }
-  change(product: Product, delta: number) { this.quantities.update(values => ({ ...values, [product.id]: normalizeQuantity(this.quantity(product) + delta, product.minQuantity) })); }
-  canAdd(product: Product) { return !!createQuoteItem(product, { quantity: this.quantity(product) }, 'preview'); }
-  add(product: Product) { this.quote.addItem(product, { quantity: this.quantity(product) }); }
   constructor() {
     const seo=inject(Seo);
     effect(()=>{

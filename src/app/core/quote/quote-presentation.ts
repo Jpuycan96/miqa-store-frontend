@@ -10,7 +10,7 @@ export class QuotePresentation {
     const document = inject(DOCUMENT);
     const destroy = inject(DestroyRef);
     afterNextRender(() => {
-      const media = document.defaultView?.matchMedia('(min-width: 1120px)');
+      const media = document.defaultView?.matchMedia?.('(min-width: 1120px)');
       if (!media) return;
       const update = () => this.desktop.set(media.matches);
       update();

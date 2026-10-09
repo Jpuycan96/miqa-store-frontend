@@ -1,3 +1,12 @@
+## Catalogo, carrito y contacto - 9 de octubre de 2026
+
+- Las tarjetas usan Agregar al carrito con icono y sin controles de cantidad. Configuraciones ambiguas, legacy o con medidas abren la ficha existente. El agregado directo ERP exige ESCALA sin medidas, un material y cero/un modelo segun su modo, minimo valido y revisiones completas; recarga la ficha y exige PRICE_AVAILABLE antes de usar QuoteStore.addItem. Fallos abren la ficha; navegacion cancela el intento. Sin reglas por nombres/IDs ni calculos de precios.
+- Regresar a productos conserva la URL de catalogo, categoria, filtros y busqueda mediante un UrlTree validado; destinos externos o que no sean catalogo/categorias publicas vuelven a /productos. No depende de history.back ni cambia la persistencia.
+- Catalogo sin lineas no monta el panel ni reserva columna. La ficha no expande su panel integrado vacio. Panel y drawer muestran la imagen editorial de cada linea desde los productos ya conocidos por QuoteStore, con productImages y el placeholder compartido; cantidades e identidad existentes conservadas.
+- QuoteSubmit mantiene su formulario compartido montado, con contacto inicialmente cerrado, aria-expanded, apertura ante errores y foco al primer campo invalido. Vaciar y enviar comparten fila, con apilado en pantallas pequenas; envio, reintento inmutable, payloads y WhatsApp conservados.
+- Limitacion del contrato actual: los precios preview ERP no se guardan en las lineas. No se presenta un total monetario ni IGV inventado en la cotizacion; precios existentes del configurador intactos. No se verificaron los productos nombrados contra produccion ni se corrigio el 409 historico de LLAVERO.
+- Validacion: 133 tests focalizados en 15 archivos; build offline de produccion con 14 rutas y avisos CSS existentes en catalogo/detalle/panel. Ocho auditorias Edge/axe a 1440/390 px (catalogo vacio/con productos, contacto cerrado/errores) con API simulada, cero infracciones, overflow horizontal o errores JS. Evidencias locales ignoradas en .tmp/catalog-cart-*. Sin commit, push, deploy, cambio de rama o backend; ERP_PRICING_DIAGNOSTIC.md preexistente preservado.
+
 ## Layout final del configurador ERP - 6 de octubre de 2026
 
 - Material y Modelo comparten dos columnas desde 768 px; modelos verticales sin borde ni fondo de tarjeta. En movil se apilan Material, Modelo, Cantidad y Precio. Cantidad se renderiza una sola vez debajo de las opciones; medidas existentes conservadas.

@@ -162,7 +162,7 @@ describe('Persistent quote submission', () => {
     const fixture = TestBed.createComponent(QuoteSubmit); await fixture.whenStable();
     const element: HTMLElement = fixture.nativeElement;
     expect(element.querySelectorAll('input')).toHaveLength(3);
-    expect(element.querySelector('h3')?.textContent).toBe('Datos de contacto');
+    expect(element.querySelector('.contact-toggle')?.textContent).toContain('Datos de contacto');
     expect(element.textContent).toContain('Registraremos tu solicitud en MIQA. Después podrás continuar por WhatsApp.');
     expect(element.querySelector('button[type=submit]')?.textContent).toContain('Enviar solicitud de cotización');
     expect(element.querySelector('a')).toBeNull();

@@ -62,3 +62,12 @@ li.updated { background: #e9fafa; box-shadow: inset 3px 0 #16b8c4; }
   .quote-total { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; font-size: 13px; }
   :host(.compact) .quantity-control { justify-self: start; }
 }
+
+li { display: grid; grid-template-columns: 60px minmax(0, 1fr); gap: 10px; padding-block: 10px; }
+.item-thumbnail { width: 60px; height: 76px; overflow: hidden; border-radius: 6px; }
+.item-summary { min-width: 0; }
+h3 { margin: 0; }
+.configuration { margin-block: 4px; }
+.panel-items { min-height: 0; flex: 1 1 auto; overflow-y: auto; overscroll-behavior: contain; }
+.panel-actions { margin-top: auto; padding-top: 8px; }
+:host(.compact) .item-controls { display: flex; }

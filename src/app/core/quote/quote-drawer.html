@@ -11,7 +11,8 @@
         <ul>
           @for (item of quote.items(); track item.id) {
             <li [class.updated]="quote.highlightedItemId() === item.id">
-              <h3>{{ item.productName }}</h3>
+              <div class="item-thumbnail"><app-product-image [src]="imageFor(item)" [alt]="item.productName" sizes="10vw" /></div>
+              <div class="item-summary"><h3>{{ item.productName }}</h3>
               <p class="configuration">{{ describe(item) }}</p>
             <p class="quantity-minimum">Mínimo {{ quote.quantityRules(item).minimum }} {{ item.erp ? item.unitLabel : (item.saleType === 'PACK' ? 'presentaciones' : 'unidades') }}</p>
               <div class="item-controls">
@@ -21,7 +22,7 @@
                   <button [attr.aria-label]="'Aumentar cantidad de ' + item.productName" (click)="quote.changeQuantity(item, quote.quantityRules(item).step)">+</button>
                 </div>
                 <button class="remove" [attr.aria-label]="'Eliminar ' + item.productName + ' de la cotización'" (click)="quote.removeItem(item.id)">Eliminar</button>
-              </div>
+              </div></div>
             </li>
           }
         </ul>
@@ -32,8 +33,7 @@
     @if (quote.items().length || submission.pending() || submission.confirmed()) {
       <div class="drawer-bottom">
         <p>Revisaremos las medidas y los detalles contigo antes de producir.</p>
-        <app-quote-submit />
-        <button class="clear" (click)="quote.clear()">Vaciar cotización</button>
+        <app-quote-submit [showClear]="true" />
       </div>
     }
   </div>

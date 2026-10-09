@@ -68,6 +68,8 @@ button:disabled { opacity: .5; cursor: not-allowed; }
   :host { display: block; height: 100%; }
   .product-detail { height: 100%; box-sizing: border-box; padding-block: 12px 16px; }
   .breadcrumb { display: none; }
-  .detail-layout { height: 100%; }
+  .detail-layout { height: calc(100% - 52px); }
   .product-copy { min-height: 100%; box-sizing: border-box; padding: 14px; border: 1px solid #8b9bb0; border-radius: 16px; }
 }
+
+.return-products { display: inline-flex; align-items: center; min-height: 44px; margin-bottom: 8px; color: var(--miqa-navy); text-decoration: underline; }

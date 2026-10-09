@@ -6,26 +6,18 @@
       <ul>
         @for (item of quote.items(); track item.id) {
           <li [class.updated]="quote.highlightedItemId() === item.id">
-            <h3>{{ item.productName }}</h3>
+            <div class="item-thumbnail"><app-product-image [src]="imageFor(item)" [alt]="item.productName" sizes="5vw" /></div>
+            <div class="item-summary"><h3>{{ item.productName }}</h3>
             <p class="configuration">{{ describe(item) }}</p>
             <p class="quantity-minimum">Mínimo {{ quote.quantityRules(item).minimum }} {{ item.erp ? item.unitLabel : (item.saleType === 'PACK' ? 'presentaciones' : 'unidades') }}</p>
             <div class="item-controls">
-              @if (compact()) {
-                <div class="item-thumbnail" aria-hidden="true">
-                  @if (item.productId === currentProduct()?.id && thumbnail(); as image) {
-                    <img [ngSrc]="image.url" width="44" height="44" alt="">
-                  } @else {
-                    <svg viewBox="0 0 24 24"><path d="M4 4h16v16H4zM4 16l5-5 4 4 3-3 4 4M15 8h.01"/></svg>
-                  }
-                </div>
-              }
               <div class="quantity-control" role="group" [attr.aria-label]="'Cantidad de ' + item.productName">
                 <button [attr.aria-label]="'Reducir cantidad de ' + item.productName" [disabled]="item.quantity <= quote.quantityRules(item).minimum" (click)="quote.changeQuantity(item, -quote.quantityRules(item).step)">−</button>
                 <input appQuantityInput [erpRules]="item.erp?.quantityRules" [quantity]="item.quantity" [minimum]="quote.quantityRules(item).minimum" (quantityChange)="quote.updateQuantity(item.id, $event)" [attr.aria-label]="'Cantidad de ' + item.productName">
                 <button [attr.aria-label]="'Aumentar cantidad de ' + item.productName" (click)="quote.changeQuantity(item, quote.quantityRules(item).step)">+</button>
               </div>
               <button type="button" class="remove" [attr.title]="'Eliminar ' + item.productName" [attr.aria-label]="'Eliminar ' + item.productName + ' de la cotización'" (click)="quote.removeItem(item.id)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 10v7M14 10v7"/></svg></button>
-            </div>
+            </div></div>
           </li>
         }
       </ul>
@@ -36,10 +28,10 @@
   @if (quote.items().length || submission.pending() || submission.confirmed()) {
     <div class="panel-actions">
       @if (compact() && quote.items().length) {
-        <div class="quote-total"><span>Total ({{ quote.totalItems() }} {{ quote.totalItems() === 1 ? "producto" : "productos" }})</span></div>
+        <div class="quote-total"><span>{{ quote.totalItems() }} {{ quote.totalItems() === 1 ? "producto" : "productos" }}</span></div>
       }
-      <app-quote-submit [compact]="compact()" />
-      <button type="button" class="clear" (click)="quote.clear()"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 10v7M14 10v7"/></svg> Vaciar cotización</button>
+      <app-quote-submit [compact]="compact()" [showClear]="true" />
+
     </div>
   }
 </section>

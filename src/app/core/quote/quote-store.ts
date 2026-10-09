@@ -46,6 +46,7 @@ export class QuoteStore {
 
   open() { this.visibility.set(true); }
   close() { this.visibility.set(false); }
+  productFor(item: QuoteItem) { return this.products.get(item.productId); }
 
   addItem(product: Product, configuration: QuoteConfiguration): boolean {
     const item = createQuoteItem(product, configuration, `quote-${++this.nextId}`);
