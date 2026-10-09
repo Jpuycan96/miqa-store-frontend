@@ -22,15 +22,22 @@ import { ProductImageView } from './product-image';
   styles: `
     :host { display:block; position:relative; width:100%; height:100%; }
     .gallery { display:grid; height:100%; min-height:0; grid-template-rows:minmax(0,1fr); }
-    .gallery.has-thumbnails { grid-template-rows:minmax(0,1fr) 64px; gap:8px; }
+    .gallery.has-thumbnails { grid-template-rows:minmax(0,1fr) 80px; gap:8px; }
     .main-image { min-width:0; min-height:0; }
     .thumbnails { grid-row:2; display:flex; gap:6px; overflow:auto; }
-    .thumbnails button { flex-shrink:0; width:64px; height:64px; border:2px solid transparent; padding:2px; border-radius:6px; background:white; cursor:pointer; }
+    .thumbnails button { flex-shrink:0; width:80px; height:80px; box-sizing:border-box; border:2px solid transparent; padding:0; border-radius:6px; overflow:hidden; background:white; cursor:pointer; }
+    /* Keep detail-image's main-image padding/scale out of the thumbnails. */
+    .thumbnails app-product-image { --product-image-padding:2px; --product-image-scale:1; }
+    @media (hover:hover) and (prefers-reduced-motion:no-preference) {
+      .thumbnails app-product-image { transition:transform 250ms ease; }
+      .thumbnails button:hover app-product-image { transform:scale(1.04); }
+    }
     .thumbnails [aria-pressed=true] { border-color:#087e8a; }
     button:focus-visible { outline:3px solid #075b87; outline-offset:-3px; }
     @media (min-width:768px) {
-      .gallery.has-thumbnails { grid-template-columns:64px minmax(0,1fr); grid-template-rows:minmax(0,1fr); }
+      .gallery.has-thumbnails { grid-template-columns:90px minmax(0,1fr); grid-template-rows:minmax(0,1fr); }
       .thumbnails { grid-row:1; flex-direction:column; }
+      .thumbnails button { width:90px; height:90px; }
     }
   `
 })
