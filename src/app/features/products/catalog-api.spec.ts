@@ -6,6 +6,8 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { routes } from '../../app.routes';
 import { QUOTE_STORAGE_KEY } from '../../core/quote/quote-store';
 import { ProductDto } from '../../core/data/catalog-mapper';
+import { mapProduct } from '../../core/data/catalog-mapper';
+import { QuoteStore } from '../../core/quote/quote-store';
 import { environment } from '../../../environments/environment';
 
 const base = `${environment.storeApiBaseUrl}/api/public`;
@@ -22,7 +24,9 @@ describe('Catalog HTTP integration without backend', () => {
     TestBed.configureTestingModule({ providers: [provideRouter(routes), provideHttpClient(), provideHttpClientTesting()] });
     http = TestBed.inject(HttpTestingController);
   });
-  afterEach(() => { http.verify(); localStorage.removeItem(QUOTE_STORAGE_KEY); });
+  afterEach(() => {
+    try { http.verify(); } finally { TestBed.resetTestingModule(); localStorage.removeItem(QUOTE_STORAGE_KEY); }
+  });
   it('renders loading, API errors, retry, API-only data and empty states', async () => {
     const h = await RouterTestingHarness.create('/productos');
     const el = h.routeNativeElement!;
@@ -50,6 +54,7 @@ describe('Catalog HTTP integration without backend', () => {
     await new Promise(resolve => setTimeout(resolve, 650));
     expect(stale.cancelled).toBe(true);
     http.expectOne(r => r.params.get('search') === 'empty').flush([]);
+    http.match(base + '/categories').forEach(request => { if (!request.cancelled) request.flush([product.category]); });
     await h.fixture.whenStable();
     expect(el.querySelector('.empty')).toBeTruthy();
   });
@@ -67,6 +72,7 @@ describe('Catalog HTTP integration without backend', () => {
     http.expectOne(base + '/products/api-only').flush({}, { status: 500, statusText: 'Error' });
     await h.fixture.whenStable();
     h.routeNativeElement!.querySelector<HTMLButtonElement>('.unavailable button')!.click();
+    http.match(base + '/categories').forEach(request => { if (!request.cancelled) request.flush([]); });
     http.expectOne(base + '/products/api-only').flush(product);
     await h.fixture.whenStable();
     expect(h.routeNativeElement!.querySelector('h1')?.textContent).toBe(product.name);
@@ -79,5 +85,69 @@ describe('Catalog HTTP integration without backend', () => {
   it('uses non-empty product SEO fields and falls back for blank strings',async()=>{
     const creating=RouterTestingHarness.create('/productos/api-only');await new Promise(resolve=>setTimeout(resolve,0));http.expectOne(base+'/categories').flush([]);const h=await creating;http.match(base+'/categories').forEach(request=>request.flush([]));http.expectOne(base+'/products/api-only').flush({...product,seoTitle:'   ',seoDescription:' ',shortDescription:'Descripción corta'});await h.fixture.whenStable();
     expect(document.title).toBe('API only product | MIQA');expect(document.querySelector('meta[name=description]')?.getAttribute('content')).toBe('Descripción corta');expect(document.querySelector('link[rel=canonical]')?.getAttribute('href')).toBe('https://store.solucionesmicaela.com/productos/api-only');
+  });
+
+  it('loads new publications and removes disabled products on return without clearing the quote', async () => {
+    const h = await RouterTestingHarness.create('/productos');
+    const flushCategories = () => http.match(base + '/categories').forEach(request => {
+      if (!request.cancelled) request.flush([product.category]);
+    });
+    flushCategories(); http.expectOne(base + '/products').flush([product]); await h.fixture.whenStable();
+    const quote = TestBed.inject(QuoteStore);
+    expect(quote.addItem(mapProduct(product), { quantity: 3, notes: 'Conservar mi pedido' })).toBe(true);
+    await h.fixture.whenStable(); const lines = structuredClone(quote.items());
+    const opening = h.navigateByUrl('/productos/api-only');
+    await new Promise(resolve => setTimeout(resolve, 0)); flushCategories(); await opening;
+    flushCategories(); http.expectOne(base + '/products/api-only').flush({ ...product, name: 'Ficha actualizada', seoTitle: 'SEO actual' });
+    await h.fixture.whenStable();
+    expect(h.routeNativeElement!.querySelector('h1')?.textContent).toBe('Ficha actualizada');
+    expect(document.title).toBe('SEO actual');
+    expect(quote.items()).toEqual(lines);
+
+    await h.navigateByUrl('/productos'); flushCategories();
+    const newProduct = { ...product, id: 'published-after-build', slug: 'published-after-build', name: 'Nuevo publicado' };
+    http.expectOne(base + '/products').flush([newProduct]); await h.fixture.whenStable();
+    expect(h.routeNativeElement!.querySelectorAll('.catalog-card')).toHaveLength(1);
+    expect(h.routeNativeElement!.querySelector('.catalog-card')?.textContent).toContain('Nuevo publicado');
+    expect(h.routeNativeElement!.querySelector('.product-grid')?.textContent).not.toContain('API only product');
+    expect(quote.items()).toEqual(lines);
+    const newDetail = h.navigateByUrl('/productos/published-after-build');
+    await new Promise(resolve => setTimeout(resolve, 0)); flushCategories(); await newDetail;
+    flushCategories(); http.expectOne(base + '/products/published-after-build').flush(newProduct);
+    await h.fixture.whenStable();
+    expect(h.routeNativeElement!.querySelector('h1')?.textContent).toBe('Nuevo publicado');
+    expect(quote.items()).toEqual(lines);
+  });
+
+  it('recognizes a category added after build and refreshes a reused category page and header', async () => {
+    let category = { slug: 'categoria-nueva', name: 'Nueva', catalogHeadline: 'Título inicial', catalogDescription: 'Texto inicial' };
+    const creating = RouterTestingHarness.create('/productos/categoria-nueva');
+    await new Promise(resolve => setTimeout(resolve, 0));
+    const guard = http.expectOne(base + '/categories');
+    expect(guard.request.transferCache).toBe(false); guard.flush([category]);
+    const h = await creating;
+    const flushCategories = () => http.match(base + '/categories').forEach(request => {
+      if (!request.cancelled) request.flush([category]);
+    });
+    flushCategories(); http.expectOne(request => request.url === base + '/products').flush([{ ...product, category }]);
+    await h.fixture.whenStable(); expect(h.routeNativeElement!.querySelector('h1')?.textContent).toBe('Título inicial');
+    category = { slug: 'otra-nueva', name: 'Nombre actual', catalogHeadline: 'Título actual', catalogDescription: 'Texto actual' };
+    const navigating = h.navigateByUrl('/productos/otra-nueva');
+    await new Promise(resolve => setTimeout(resolve, 0)); flushCategories(); await navigating;
+    flushCategories(); http.expectOne(request => request.url === base + '/products').flush([{ ...product, category }]);
+    await h.fixture.whenStable();
+    expect(h.routeNativeElement!.querySelector('h1')?.textContent).toBe('Título actual');
+    expect(h.routeNativeElement!.querySelector('.intro')?.textContent).toBe('Texto actual');
+    expect(h.routeNativeElement!.querySelector('.desktop-nav')?.textContent).toContain('Nombre actual');
+    expect(document.title).toContain('Nombre actual');
+    category = { ...category, name: 'Nombre posfiltro', catalogHeadline: 'Título actualizado con filtros' };
+    const searching = h.navigateByUrl('/productos/otra-nueva?buscar=producto');
+    await new Promise(resolve => setTimeout(resolve, 0)); flushCategories(); await searching;
+    flushCategories(); await new Promise(resolve => setTimeout(resolve, 350));
+    http.expectOne(request => request.params.get('search') === 'producto').flush([{ ...product, category }]);
+    await h.fixture.whenStable();
+    expect(h.routeNativeElement!.querySelector('h1')?.textContent).toBe('Título actualizado con filtros');
+    expect(h.routeNativeElement!.querySelector('.desktop-nav')?.textContent).toContain('Nombre posfiltro');
+    expect(document.querySelector('meta[name=robots]')?.getAttribute('content')).toBe('noindex,follow');
   });
 });

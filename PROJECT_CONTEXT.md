@@ -1,3 +1,17 @@
+## Administrador sin sincronizacion manual - 9 de octubre de 2026
+
+- Retirados boton Sincronizar con ERP, synchronize/syncing, bloqueos asociados y metodo AdminApi.syncErp con su DTO exclusivo. El endpoint administrativo backend no se modifico y sigue fuera del alcance frontend para recuperacion operativa. Este cambio no activa ni configura webhooks.
+- Conservadas las consultas GET de bindings y estados tecnicos ERP; listado muestra lastSyncedAt por producto en UTC (Sin registro cuando falta) y errores seguros de consulta. No existe en este frontend una consulta de ultimo exito global; no se inventaron endpoints ni se confunde lastSyncedAt con succeededAt global. Lecturas por carga/filtros/reintento/guardado existentes; sin polling.
+- Edicion/publicacion/destacado, categorias, imagenes y compatibilidad legacy conservados. Solo actualizado erp-editorial.spec.ts: ausencia de trigger/polling, fecha/estado, binding inactivo, errores y reintento de lectura. Validacion: 51/51 pruebas admin en seis archivos; build produccion offline con 15 rutas, API simulada y sitemap/redirects restaurados, tres avisos CSS preexistentes. Sin cambios backend, precios, reglas comerciales, commit/push/deploy o rama; cambios locales previos y ERP_PRICING_DIAGNOSTIC.md preservados.
+
+## Catalogo actualizado tras hidratacion - 9 de octubre de 2026
+
+- CatalogApiService conserva el snapshot SSR para la primera hidratacion y revalida una vez tras ApplicationRef.whenStable con transferCache false y cache no-store. Sin TransferState, y en navegaciones posteriores, consulta directamente la API. Cancelacion y timeout existentes conservados; sin polling ni cache persistente nueva.
+- categoryCanMatch consulta categorias frescas para reconocer slugs incorporados despues del build. Header, catalogo reutilizado y ficha recargan categorias en sus navegaciones/filtros/reintentos. Productos sin publicacion se excluyen y 404 retira la ficha; UNAVAILABLE conserva su significado actual. SEO se actualiza con el servicio existente.
+- La actualizacion del mismo producto conserva el configurador y borrador; legacy solo inicializa al cambiar de ID. Fallo de revalidacion mantiene la ficha conocida con aviso/reintento. QuoteStore, lineas, reglas ERP, precios, contratos y contenido editorial intactos. Sin cambios backend o Cloudflare.
+- CATALOG_RUNTIME_FRESHNESS.md documenta el alcance, caches y estrategia futura de sitemap dinamico en el backend existente. Sitemap, redirects, HTML prerenderizado y estados HTTP de assets siguen siendo estaticos; no se implemento infraestructura adicional.
+- Validacion: 189/189 pruebas en 21 archivos; build produccion con API simulada y 15 rutas, restaurando sitemap/redirects originales. Avisos CSS existentes: catalogo 4.24 kB, ficha 4.31 kB y panel 6.73 kB. Dieciseis escenarios Edge/axe a 390/1440 px: altas/bajas sobre HTML anterior, nuevos slugs, categorias, fallo API y borrador/cotizacion conservados; sin errores, overflow ni infracciones. Evidencias ignoradas .tmp/catalog-fresh-*. Sin commit/push/deploy ni cambio de rama; ERP_PRICING_DIAGNOSTIC.md preexistente conservado.
+
 ## Footer publico compacto - 9 de octubre de 2026
 
 - Footer compartido conserva solo la franja de copyright, con el year dinamico existente y 12 px de padding vertical. Retirados bloques de marca/eslogan, navegacion y contacto del footer, junto con estilos/imports exclusivos. CTA de contacto de Inicio y FloatingWhatsApp independientes conservados.

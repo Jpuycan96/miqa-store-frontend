@@ -2,7 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
-import { of, Subject } from 'rxjs';
+import { BehaviorSubject, Observable, of, Subject } from 'rxjs';
 import { By } from '@angular/platform-browser';
 import { ErpConfigurator } from '../erp-configurator/erp-configurator';
 import { ProductDetail } from './product-detail';
@@ -24,11 +24,11 @@ describe('Shared product detail presentation', () => {
       removeEventListener: mediaEvents.removeEventListener.bind(mediaEvents) }));
   });
   afterEach(() => { TestBed.resetTestingModule(); vi.unstubAllGlobals(); localStorage.clear(); sessionStorage.clear(); });
-  async function setup(product: Product) {
+  async function setup(product: Product, updates?: Observable<Product | undefined>) {
     TestBed.configureTestingModule({ providers: [provideRouter([]), provideHttpClient(), provideHttpClientTesting(),
       { provide: ActivatedRoute, useValue: { paramMap: of(convertToParamMap({ slug: product.slug })), snapshot: { paramMap: convertToParamMap({ slug: product.slug }) } } },
       { provide: PublicPricing, useValue: { evaluate: () => of({ status: 'QUOTE_REQUIRED' }) } },
-      { provide: ProductCatalog, useValue: { findBySlug: () => of(product), categories: () => of([]), list: () => of([product]) } }
+      { provide: ProductCatalog, useValue: { findBySlug: () => updates ?? of(product), categories: () => of([]), list: () => of([product]) } }
     ] });
     const fixture = TestBed.createComponent(ProductDetail); await fixture.whenStable(); return fixture;
   }
@@ -93,4 +93,47 @@ describe('Shared product detail presentation', () => {
     expect(configurator.canAdd()).toBe(true);
   });
 
+  it.each(['ERP', 'LEGACY'] as const)('preserves the %s draft and quote when the hydration stream revalidates the same product', async mode => {
+    const product = mode === 'ERP' ? erpProduct() : PRODUCTS[2];
+    const updates = new BehaviorSubject<Product | undefined>(product);
+    const fixture = await setup(product, updates);
+    const quote = TestBed.inject(QuoteStore);
+    quote.addItem(PRODUCTS[0], { quantity: 3 }); await fixture.whenStable();
+    const lines = structuredClone(quote.items());
+    const configurator = mode === 'ERP' ? fixture.debugElement.query(By.directive(ErpConfigurator)).componentInstance as ErpConfigurator : null;
+    if (configurator) configurator.form.patchValue({ quantity: 2.5, material: '19', notes: 'Borrador ERP', measures: { ancho: 2, alto: 3 } });
+    else fixture.componentInstance.form.patchValue({ quantity: 7, notes: 'Borrador legacy' });
+    await fixture.whenStable();
+    const before = configurator?.form.getRawValue() ?? fixture.componentInstance.form.getRawValue();
+    const revised: Product = { ...structuredClone(product), name: 'Título actualizado', seoTitle: 'SEO actualizado' };
+    if (revised.configuration) revised.configuration.configurationVersion = '5';
+    updates.next(revised); await fixture.whenStable();
+    expect(fixture.nativeElement.querySelector('h1')?.textContent).toBe('Título actualizado');
+    expect(document.title).toBe('SEO actualizado');
+    if (configurator) expect(fixture.debugElement.query(By.directive(ErpConfigurator)).componentInstance).toBe(configurator);
+    expect(configurator?.form.getRawValue() ?? fixture.componentInstance.form.getRawValue()).toEqual(before);
+    expect(quote.items()).toEqual(lines);
+  });
+
+  it('reports a failed revalidation without unmounting the configurator or losing its draft', async () => {
+    const product = erpProduct(); const updates = new BehaviorSubject<Product | undefined>(product);
+    const fixture = await setup(product, updates);
+    const configurator = fixture.debugElement.query(By.directive(ErpConfigurator)).componentInstance as ErpConfigurator;
+    configurator.form.patchValue({ quantity: 2.5, notes: 'Conservar ante error' }); await fixture.whenStable();
+    const draft = configurator.form.getRawValue(); updates.error(new Error('API unavailable')); await fixture.whenStable();
+    expect(fixture.debugElement.query(By.directive(ErpConfigurator)).componentInstance).toBe(configurator);
+    expect(configurator.form.getRawValue()).toEqual(draft);
+    expect(fixture.nativeElement.querySelector('[role=alert]')?.textContent).toContain('No pudimos actualizar');
+  });
+
+  it('removes the disabled product detail and its indexable SEO while preserving quote lines', async () => {
+    const product = erpProduct(); const updates = new BehaviorSubject<Product | undefined>(product);
+    const fixture = await setup(product, updates); const quote = TestBed.inject(QuoteStore);
+    quote.addItem(PRODUCTS[0], { quantity: 3 }); await fixture.whenStable(); const lines = structuredClone(quote.items());
+    updates.next(undefined); await fixture.whenStable();
+    expect(fixture.nativeElement.querySelector('app-erp-configurator')).toBeNull();
+    expect(fixture.nativeElement.querySelector('h1')?.textContent).toContain('no está disponible');
+    expect(document.querySelector('meta[name=robots]')?.getAttribute('content')).toBe('noindex,follow');
+    expect(quote.items()).toEqual(lines);
+  });
 });

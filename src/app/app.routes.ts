@@ -5,7 +5,8 @@ import { ProductCatalog } from './core/data/product-catalog';
 
 export const categoryCanMatch: CanMatchFn = (_route, segments) => {
   const slug = segments[0]?.path ?? '';
-  return inject(ProductCatalog).categories().pipe(
+  // Route recognition must include categories added since the static build.
+  return inject(ProductCatalog).categories({ fresh: true }).pipe(
     map(categories => categories.some(category => category.slug === slug)),
     catchError(() => of(false))
   );

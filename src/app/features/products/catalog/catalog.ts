@@ -54,7 +54,10 @@ export class Catalog {
     startWith({ products: [], loading: true, error: false }),
     catchError(() => of({ products: [], loading: false, error: true }))
   ))), { initialValue: { products: [], loading: true, error: false } });
-  readonly categoryState = toSignal(this.refresh.pipe(startWith(undefined), switchMap(() =>
+  readonly categoryState = toSignal(combineLatest([
+    toObservable(this.category).pipe(distinctUntilChanged()), this.route.queryParamMap,
+    this.refresh.pipe(startWith(undefined))
+  ]).pipe(switchMap(() =>
     this.source.categories().pipe(
       map(categories => ({ categories, error: false })),
       catchError(() => of({ categories: [], error: true }))

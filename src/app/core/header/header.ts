@@ -3,7 +3,7 @@ import { ChangeDetectionStrategy, Component, computed, ElementRef, inject, input
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router, RouterLink } from '@angular/router';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
-import { catchError, debounceTime, filter, map, of, startWith, switchMap } from 'rxjs';
+import { catchError, debounceTime, filter, map, of, startWith, Subject, switchMap } from 'rxjs';
 import { ProductCatalog } from '../data/product-catalog';
 import { QuotePresentation } from '../quote/quote-presentation';
 import { QuoteStore } from '../quote/quote-store';
@@ -18,7 +18,10 @@ export class Header {
  private readonly router = inject(Router);
  private readonly source = inject(ProductCatalog);
  readonly catalogMode = input(false);
- readonly categories = toSignal(inject(ProductCatalog).categories().pipe(catchError(()=>of([]))),{initialValue:[]});
+ private readonly categoryRefresh = new Subject<void>();
+ private readonly initialNavigationId = this.router.currentNavigation()?.id;
+ readonly categories = toSignal(this.categoryRefresh.pipe(startWith(undefined),
+  switchMap(() => this.source.categories().pipe(catchError(() => of([]))))), {initialValue:[]});
  readonly menuOpen = signal(false);
  private readonly currentUrl = signal(this.router.url);
  readonly activeCategory = computed(()=>{
@@ -43,8 +46,10 @@ export class Header {
    ) : of({products:[],loading:false,error:false});
   })
  ),{initialValue:{products:[],loading:false,error:false}});
- constructor(){this.router.events.pipe(filter(event=>event instanceof NavigationEnd),takeUntilDestroyed()).subscribe(()=>{
+ constructor(){
+  this.router.events.pipe(filter(event=>event instanceof NavigationEnd),takeUntilDestroyed()).subscribe(event=>{
   this.currentUrl.set(this.router.url);
+  if (event.id !== this.initialNavigationId) this.categoryRefresh.next();
   if(this.catalogMode())this.search.setValue(this.router.parseUrl(this.router.url).queryParams['buscar']??'',{emitEvent:false});
  });}
  categoryLink(slug: string): string { return `/productos/${slug}`; }

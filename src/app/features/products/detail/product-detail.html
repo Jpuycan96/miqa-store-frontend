@@ -3,6 +3,7 @@
   <nav class="breadcrumb" aria-label="Ruta de navegación"><a routerLink="/">Inicio</a><span aria-hidden="true">/</span><a routerLink="/productos">Productos</a>@if (product(); as product) { <span aria-hidden="true">/</span><span aria-current="page">{{ product.name }}</span> }</nav>
   @if (state().loading && !product()) { <p role="status">Cargando producto…</p> }
   @else if (product(); as product) {
+    @if (state().error) { <p role="alert">No pudimos actualizar este producto. <button type="button" (click)="retry()">Reintentar</button></p> }
     <div class="detail-layout" [class.quote-expanded]="integratedOpen()">
       <div class="visual-column">
         <div class="detail-image"><app-product-image-gallery [product]="product" [priority]="true" sizes="(min-width: 1024px) 50vw, 90vw" /></div>

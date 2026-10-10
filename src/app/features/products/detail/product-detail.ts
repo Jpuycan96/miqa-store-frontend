@@ -50,13 +50,17 @@ export class ProductDetail {
         this.loadedProduct = { slug, product };
         return { slug, product, loading: false, error: false } as ProductState;
       }),
-      startWith({ slug, product: this.loadedProduct?.slug === slug && this.loadedProduct.product?.configuration?.mode === 'ERP'
+      startWith({ slug, product: this.loadedProduct?.slug === slug
         ? this.loadedProduct.product : undefined, loading: true, error: false } as ProductState),
-      catchError(() => of({ slug, loading: false, error: true } as ProductState))
+      catchError(() => of({ slug, product: this.loadedProduct?.slug === slug ? this.loadedProduct.product : undefined,
+        loading: false, error: true } as ProductState))
     ))
   ), { initialValue: { loading: true, error: false } as ProductState });
   readonly product = computed(() => this.state().product);
-  readonly categories = toSignal(this.catalog.categories().pipe(catchError(() => of([]))), { initialValue: [] });
+  readonly categories = toSignal(combineLatest([
+    this.route.paramMap.pipe(map(params => params.get('slug') ?? ''), distinctUntilChanged()),
+    this.refresh.pipe(startWith(undefined))
+  ]).pipe(switchMap(() => this.catalog.categories().pipe(catchError(() => of([]))))), { initialValue: [] });
   readonly category = computed(() => this.categories().find(category => category.slug === this.product()?.categorySlug));
   readonly form = new FormGroup({
     quantity: new FormControl<number | null>(1, [Validators.required, Validators.min(1)]),
@@ -82,9 +86,13 @@ export class ProductDetail {
   constructor() {
     effect(() => this.quotePresentation.productDetail.set(!!this.product()));
     inject(DestroyRef).onDestroy(() => { this.quotePresentation.productDetail.set(false); this.quotePresentation.dismissEmpty(); });
+    let initializedProductId: string | undefined;
     effect(() => {
       const product = this.product();
-      this.form.reset({ quantity: product?.minQuantity ?? 1, width: null, height: null, material: '', notes: '' });
+      if (product && initializedProductId !== product.id) {
+        this.form.reset({ quantity: product.minQuantity ?? 1, width: null, height: null, material: '', notes: '' });
+        initializedProductId = product.id;
+      }
       const path = `/productos/${encodeURIComponent(this.state().slug ?? this.route.snapshot.paramMap.get('slug') ?? '')}`;
       const title = product?.seoTitle?.trim() || (product ? `${product.name} | MIQA` : 'Producto no disponible | MIQA');
       const description = product?.seoDescription?.trim() || product?.shortDescription?.trim() || product?.description?.trim() || 'Explora los productos y soluciones gráficas disponibles de MIQA.';

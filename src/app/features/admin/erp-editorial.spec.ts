@@ -17,15 +17,36 @@ describe('V10 editorial admin',()=>{
  beforeEach(()=>{TestBed.configureTestingModule({providers:[provideRouter([]),provideHttpClient(),provideHttpClientTesting(),{provide:ActivatedRoute,useValue:{snapshot:{paramMap:convertToParamMap({id:product.id})}}}]});http=TestBed.inject(HttpTestingController);base=TestBed.inject(STORE_API_CONFIG).baseUrl+'/api/admin';});
  afterEach(()=>http.verify());
  function list(){const f=TestBed.createComponent(AdminProductList);flushList();f.detectChanges();return f;}
- function flushList(){http.expectOne(base+'/categories').flush([category,legacy.category]);http.expectOne(base+'/products').flush([legacy,product]);http.expectOne(base+'/erp-catalog/bindings/'+product.id).flush({productId:product.id,erpServiceId:'22',active:true,state:'PENDING_REVALIDATION'});}
+ function flushList(){http.expectOne(base+'/categories').flush([category,legacy.category]);http.expectOne(base+'/products').flush([legacy,product]);http.expectOne(base+'/erp-catalog/bindings/'+product.id).flush({productId:product.id,erpServiceId:'22',active:true,state:'PENDING_REVALIDATION',lastSyncedAt:'2026-10-09T12:34:00Z'});}
  it('defaults to ERP, shows technical state and separates historical entries',()=>{
   const f=list();expect(f.componentInstance.visibleProducts().map(p=>p.id)).toEqual([product.id]);expect(f.nativeElement.textContent).toContain('PENDING_REVALIDATION');expect(f.nativeElement.textContent).not.toContain('Nuevo producto');expect(f.componentInstance.visibleCategories()).toEqual([category]);f.componentInstance.origin.set('LEGACY');f.detectChanges();expect(f.componentInstance.visibleProducts().map(p=>p.id)).toEqual(['old']);expect(f.nativeElement.textContent).toContain('Historico');
  });
- it('synchronizes once, refreshes categories/products/bindings and never publishes automatically',()=>{
-  const f=list();f.componentInstance.synchronize();f.componentInstance.synchronize();const request=http.expectOne(base+'/erp-catalog/sync');expect(request.request.method).toBe('POST');expect(f.componentInstance.syncing()).toBe(true);request.flush({outcome:'SUCCESS',received:1,changed:1,missing:0});flushList();expect(f.componentInstance.syncing()).toBe(false);expect(f.componentInstance.visibleProducts()[0].published).toBe(false);http.expectNone(req=>req.method==='PATCH');
+ it('shows ERP state and last synchronization without a manual trigger or polling',async()=>{
+  vi.useFakeTimers();
+  try {
+   const f=list();const text=f.nativeElement.textContent;
+   expect(text).not.toContain('Sincronizar con ERP');expect(text).not.toContain('Sincronizando');
+   expect(text).toContain('PENDING_REVALIDATION');expect(text).toContain('09/10/2026 12:34');
+   expect(f.nativeElement.querySelector('time').getAttribute('datetime')).toBe('2026-10-09T12:34:00Z');
+   expect(f.nativeElement.querySelector('a[href="/admin/productos/p-erp/editar"]')).not.toBeNull();
+   expect(f.componentInstance.visibleProducts()[0].published).toBe(false);
+   await vi.advanceTimersByTimeAsync(60000);
+   http.expectNone(()=>true);
+  } finally {vi.useRealTimers();}
  });
- it('recovers from sync failure without changing publication',()=>{
-  const f=list();f.componentInstance.synchronize();http.expectOne(base+'/erp-catalog/sync').flush({outcome:'NOT_CONFIGURED'},{status:503,statusText:'Unavailable'});expect(f.componentInstance.actionError()).not.toBe('');expect(f.componentInstance.syncing()).toBe(false);expect(f.componentInstance.visibleProducts()[0].published).toBe(false);f.componentInstance.synchronize();http.expectOne(base+'/erp-catalog/sync').flush({outcome:'SUCCESS'});flushList();
+ it('shows an inactive binding without inventing a synchronization date',()=>{
+  const f=TestBed.createComponent(AdminProductList);http.expectOne(base+'/categories').flush([category]);http.expectOne(base+'/products').flush([product]);http.expectOne(base+'/erp-catalog/bindings/'+product.id).flush({active:false,state:'AVAILABLE',lastSyncedAt:null});f.detectChanges();
+  expect(f.nativeElement.textContent).toContain('INACTIVE');expect(f.nativeElement.textContent).toContain('Sin registro');expect(f.nativeElement.querySelector('time')).toBeNull();http.expectNone(req=>req.method!=='GET');
+ });
+ it('preserves products and exposes safe binding errors without invoking synchronization',()=>{
+  const f=TestBed.createComponent(AdminProductList);http.expectOne(base+'/categories').flush([category]);http.expectOne(base+'/products').flush([product]);http.expectOne(base+'/erp-catalog/bindings/'+product.id).flush({}, {status:503,statusText:'Unavailable'});f.detectChanges();
+  expect(f.nativeElement.textContent).toContain('No disponible');expect(f.nativeElement.querySelector('[role=alert]').textContent).toContain('No pudimos completar');expect(f.componentInstance.visibleProducts()[0].published).toBe(false);
+  f.componentInstance.retry();flushList();f.detectChanges();expect(f.nativeElement.querySelector('[role=alert]')).toBeNull();expect(f.nativeElement.textContent).toContain('PENDING_REVALIDATION');http.expectNone(req=>req.method!=='GET');
+ });
+ it('keeps load errors and retry as read-only requests',()=>{
+  const f=TestBed.createComponent(AdminProductList);http.expectOne(base+'/categories').flush([category]);http.expectOne(base+'/products').flush({}, {status:503,statusText:'Unavailable'});f.detectChanges();
+  expect(f.nativeElement.querySelector('[role=alert]')).not.toBeNull();
+  (f.nativeElement.querySelector('[role=alert] button') as HTMLButtonElement).click();flushList();f.detectChanges();expect(f.componentInstance.visibleProducts()).toEqual([product]);http.expectNone(req=>req.method!=='GET');
  });
  it('publishes only by explicit action using the existing endpoint',()=>{
   const f=list();f.componentInstance.toggle(product,'published');const request=http.expectOne(base+'/products/'+product.id+'/published');expect(request.request.method).toBe('PATCH');expect(request.request.body).toEqual({published:true});request.flush({...product,published:true});flushList();
