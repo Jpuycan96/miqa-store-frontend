@@ -1,3 +1,12 @@
+## Proxy de sitemap dinamico preparado localmente - 10 de octubre de 2026
+
+- wrangler.jsonc incorpora worker/index.mjs, binding ASSETS y run_worker_first exclusivamente para /sitemap.xml. Conservados dominio, compatibility_date, directorio, html_handling y fallback SPA. No se incorpora SSR Angular.
+- SITEMAP_BACKEND_URL configurable apunta por defecto a https://api-store.solucionesmicaela.com/api/public/seo/sitemap.xml. El Worker consulta GET tambien para HEAD, sin cookies, tokens, query ni headers del visitante; redirect manual rechaza respuestas 3xx. Resto de rutas delegan la solicitud original a ASSETS.
+- worker/sitemap-proxy.mjs valida HTTP 200, Content-Type XML y el contrato actual urlset/url/loc con namespace sitemap, entidades y caracteres XML validos. No admite DTD ni elementos adicionales: una futura extension del XML requiere actualizar el validador. Respuestas XML completas, sin cache, sin generar lastmod ni cambiar visibilidad comercial.
+- Timeout total de 10 segundos abarca headers y lectura del cuerpo. Errores upstream 5xx se conservan con cuerpo seguro; respuesta inesperada, XML invalido o fallo de red devuelven 502; timeout 504; configuracion invalida 500; otros metodos 405 con Allow GET, HEAD. HEAD nunca devuelve cuerpo. Cache-Control no-store en exitos y errores; nunca se usa el sitemap estatico como fallback silencioso.
+- Validacion: 21/21 pruebas Node con mocks; Wrangler 4.131.1 local contra un servidor simulado loopback verifica GET/HEAD dinamicos, privacidad, 405/500/502/504, timeout real durante lectura, assets, fallback SPA y redirect 307. La entrada exporta solo el handler por compatibilidad workerd. Evidencia local ignorada .tmp/sitemap-worker-local-check.mjs y .tmp/sitemap-wrangler-logs.
+- public/sitemap.xml con cambios previos, generate-sitemap.mjs, public/_redirects, package.json y lock preservados byte a byte. Sin build Angular, dependencias nuevas, cambios backend, commit, push o deploy. El proxy NO esta desplegado: primero debe publicarse/verificarse el endpoint backend y despues desplegar el frontend por el flujo habitual GitHub/Workers Builds. Ver CATALOG_RUNTIME_FRESHNESS.md para limitaciones SEO y validacion.
+
 ## Administrador sin sincronizacion manual - 9 de octubre de 2026
 
 - Retirados boton Sincronizar con ERP, synchronize/syncing, bloqueos asociados y metodo AdminApi.syncErp con su DTO exclusivo. El endpoint administrativo backend no se modifico y sigue fuera del alcance frontend para recuperacion operativa. Este cambio no activa ni configura webhooks.

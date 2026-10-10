@@ -58,45 +58,68 @@ La portada mantiene sus contenidos editoriales estáticos; no se sustituyó su
 selección de referencias visuales por productos ERP. El catálogo `/productos`, sus
 categorías, fichas y navegación pública consumen la API.
 
-## Sitemap y limitaciones SEO concretas
+## Sitemap dinamico preparado localmente y limites SEO
 
-`npm run build` ejecuta `scripts/generate-sitemap.mjs`: consulta productos,
-categorías y redirecciones de slugs; escribe `public/sitemap.xml` y
-`public/_redirects`, que luego se copian a los assets. Solo incluye productos
-publicados y las categorías devueltas por la API. Ambos archivos siguen siendo
-estáticos; una sincronización ERP no los reescribe en Cloudflare.
+Desde el 10 de octubre de 2026, `wrangler.jsonc` prepara un Worker cuya prioridad
+se limita a `/sitemap.xml`, con binding `ASSETS`. La variable `SITEMAP_BACKEND_URL`
+apunta al endpoint `/api/public/seo/sitemap.xml` del host API. El backend decide
+la visibilidad publica; el proxy no cambia reglas, no genera URLs ni `lastmod`.
+Esta implementacion es local y requiere despliegue autorizado de backend y frontend.
 
-`app.routes.server.ts` prerenderiza slugs conocidos en build y mantiene fallback
-cliente. `wrangler.jsonc` sirve assets con `single-page-application`; el bundle
-Node SSR generado por Angular no constituye un servidor dinámico desplegado con
-esa configuración. No se cambió a RenderMode.Server ni se creó un Worker.
+El proxy admite GET y HEAD; ambos consultan GET al backend y validan el documento
+completo antes de responder. Solo envia `Accept: application/xml`, sin query,
+cookies ni headers del visitante, y rechaza redirects upstream. Comprueba HTTP
+200, Content-Type XML, cuerpo no vacio y contrato `urlset/url/loc` con namespace
+sitemap, entidades y caracteres XML validos. No admite DTD ni elementos extra;
+si el backend incorpora `lastmod`, sitemapindex u otra extension, sera necesario
+actualizar este validador. No requiere dependencias ni un proceso adicional.
 
-El HTML sin JavaScript, previews sociales y sitemap conservan el snapshot del
-build. Los slugs nuevos ya funcionan en el navegador, pero su descubrimiento SEO
-y HTML inicial actualizado siguen pendientes. Una ficha deshabilitada queda
-`noindex,follow` después de consultar la API; su asset puede seguir respondiendo
-HTTP 200. El frontend no puede convertir esa respuesta de Cloudflare en 404/410.
-Las redirecciones estáticas tampoco se renuevan automáticamente.
+El timeout total de 10 segundos incluye la lectura del cuerpo. Se conservan
+los errores upstream 5xx con respuesta generica; XML/respuesta inesperada o red
+inaccesible producen 502; timeout 504; configuracion invalida 500; metodos distintos
+de GET/HEAD 405. HEAD omite siempre el cuerpo. Todos llevan `Cache-Control: no-store`.
+No se entrega un XML vacio ni el asset estatico con 200 para encubrir un fallo.
+No se usa Cache API. Se lee el XML completo en memoria; vigilar tamano y latencia
+si el catalogo crece. Las reglas externas de cache/WAF de produccion requieren
+verificacion posterior; no fueron consultadas ni modificadas.
 
-### Estrategia propuesta para una etapa autorizada
+`npm run build` sigue ejecutando `scripts/generate-sitemap.mjs`: consulta la API
+y escribe `public/sitemap.xml` y `public/_redirects`. Se conservan esos archivos y
+el script. El sitemap estatico continua en los assets, pero el Worker lo precedera
+en `/sitemap.xml` una vez desplegado. No hay fallback automatico al snapshot.
+Las demas rutas conservan Static Assets, redirects, headers y fallback SPA;
+si llegan al handler, se delegan a `env.ASSETS.fetch(request)` sin transformacion.
 
-1. Mantener por ahora el sitemap de build como respaldo, sin prometer que cambia
-   con cada sincronización. No fabricar `lastmod` usando la fecha de compilación.
-2. Implementar posteriormente un sitemap XML dinámico en el backend MIQA ya
-   alojado, usando exactamente la visibilidad pública de productos/categorías.
-   Consultar al solicitar el XML, o invalidar su caché después de sincronización,
-   publicación/despublicación y cambios editoriales. No depende de un administrador
-   abierto ni de polling del frontend. Este endpoint es una propuesta, no existe
-   por este cambio y requiere autorización de backend/despliegue.
-3. Servirlo en el host API existente con URLs canonical del host de la tienda.
-   En esa etapa, referenciarlo desde robots.txt o enviarlo como sitemap externo
-   mediante Search Console con las verificaciones de propiedad correspondientes.
-   Esto permite actualizar el XML sin incorporar infraestructura Cloudflare nueva.
-   [Google documenta ambas vías de sitemaps alojados en otro sitio](https://developers.google.com/search/docs/crawling-indexing/sitemaps/build-sitemap#cross-submit).
-4. Si se exige mantener `/sitemap.xml` en el host Store y HTML/HTTP 404 vigentes
-   sin JavaScript, evaluar por separado un handler/proxy o renderizado dinámico
-   con invalidación por eventos. Requiere autorización explícita de Cloudflare;
-   no se implementó. No basta purgar un asset: su contenido sigue siendo de build.
+`app.routes.server.ts` sigue prerenderizando slugs conocidos y usando fallback
+cliente. El HTML inicial sin JavaScript y previews sociales siguen dependiendo
+del build: este proxy no ejecuta SSR Angular ni cambia HTTP 404/410 de productos.
+Un producto despublicado puede conservar un asset con HTTP 200 y actualizar su
+`noindex,follow` solo despues de consultar la API en el navegador. Los redirects
+de slugs siguen siendo estaticos. El sitemap dinamico mejora el descubrimiento;
+no garantiza indexacion ni actualiza el HTML de una ficha.
+
+### Validacion y despliegue posterior, con autorizacion
+
+```powershell
+node --test worker/index.test.mjs
+node node_modules/wrangler/bin/wrangler.js dev --local --ip 127.0.0.1 --port 8787 --var SITEMAP_BACKEND_URL:http://127.0.0.1:9099/api/public/seo/sitemap.xml
+```
+
+Para el segundo comando debe existir un servidor simulado en loopback y assets
+locales en `dist/miqa-store-frontend/browser`; no arrancar Spring contra una base
+real ni ejecutar el build habitual para esta comprobacion. Las 21 pruebas Node
+y una comprobacion Wrangler con assets existentes y servidor simulado pasaron:
+XML GET/HEAD, privacidad, 405/500/502/504, deadline durante lectura, SPA y 307.
+Node 22.14 muestra un aviso experimental de MockTimers usado solo en tests.
+
+Primero publicar y verificar el endpoint backend; despues autorizar el flujo
+habitual GitHub/Workers Builds: build `npm run build`, deploy `npx wrangler deploy`.
+Esos comandos no se ejecutaron durante esta implementacion. El robots.txt actual
+ya referencia el sitemap del host Store. Tras desplegar, comprobar GET/HEAD y
+`Cache-Control`, contrastar XML con el backend, verificar rutas/redirects y revisar
+Search Console. Revisar overrides de `SITEMAP_BACKEND_URL`, cache y WAF si hay
+500/502 o datos obsoletos. Para rollback, restaurar la version anterior del Worker
+mediante el flujo autorizado; volvera a servir el sitemap estatico del despliegue.
 
 ## Validación reproducible
 
