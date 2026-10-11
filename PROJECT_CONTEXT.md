@@ -1,3 +1,9 @@
+## Administrador editorial de categorias ERP - local, 10 de octubre de 2026
+
+- Categorias muestra solo filas con erpCategoryId; sin selector de origen ni gestion Legacy, creacion o eliminacion. Editar conserva diseno/formulario/previsualizacion; nombre, identificador ERP y slug son de solo lectura. Se editan descripcion, cabecera, orden y visibilidad Store sobre el UUID existente por PUT.
+- El payload conserva el nombre de la fila recibida, aunque se manipule el control interno. Backend rechaza nombres cambiados y campos de identidad. Sin cambios en productos Legacy, rutas publicas, SEO, Worker, sitemap o sincronizacion.
+- 60 pruebas focalizadas frontend aprobadas en ocho archivos; build offline exitoso con 15 rutas de fixtures y tres avisos CSS existentes. Dist solo para validacion, NO publicar. Backend: 76 pruebas aisladas aprobadas y package exitoso. Sin conexiones BD, migraciones, ERP, commit/push/deploy; comprobacion real de persistencia pendiente.
+
 ## SEO dinamico: estado actual de verificacion local
 
 Resultados confirmados por el propietario para esta entrega; esta actualizacion documental no vuelve a ejecutar pruebas ni builds:

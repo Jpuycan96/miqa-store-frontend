@@ -59,18 +59,18 @@ describe('Admin catalog forms',()=>{
   route.snapshot.paramMap=convertToParamMap({id:'p1'});const f=TestBed.createComponent(AdminProductForm);http.expectOne(base+'/categories').flush([category]);http.expectOne(base+'/products/p1').flush({...product,seoTitle:'Existing SEO',materials:[{id:'m1',name:'Hidden',active:false,displayOrder:0}]});
   f.componentInstance.form.controls.name.setValue('Editado');f.componentInstance.save();const req=http.expectOne(base+'/products/p1');expect(req.request.method).toBe('PUT');expect(req.request.body.seoTitle).toBe('Existing SEO');req.flush({...product,name:'Editado'});expect(f.componentInstance.message()).toContain('guardado');
  });
- it('does not create categories and retains legacy activation',()=>{
-  const f=TestBed.createComponent(AdminCategories);http.expectOne(base+'/categories').flush([category]);const c=f.componentInstance;c.edit();expect(c.editing()).toBe(false);c.save();http.expectNone(base+'/categories');c.toggle(category);http.expectOne(base+'/categories/c1/active').flush({...category,active:false});http.expectOne(base+'/categories').flush([{...category,active:false}]);expect(c.items()[0].active).toBe(false);
+ it('does not create or edit legacy categories',()=>{
+  const f=TestBed.createComponent(AdminCategories);http.expectOne(base+'/categories').flush([category]);const c=f.componentInstance;c.edit();expect(c.editing()).toBe(false);c.save();http.expectNone(base+'/categories');c.edit(category);expect(c.editing()).toBe(false);http.expectNone(()=>true);
  });
  it('previews category editorial changes locally and persists them only on save',()=>{
-  const f=TestBed.createComponent(AdminCategories);http.expectOne(base+'/categories').flush([category]);f.componentInstance.edit(category);f.detectChanges();
+  const f=TestBed.createComponent(AdminCategories);http.expectOne(base+'/categories').flush([{...category,erpCategoryId:'7'}]);f.componentInstance.edit({...category,erpCategoryId:'7'});f.detectChanges();
   const headline=f.nativeElement.querySelector('[formControlName=catalogHeadline]') as HTMLInputElement;
   const description=f.nativeElement.querySelector('[formControlName=catalogDescription]') as HTMLTextAreaElement;
   headline.value='Nueva frase';headline.dispatchEvent(new Event('input'));description.value='Nueva descripción';description.dispatchEvent(new Event('input'));f.detectChanges();
   expect(f.nativeElement.querySelector('.catalog-preview').textContent).toContain('Nueva frase');
   expect(f.nativeElement.querySelector('.catalog-preview').textContent).toContain('Nueva descripción');
   http.expectNone(base+'/categories/c1');
-  (f.nativeElement.querySelector('button[type=button]') as HTMLButtonElement).click();f.componentInstance.edit(category);f.detectChanges();
+  (f.nativeElement.querySelector('button[type=button]') as HTMLButtonElement).click();f.componentInstance.edit({...category,erpCategoryId:'7'});f.detectChanges();
   expect(f.componentInstance.form.controls.catalogHeadline.value).toBe(category.catalogHeadline);
   f.componentInstance.form.patchValue({catalogHeadline:'Nueva frase',catalogDescription:'Nueva descripción'});
   f.componentInstance.save();const request=http.expectOne(base+'/categories/c1');
@@ -79,31 +79,17 @@ describe('Admin catalog forms',()=>{
  });
  it('sorts categories only in admin and preserves their public order when editing',()=>{
   const f=TestBed.createComponent(AdminCategories);
-  const categories=[{...category,name:'Zeta',displayOrder:3},{...category,id:'c2',name:'Álbum',displayOrder:9}];
+  const categories=[{...category,erpCategoryId:'7',name:'Zeta',displayOrder:3},{...category,erpCategoryId:'8',id:'c2',name:'Álbum',displayOrder:9}];
   http.expectOne(base+'/categories').flush(categories);f.detectChanges();
   expect(f.componentInstance.items().map(c=>c.name)).toEqual(['Álbum','Zeta']);
   expect(categories.map(c=>c.name)).toEqual(['Zeta','Álbum']);
   f.componentInstance.edit(categories[0]);f.detectChanges();
-  expect(f.nativeElement.querySelector('[formControlName=displayOrder]')).toBeNull();
-  expect(f.nativeElement.textContent).not.toContain('Orden');
+  expect(f.nativeElement.querySelector('[formControlName=displayOrder]')).not.toBeNull();
+  expect(f.nativeElement.textContent).toContain('Orden');
   f.componentInstance.form.controls.name.setValue('Nueva Zeta');f.componentInstance.save();
   const req=http.expectOne(base+'/categories/c1');
-  expect(req.request.body).toMatchObject({name:'Nueva Zeta',displayOrder:3});
+  expect(req.request.body).toMatchObject({name:'Zeta',displayOrder:3});
   req.flush(categories[0]);http.expectOne(base+'/categories').flush(categories);
 
- });
- it('shows generated URL read-only, warns on rename and deletes through the API',()=>{
-  const confirmSpy=vi.spyOn(window,'confirm').mockReturnValue(true);
-  const f=TestBed.createComponent(AdminCategories);http.expectOne(base+'/categories').flush([category]);f.componentInstance.edit(category);f.componentInstance.form.controls.name.setValue('Señalética Ñandú');f.detectChanges();
-  expect(f.componentInstance.slugPreview()).toBe('senaletica-nandu');expect(f.nativeElement.querySelector('[formControlName=slug]')).toBeNull();expect(f.nativeElement.textContent).toContain('redirección SEO permanente');
-  f.componentInstance.message.set('Categoría guardada.');
-  f.componentInstance.remove(category);expect(confirmSpy).toHaveBeenCalled();http.expectOne(base+'/categories/c1').flush(null);http.expectOne(base+'/categories').flush([]);expect(f.componentInstance.message()).toContain('eliminada');confirmSpy.mockRestore();
- });
- it('shows a safe backend conflict and clears previous success when deletion fails',()=>{
-  const confirmSpy=vi.spyOn(window,'confirm').mockReturnValue(true);
-  const f=TestBed.createComponent(AdminCategories);http.expectOne(base+'/categories').flush([category]);
-  f.componentInstance.message.set('Categoría guardada.');f.componentInstance.remove(category);
-  http.expectOne(base+'/categories/c1').flush({message:'No se puede eliminar la categoría porque tiene productos asociados'},{status:409,statusText:'Conflict'});
-  expect(f.componentInstance.message()).toBe('');expect(f.componentInstance.error()).toContain('productos asociados');confirmSpy.mockRestore();
  });
 });
