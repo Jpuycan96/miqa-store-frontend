@@ -1,3 +1,9 @@
+## Redirecciones de categorias Legacy - local, 11 de octubre de 2026
+
+- Verificacion HTTP publica previa: letreros-publicitarios, merchandising, impresion-gran-formato e imprenta-papeleria devolvieron 404; sus destinos propuestos devolvieron 200. No se encontro una categoria publica equivalente a Imprenta y Papeleria en el sitemap actual.
+- Worker: 301 para GET/HEAD desde /productos/letreros-publicitarios hacia /productos/letreros-y-publicidad; merchandising hacia merchandising-1; impresion-gran-formato hacia impresion-gran-formato-1; imprenta-papeleria hacia /productos. Incluye barra final y conserva query string, sin JavaScript ni cambios al backend, sitemap, canonical o slugs ERP.
+- Validacion local: node --test worker/*.test.mjs, 58/58; npm.cmd test -- --watch=false, 267/267 en 37 archivos; npm.cmd run build exitoso, sitemap de 32 URLs y 33 rutas prerenderizadas. Tres advertencias CSS preexistentes en catalogo, detalle y panel. git diff --check sin errores. Build normal, sin fixtures offline. Sin commit, push ni deploy; las redirecciones todavia no estan publicadas.
+
 ## Fase B: administracion exclusivamente ERP - local, 10 de octubre de 2026
 
 - Listado de productos sin pestanas de origen; filtros/busqueda y estado tecnico ERP conservados. Rutas de fichas Legacy redirigen al listado sin formulario ni mutacion. Ruta nuevo ya redirigia. Formulario conserva edicion comercial, SEO, orden, publicacion, destacados e imagenes ERP; sin configuracion tecnica Legacy.
