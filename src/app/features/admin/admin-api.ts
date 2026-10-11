@@ -1,26 +1,20 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
 import { timeout } from 'rxjs';
-import { ErpBindingInput, ErpServiceProjection, ProductErpBinding } from './erp-catalog.models';
+import { ProductErpBinding } from './erp-catalog.models';
 import { STORE_API_CONFIG } from '../../core/config/store-api';
-import { AdminCategory, AdminProduct, CategoryInput, ProductInput, AdminOption, OptionInput, AdminImage, ImageInput } from './admin.models';
+import { AdminCategory, AdminProduct, CategoryInput, ProductInput, AdminImage, ImageInput } from './admin.models';
 @Injectable({providedIn:'root'})
 export class AdminApi {
  private readonly http=inject(HttpClient);
  private readonly base=inject(STORE_API_CONFIG).baseUrl.replace(/\/+$/,'')+'/api/admin';
- erpServices(){return this.http.get<ErpServiceProjection[]>(this.base+'/erp-catalog/services').pipe(timeout(10000));}
  erpBinding(id:string){return this.http.get<ProductErpBinding>(this.base+'/erp-catalog/bindings/'+encodeURIComponent(id)).pipe(timeout(10000));}
- saveErpBinding(id:string,input:ErpBindingInput){return this.http.put<ProductErpBinding>(this.base+'/erp-catalog/bindings/'+encodeURIComponent(id),input).pipe(timeout(10000));}
  categories(){return this.http.get<AdminCategory[]>(this.base+'/categories').pipe(timeout(10000));}
- saveCategory(id:string|null,input:CategoryInput){return id?this.http.put<AdminCategory>(this.base+'/categories/'+encodeURIComponent(id),input):this.http.post<AdminCategory>(this.base+'/categories',input);}
- activeCategory(id:string,active:boolean){return this.http.patch<AdminCategory>(this.base+'/categories/'+encodeURIComponent(id)+'/active',{active});}
- deleteCategory(id:string){return this.http.delete<void>(this.base+'/categories/'+encodeURIComponent(id));}
+ saveCategory(id:string,input:CategoryInput){return this.http.put<AdminCategory>(this.base+'/categories/'+encodeURIComponent(id),input);}
  products(filters:Record<string,string>={}){let params=new HttpParams();for(const [key,value] of Object.entries(filters))if(value.trim())params=params.set(key,value.trim());return this.http.get<AdminProduct[]>(this.base+'/products',{params}).pipe(timeout(10000));}
  product(id:string){return this.http.get<AdminProduct>(this.base+'/products/'+encodeURIComponent(id)).pipe(timeout(10000));}
- saveProduct(id:string|null,input:ProductInput){return id?this.http.put<AdminProduct>(this.base+'/products/'+encodeURIComponent(id),input):this.http.post<AdminProduct>(this.base+'/products',input);}
+ saveProduct(id:string,input:ProductInput){return this.http.put<AdminProduct>(this.base+'/products/'+encodeURIComponent(id),input);}
  flag(id:string,flag:'published'|'featured',value:boolean){return this.http.patch<AdminProduct>(this.base+'/products/'+encodeURIComponent(id)+'/'+flag,{[flag]:value});}
- saveOption(pid:string,kind:'materials'|'extras',id:string|null,input:OptionInput){const url=this.base+'/products/'+encodeURIComponent(pid)+'/'+kind;return id?this.http.put<AdminOption>(url+'/'+encodeURIComponent(id),input):this.http.post<AdminOption>(url,input);}
- removeMaterial(pid:string,id:string){return this.http.delete<void>(this.base+'/products/'+encodeURIComponent(pid)+'/materials/'+encodeURIComponent(id));}
  images(pid:string){return this.http.get<AdminImage[]>(this.base+'/products/'+encodeURIComponent(pid)+'/images');}
  uploadImage(pid:string,file:File,altText:string,displayOrder:number|null,primaryImage:boolean){
   const form=new FormData();form.append('file',file);form.append('altText',altText);form.append('primaryImage',String(primaryImage));

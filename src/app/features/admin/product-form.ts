@@ -3,15 +3,14 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { finalize, forkJoin } from 'rxjs';
-import { AdminApi, adminError, suggestSlug } from './admin-api';
+import { AdminApi, adminError } from './admin-api';
 import { AdminCategory, ProductInput, AdminProduct } from './admin.models';
 import { ProductResources } from './product-resources';
-import { ProductErp } from './product-erp';
-@Component({selector:'app-admin-product-form',imports:[ReactiveFormsModule,RouterLink,ProductResources,ProductErp],styleUrls:['./admin.scss','./product-form.scss'],templateUrl:'./product-form.html',changeDetection:ChangeDetectionStrategy.OnPush})
+@Component({selector:'app-admin-product-form',imports:[ReactiveFormsModule,RouterLink,ProductResources],styleUrls:['./admin.scss','./product-form.scss'],templateUrl:'./product-form.html',changeDetection:ChangeDetectionStrategy.OnPush})
 export class AdminProductForm {
  private readonly api=inject(AdminApi);private readonly router=inject(Router);readonly id=inject(ActivatedRoute).snapshot.paramMap.get('id');
  readonly isErp=computed(()=>this.product()?.catalogMode==='ERP');
- readonly categories=signal<AdminCategory[]>([]);readonly product=signal<AdminProduct|null>(null);readonly loading=signal(false);readonly busy=signal(false);readonly error=signal('');readonly message=signal('');readonly type=signal<ProductInput['saleType']>('QUANTITY');readonly generalOpen=signal(!this.id);readonly salesOpen=signal(!this.id);private manualSlug=!!this.id;
+ readonly categories=signal<AdminCategory[]>([]);readonly product=signal<AdminProduct|null>(null);readonly loading=signal(false);readonly busy=signal(false);readonly error=signal('');readonly message=signal('');readonly generalOpen=signal(!this.id);
  readonly form=new FormGroup({
   name:new FormControl('',{nonNullable:true,validators:[Validators.required,Validators.maxLength(200)]}),slug:new FormControl('',{nonNullable:true,validators:[Validators.required,Validators.maxLength(160),Validators.pattern('^[a-z0-9]+(-[a-z0-9]+)*$')]}),categoryId:new FormControl('',{nonNullable:true,validators:[Validators.required]}),
   shortDescription:new FormControl('',{nonNullable:true,validators:[Validators.maxLength(500)]}),displayOrder:new FormControl(0,{nonNullable:true,validators:[Validators.required,Validators.min(0),Validators.pattern('^[0-9]+$')]}),
@@ -20,13 +19,21 @@ export class AdminProductForm {
  });
  private readonly formValue=toSignal(this.form.valueChanges,{initialValue:this.form.getRawValue()});
  readonly generalSummary=computed(()=>{const value=this.formValue();const category=this.categories().find(item=>item.id===value.categoryId)?.name||'Sin categoría';return `${value.name?.trim()||'Sin nombre'} · ${category}`;});
- readonly salesSummary=computed(()=>{const value=this.formValue();if(value.saleType==='PACK')return `Por ${value.packLabel?.trim()||'presentación'} · ${value.packSize||0} unidades · mínimo ${value.minQuantity||0}`;if(value.saleType==='AREA')return `Por superficie · ${value.unitLabel?.trim()||'m²'}`;return `Por ${value.unitLabel?.trim()||'unidad'} · mínimo ${value.minQuantity||0} · incrementos de ${value.quantityStep||0}`;});
  constructor(){this.load();}
- load(){this.loading.set(true);this.error.set('');const categories=this.api.categories();if(this.id){forkJoin({categories,product:this.api.product(this.id)}).pipe(finalize(()=>this.loading.set(false))).subscribe({next:({categories,product})=>{this.categories.set(categories.filter(c=>product.catalogMode==='ERP'||!c.erpCategoryId));this.product.set(product);this.form.patchValue({...product,description:product.catalogMode==='ERP'?product.description:product.description || product.shortDescription,unitLabel:product.unitLabel??'',packLabel:product.packLabel??'',seoTitle:product.seoTitle??'',seoDescription:product.seoDescription??''});this.setType();if(this.isErp()){for(const key of ['categoryId','saleType','unitLabel','packSize','packLabel','minQuantity','quantityStep'] as const)this.form.controls[key].disable();this.generalOpen.set(true);}},error:e=>this.error.set(adminError(e))});}else{categories.pipe(finalize(()=>this.loading.set(false))).subscribe({next:c=>this.categories.set(c.filter(category=>!category.erpCategoryId)),error:e=>this.error.set(adminError(e))});}}
- nameChanged(){if(!this.manualSlug)this.form.controls.slug.setValue(suggestSlug(this.form.controls.name.value));}slugChanged(){this.manualSlug=true;}
- setType(){const type=this.form.controls.saleType.value;this.type.set(type);this.form.controls.packSize.setValidators(type==='PACK'?[Validators.required,Validators.min(1),Validators.pattern('^[0-9]+$')]:[]);this.form.controls.packLabel.setValidators(type==='PACK'?[Validators.required,Validators.maxLength(40)]:[]);this.form.controls.packSize.updateValueAndValidity();this.form.controls.packLabel.updateValueAndValidity();}
- changeType(){this.setType();if(this.type()==='AREA'&&this.form.controls.unitLabel.value==='unidad')this.form.controls.unitLabel.setValue('m²');}
- save(){if(this.form.invalid||this.busy())return;this.busy.set(true);this.error.set('');const v=this.form.getRawValue();const input:ProductInput={...v,shortDescription:this.isErp()?v.shortDescription:v.description.trim().slice(0,500),displayOrder:this.isErp()?v.displayOrder:this.product()?.displayOrder??0,packSize:v.saleType==='PACK'?v.packSize:null,packLabel:v.saleType==='PACK'?v.packLabel:null};
- if(this.isErp()){Object.assign(input,{categoryId:this.product()!.categoryId,saleType:null,unitLabel:null,packSize:null,packLabel:null,minQuantity:null,quantityStep:null});}
- this.api.saveProduct(this.id,input).pipe(finalize(()=>this.busy.set(false))).subscribe({next:p=>{this.product.set(p);if(p.saleType!=='PACK'){this.form.controls.packSize.setValue(null);this.form.controls.packLabel.setValue('');}this.generalOpen.set(false);this.salesOpen.set(false);this.message.set('Producto guardado.');this.form.markAsPristine();if(!this.id)void this.router.navigate(['/admin/productos',p.id,'editar']);},error:e=>this.error.set(adminError(e))});}
+ load(){
+  if(!this.id){void this.router.navigate(['/admin/productos'],{replaceUrl:true});return;}
+  this.loading.set(true);this.error.set('');this.product.set(null);
+  forkJoin({categories:this.api.categories(),product:this.api.product(this.id)}).pipe(finalize(()=>this.loading.set(false))).subscribe({
+   next:({categories,product})=>{
+    if(product.catalogMode!=='ERP'){void this.router.navigate(['/admin/productos'],{replaceUrl:true});return;}
+    this.categories.set(categories.filter(c=>!!c.erpCategoryId));this.product.set(product);
+    this.form.patchValue({...product,unitLabel:'',packLabel:'',seoTitle:product.seoTitle??'',seoDescription:product.seoDescription??''});
+    for(const key of ['categoryId','saleType','unitLabel','packSize','packLabel','minQuantity','quantityStep'] as const)this.form.controls[key].disable();
+    this.generalOpen.set(true);
+   },error:e=>this.error.set(adminError(e))});
+ }
+ save(){if(!this.id||!this.isErp()||this.form.invalid||this.busy())return;
+  this.busy.set(true);this.error.set('');const input:ProductInput={...this.form.getRawValue(),categoryId:this.product()!.categoryId,saleType:null,unitLabel:null,packSize:null,packLabel:null,minQuantity:null,quantityStep:null};
+  this.api.saveProduct(this.id,input).pipe(finalize(()=>this.busy.set(false))).subscribe({next:p=>{this.product.set(p);this.generalOpen.set(false);this.message.set('Producto guardado.');this.form.markAsPristine();},error:e=>this.error.set(adminError(e))});
+ }
 }

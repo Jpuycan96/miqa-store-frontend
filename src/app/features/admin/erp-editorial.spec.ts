@@ -19,7 +19,8 @@ describe('V10 editorial admin',()=>{
  function list(){const f=TestBed.createComponent(AdminProductList);flushList();f.detectChanges();return f;}
  function flushList(){http.expectOne(base+'/categories').flush([category,legacy.category]);http.expectOne(base+'/products').flush([legacy,product]);http.expectOne(base+'/erp-catalog/bindings/'+product.id).flush({productId:product.id,erpServiceId:'22',active:true,state:'PENDING_REVALIDATION',lastSyncedAt:'2026-10-09T12:34:00Z'});}
  it('defaults to ERP, shows technical state and separates historical entries',()=>{
-  const f=list();expect(f.componentInstance.visibleProducts().map(p=>p.id)).toEqual([product.id]);expect(f.nativeElement.textContent).toContain('PENDING_REVALIDATION');expect(f.nativeElement.textContent).not.toContain('Nuevo producto');expect(f.componentInstance.visibleCategories()).toEqual([category]);f.componentInstance.origin.set('LEGACY');f.detectChanges();expect(f.componentInstance.visibleProducts().map(p=>p.id)).toEqual(['old']);expect(f.nativeElement.textContent).toContain('Historico');
+  const f=list();expect(f.componentInstance.visibleProducts().map(p=>p.id)).toEqual([product.id]);expect(f.nativeElement.textContent).toContain('PENDING_REVALIDATION');expect(f.nativeElement.textContent).not.toContain('Nuevo producto');expect(f.componentInstance.visibleCategories()).toEqual([category]);expect(f.nativeElement.textContent).not.toContain('Historico');expect(f.nativeElement.textContent).not.toContain('Legacy');
+
  });
  it('shows ERP state and last synchronization without a manual trigger or polling',async()=>{
   vi.useFakeTimers();
@@ -50,6 +51,18 @@ describe('V10 editorial admin',()=>{
  });
  it('publishes only by explicit action using the existing endpoint',()=>{
   const f=list();f.componentInstance.toggle(product,'published');const request=http.expectOne(base+'/products/'+product.id+'/published');expect(request.request.method).toBe('PATCH');expect(request.request.body).toEqual({published:true});request.flush({...product,published:true});flushList();
+ });
+ it('keeps ERP search and filters and rejects local legacy toggles',async()=>{
+  vi.useFakeTimers();
+  try {
+   const f=list();f.componentInstance.toggle(legacy,'featured');http.expectNone(req=>req.method!=='GET');
+   f.componentInstance.filters.patchValue({search:'Banner',category:category.id,published:'false',featured:'true'});
+   await vi.advanceTimersByTimeAsync(350);
+   const request=http.expectOne(req=>req.url===base+'/products');
+   expect(request.request.params.get('search')).toBe('Banner');expect(request.request.params.get('category')).toBe(category.id);
+   expect(request.request.params.get('published')).toBe('false');expect(request.request.params.get('featured')).toBe('true');
+   request.flush([]);f.detectChanges();expect(f.componentInstance.visibleProducts()).toEqual([]);
+  } finally {vi.useRealTimers();}
  });
  it('edits only editorial values and preserves identity and empty long description',()=>{
   const f=TestBed.createComponent(AdminProductForm);http.expectOne(base+'/categories').flush([category]);http.expectOne(base+'/products/'+product.id).flush(product);f.detectChanges();const c=f.componentInstance;

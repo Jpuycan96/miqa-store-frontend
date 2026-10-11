@@ -1,3 +1,21 @@
+## Fase B: administracion exclusivamente ERP - local, 10 de octubre de 2026
+
+- Listado de productos sin pestanas de origen; filtros/busqueda y estado tecnico ERP conservados. Rutas de fichas Legacy redirigen al listado sin formulario ni mutacion. Ruta nuevo ya redirigia. Formulario conserva edicion comercial, SEO, orden, publicacion, destacados e imagenes ERP; sin configuracion tecnica Legacy.
+- Retirados OptionEditor y ProductErp (incluidos templates/tests) tras comprobar que sus consumidores eran exclusivamente las ramas administrativas Legacy. AdminApi no crea fichas/categorias ni ofrece operaciones tecnicas Legacy. Modelos/compatibilidad de carrito e historial preservados.
+- Validacion: suite completa Angular final 261 aprobadas en 37 archivos; despues de agregar un check de filtros, 19 pruebas focalizadas aprobadas en dos archivos. Worker/sitemap 53 aprobadas. Una ejecucion concurrente anterior fallo en espera fija de catalog-api.spec; la repeticion completa paso sin cambios en esa prueba.
+- Build offline exitoso, 15 rutas sinteticas, tres avisos CSS preexistentes. Artefacto con fixtures SOLO para validacion, NO publicar. Sin conexiones DEV/PROD/ERP, migraciones, eliminacion de datos, commit/push/deploy. Fase C requiere inventario, respaldo y autorizacion independiente.
+
+### Validacion posterior de la fase B
+
+Los resultados anteriores se conservan como historial. La revision posterior del retiro de componentes administrativos Legacy confirmo la conservacion de la edicion editorial ERP:
+
+- `npm.cmd test -- --watch=false`: **262/262 pruebas aprobadas en 37 archivos**.
+- `node scripts/build-catalog-offline.cjs`: **compilacion exitosa, 15 rutas prerenderizadas**.
+- Tres advertencias CSS preexistentes, no bloqueantes, en catalogo, detalle de producto y panel de cotizacion.
+- `git diff --check`: sin errores.
+- Validacion estatica y automatizada; no se realizaron pruebas manuales con navegador ni integracion con backend real.
+- El build offline utiliza fixtures y no debe desplegarse en produccion.
+
 ## Administrador editorial de categorias ERP - local, 10 de octubre de 2026
 
 - Categorias muestra solo filas con erpCategoryId; sin selector de origen ni gestion Legacy, creacion o eliminacion. Editar conserva diseno/formulario/previsualizacion; nombre, identificador ERP y slug son de solo lectura. Se editan descripcion, cabecera, orden y visibilidad Store sobre el UUID existente por PUT.

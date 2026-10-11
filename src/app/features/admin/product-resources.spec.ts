@@ -5,7 +5,7 @@ import { ProductResources } from './product-resources';
 import { AdminImage, AdminProduct } from './admin.models';
 import { STORE_API_CONFIG } from '../../core/config/store-api';
 
-const product:AdminProduct={id:'p1',categoryId:'c1',category:{id:'c1',name:'Cat',slug:'cat',description:'',catalogHeadline:null,catalogDescription:null,active:true,displayOrder:0},name:'Producto',slug:'producto',shortDescription:'',description:'',saleType:'QUANTITY',unitLabel:'unidad',packSize:null,packLabel:null,minQuantity:1,quantityStep:1,featured:false,published:false,displayOrder:0,seoTitle:'',seoDescription:'',image:'',materials:[],extras:[],images:[]};
+const product:AdminProduct={id:'p1',catalogMode:'ERP',categoryId:'c1',category:{id:'c1',name:'Cat',slug:'cat',description:'',catalogHeadline:null,catalogDescription:null,active:true,displayOrder:0},name:'Producto',slug:'producto',shortDescription:'',description:'',saleType:'QUANTITY',unitLabel:'unidad',packSize:null,packLabel:null,minQuantity:1,quantityStep:1,featured:false,published:false,displayOrder:0,seoTitle:'',seoDescription:'',image:'',materials:[],extras:[],images:[]};
 const image:AdminImage={id:'i1',url:'https://media.example/one.png',publicUrl:'https://media.example/one.png',altText:'Frente',primaryImage:true,displayOrder:0};
 describe('Product image upload admin',()=>{
  let http:HttpTestingController;
@@ -50,10 +50,9 @@ describe('Product image upload admin',()=>{
   expect(f.nativeElement.querySelector('.upload-button').disabled).toBe(false);
   expect(f.nativeElement.textContent).toContain('Imagen subida.');
  });
- it('shows only materials and image actions, and switches the primary star',async()=>{
+ it('shows only image actions, and switches the primary star',async()=>{
   const f=await create([image,{...image,id:'i2',primaryImage:false}]);
-  expect(f.nativeElement.querySelectorAll('app-option-editor')).toHaveLength(1);
-  expect(f.nativeElement.querySelector('app-option-editor').textContent).toContain('Materiales');
+  expect(f.nativeElement.querySelectorAll('app-option-editor')).toHaveLength(0);
   expect(f.nativeElement.querySelector('[formControlName=altText]')).toBeNull();
   const stars=f.nativeElement.querySelectorAll('.image-card button.star');expect(stars[0].getAttribute('aria-pressed')).toBe('true');stars[1].click();
   http.expectOne(base+'/i2/primary').flush({...image,id:'i2',primaryImage:true});http.expectOne(base).flush([{...image,primaryImage:false},{...image,id:'i2',primaryImage:true}]);await f.whenStable();

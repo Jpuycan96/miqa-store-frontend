@@ -2,11 +2,10 @@ import { ChangeDetectionStrategy, Component, computed, effect, ElementRef, injec
 import { finalize, Observable, switchMap, tap } from 'rxjs';
 import { AdminApi, adminError } from './admin-api';
 import { AdminProduct, AdminImage } from './admin.models';
-import { OptionEditor } from './option-editor';
 import { ProductImageView } from '../../shared/product-images/product-image';
 
 @Component({
- selector:'app-product-resources', imports:[OptionEditor,ProductImageView],
+ selector:'app-product-resources', imports:[ProductImageView],
  styleUrls:['./admin.scss','./product-resources.scss'], templateUrl:'./product-resources.html',
  changeDetection:ChangeDetectionStrategy.OnPush
 })
