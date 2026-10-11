@@ -13,8 +13,6 @@ h3 { margin:0 0 12px; font-size:16px; }
 .compact-form .fields { gap:12px; }
 .compact-form .muted { font-size:13px; margin:10px 0; }
 .compact-form button,.heading > button { padding:6px 12px; font-size:13px; }
-.material-fields { display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:center; gap:12px; margin-bottom:12px; max-width:520px; }
-.material-fields .check { align-self:end; min-height:44px; }
 .catalog-editor { display:grid; grid-template-columns:minmax(0,1fr) minmax(280px,.9fr); gap:28px; margin-top:20px; padding-top:18px; border-top:1px solid #d9dfe7; }
 .catalog-fields { display:grid; gap:12px; }
 .catalog-preview { align-self:start; padding:22px 24px; background:#fff; border-left:3px solid #00b1c0; }
@@ -24,7 +22,5 @@ h3 { margin:0 0 12px; font-size:16px; }
 @media(max-width:760px) { .catalog-editor { grid-template-columns:minmax(0,1fr); } }
 @media(max-width:520px) {
  .compact-row { gap:0 8px; grid-template-columns:minmax(0,1fr) auto; }
- .material-row { grid-template-columns:minmax(0,1fr) auto auto; }
  .compact-row .actions { grid-column:1/-1; }
- .material-fields { grid-template-columns:minmax(0,1fr); }
 }
