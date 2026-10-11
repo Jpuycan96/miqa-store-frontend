@@ -29,9 +29,11 @@ describe('Admin catalog forms',()=>{
  });
  it('uses a single description and preserves internal order when editing legacy products',()=>{
   route.snapshot.paramMap=convertToParamMap({id:'p1'});const f=TestBed.createComponent(AdminProductForm);http.expectOne(base+'/categories').flush([category]);http.expectOne(base+'/products/p1').flush({...product,shortDescription:'Legacy text',displayOrder:17});f.detectChanges();flushErp();
+  f.componentInstance.generalOpen.set(true);f.detectChanges();
+  for(const field of ['description','seoTitle','seoDescription']) expect(f.nativeElement.querySelector('[formControlName='+field+']')).not.toBeNull();
   expect(f.nativeElement.querySelector('[formControlName=shortDescription]')).toBeNull();expect(f.nativeElement.querySelector('app-admin-product-form > form [formControlName=displayOrder]')).toBeNull();
   expect(f.componentInstance.form.controls.description.value).toBe('Legacy text');
-  f.componentInstance.form.controls.description.setValue('a'.repeat(600));f.componentInstance.save();const req=http.expectOne(base+'/products/p1');expect(req.request.body).toMatchObject({description:'a'.repeat(600),shortDescription:'a'.repeat(500),displayOrder:17});req.flush(product);
+  f.componentInstance.form.patchValue({description:'a'.repeat(600),seoTitle:'Titulo legacy SEO',seoDescription:'Descripcion legacy SEO'});f.componentInstance.save();const req=http.expectOne(base+'/products/p1');expect(req.request.body).toMatchObject({description:'a'.repeat(600),shortDescription:'a'.repeat(500),seoTitle:'Titulo legacy SEO',seoDescription:'Descripcion legacy SEO',displayOrder:17});req.flush(product);
  });
  it('creates a product, preserves manual slug and enforces PACK fields',()=>{
   const f=TestBed.createComponent(AdminProductForm);http.expectOne(base+'/categories').flush([category]);const c=f.componentInstance;
