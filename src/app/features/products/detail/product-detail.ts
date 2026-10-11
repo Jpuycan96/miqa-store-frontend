@@ -4,7 +4,7 @@ import { QuantityInput } from '../../../shared/quantity-input';
 import { ErpConfigurator } from '../erp-configurator/erp-configurator';
 import { DecimalPipe } from '@angular/common';
 import { ProductImageGallery } from '../../../shared/product-images/product-image-gallery';
-import { ChangeDetectionStrategy, Component, computed, effect, inject, DestroyRef } from '@angular/core';
+import { afterRenderEffect, ChangeDetectionStrategy, Component, computed, effect, inject, DestroyRef } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -15,6 +15,7 @@ import { calculateArea, createQuoteItem, normalizeQuantity, quantityLabel } from
 import { breadcrumb, INSTITUTIONAL_IMAGE, Seo } from '../../../core/seo/seo';
 import { Product } from '../../../shared/models/product';
 import { productImages } from '../../../shared/product-images/product-images';
+import { CatalogHandoff } from '../../../core/seo/catalog-handoff';
 
 interface ProductState { slug?: string; product?: Product; loading: boolean; error: boolean; }
 
@@ -24,6 +25,7 @@ interface ProductState { slug?: string; product?: Product; loading: boolean; err
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ProductDetail {
+  readonly handoff = inject(CatalogHandoff);
   private readonly catalog = inject(ProductCatalog);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
@@ -41,11 +43,17 @@ export class ProductDetail {
   readonly integratedOpen = this.quotePresentation.panelVisible;
   returnToCatalog() { this.quote.close(); this.quotePresentation.dismissEmpty(); }
   private readonly refresh = new Subject<void>();
-  retry() { this.refresh.next(); }
+  retry() {
+    if (this.handoff.visible() && this.categories().some(category => category.slug === this.state().slug)) {
+      // Retry recognition when a failed category guard selected the product route.
+      void this.router.navigateByUrl(this.router.url, { onSameUrlNavigation: 'reload', replaceUrl: true })
+        .catch(() => this.handoff.temporaryError());
+    } else this.refresh.next();
+  }
   private loadedProduct: { slug: string; product: Product | undefined } | undefined;
   readonly state = toSignal(combineLatest([this.route.paramMap.pipe(
     map(params => params.get('slug') ?? ''), distinctUntilChanged()), this.refresh.pipe(startWith(undefined))]).pipe(
-    switchMap(([slug]) => this.catalog.findBySlug(slug).pipe(
+    switchMap(([slug]) => this.catalog.findBySlug(slug, { fresh: this.handoff.visible() }).pipe(
       map(product => {
         this.loadedProduct = { slug, product };
         return { slug, product, loading: false, error: false } as ProductState;
@@ -56,11 +64,27 @@ export class ProductDetail {
         loading: false, error: true } as ProductState))
     ))
   ), { initialValue: { loading: true, error: false } as ProductState });
-  readonly product = computed(() => this.state().product);
-  readonly categories = toSignal(combineLatest([
+  readonly categoryState = toSignal(combineLatest([
     this.route.paramMap.pipe(map(params => params.get('slug') ?? ''), distinctUntilChanged()),
     this.refresh.pipe(startWith(undefined))
-  ]).pipe(switchMap(() => this.catalog.categories().pipe(catchError(() => of([]))))), { initialValue: [] });
+  ]).pipe(switchMap(([slug]) => this.catalog.categories({ fresh: this.handoff.visible() }).pipe(
+    map(categories => ({ slug, categories, loading: false, error: false })),
+    startWith({ slug, categories: [], loading: true, error: false }),
+    catchError(() => of({ slug, categories: [], loading: false, error: true }))
+  ))), { initialValue: { slug: '', categories: [], loading: true, error: false } });
+  readonly categories = computed(() => this.categoryState().categories);
+  readonly handoffReady = computed(() => {
+    const state = this.state();
+    const categories = this.categoryState();
+    return !state.loading && !state.error && !categories.loading && !categories.error
+      && state.slug === categories.slug && !categories.categories.some(category => category.slug === state.slug);
+  });
+  // Keep the fallback as the only product presentation until precedence is confirmed too.
+  readonly product = computed(() => this.handoff.visible() && !this.handoffReady() ? undefined : this.state().product);
+  readonly temporaryFailure = computed(() => this.state().error || (this.handoff.visible()
+    && (this.categoryState().error || (!this.categoryState().loading
+      && this.categories().some(category => category.slug === this.state().slug)))));
+  readonly awaitingHandoff = computed(() => this.handoff.visible() && !this.handoffReady() && !this.temporaryFailure());
   readonly category = computed(() => this.categories().find(category => category.slug === this.product()?.categorySlug));
   readonly form = new FormGroup({
     quantity: new FormControl<number | null>(1, [Validators.required, Validators.min(1)]),
@@ -84,6 +108,13 @@ export class ProductDetail {
   });
 
   constructor() {
+    afterRenderEffect(() => {
+      if (this.handoffReady()) this.handoff.complete(`/productos/${this.state().slug}`);
+      else if (this.state().error || this.categoryState().error
+        || (!this.categoryState().loading && this.categories().some(category => category.slug === this.state().slug))) {
+        this.handoff.temporaryError();
+      }
+    });
     effect(() => this.quotePresentation.productDetail.set(!!this.product()));
     inject(DestroyRef).onDestroy(() => { this.quotePresentation.productDetail.set(false); this.quotePresentation.dismissEmpty(); });
     let initializedProductId: string | undefined;
@@ -93,6 +124,7 @@ export class ProductDetail {
         this.form.reset({ quantity: product.minQuantity ?? 1, width: null, height: null, material: '', notes: '' });
         initializedProductId = product.id;
       }
+      if (this.handoff.visible() && !this.handoffReady()) return;
       const path = `/productos/${encodeURIComponent(this.state().slug ?? this.route.snapshot.paramMap.get('slug') ?? '')}`;
       const title = product?.seoTitle?.trim() || (product ? `${product.name} | MIQA` : 'Producto no disponible | MIQA');
       const description = product?.seoDescription?.trim() || product?.shortDescription?.trim() || product?.description?.trim() || 'Explora los productos y soluciones gráficas disponibles de MIQA.';

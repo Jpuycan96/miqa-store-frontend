@@ -45,17 +45,17 @@ export class CatalogApiService implements ProductCatalog {
       map(categories => categories.map(mapCategory))
     );
   }
-  list(filters: CatalogFilters = {}) {
+  list(filters: CatalogFilters = {}, options: CatalogRequestOptions = {}) {
     let params = new HttpParams();
     if (filters.category) params = params.set('category', filters.category);
     if (filters.search?.trim()) params = params.set('search', filters.search.trim());
     if (filters.featured !== undefined) params = params.set('featured', filters.featured);
-    return this.get<readonly ProductDto[]>('/products', params).pipe(
+    return this.get<readonly ProductDto[]>('/products', params, options).pipe(
       map(products => sortProductsByName(products.filter(product => product.published)
         .map(product => mapProduct(product, this.config.mediaBaseUrl)))));
   }
-  findBySlug(slug: string) {
-    return this.get<ProductDto>('/products/' + encodeURIComponent(slug)).pipe(
+  findBySlug(slug: string, options: CatalogRequestOptions = {}) {
+    return this.get<ProductDto>('/products/' + encodeURIComponent(slug), new HttpParams(), options).pipe(
       map(product => product.published ? mapProduct(product, this.config.mediaBaseUrl) : undefined),
       catchError((error: unknown) => error instanceof HttpErrorResponse && error.status === 404 ? of(undefined) : throwError(() => error))
     );

@@ -8,7 +8,7 @@ export interface CatalogRequestOptions { readonly fresh?: boolean; }
 
 @Injectable({ providedIn: 'root', useFactory: () => inject(CatalogApiService) })
 export abstract class ProductCatalog {
-  abstract list(filters?: CatalogFilters): Observable<readonly Product[]>;
-  abstract findBySlug(slug: string): Observable<Product | undefined>;
+  abstract list(filters?: CatalogFilters, options?: CatalogRequestOptions): Observable<readonly Product[]>;
+  abstract findBySlug(slug: string, options?: CatalogRequestOptions): Observable<Product | undefined>;
   abstract categories(options?: CatalogRequestOptions): Observable<readonly ProductCategory[]>;
 }

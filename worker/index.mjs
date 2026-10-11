@@ -1,3 +1,3 @@
-import { createWorker } from './sitemap-proxy.mjs';
+import { createWorker } from './router.mjs';
 
 export default createWorker();

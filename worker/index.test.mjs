@@ -247,16 +247,17 @@ test('other routes delegate the original request and response unchanged to ASSET
   }
 });
 
-test('Wrangler runs the Worker first only for sitemap and preserves asset routing', async () => {
+test('Wrangler runs the Worker first for sitemap and catalog pages and preserves asset routing', async () => {
   const entry = await import('./index.mjs');
   assert.deepEqual(Object.keys(entry), ['default']);
   assert.equal(typeof entry.default.fetch, 'function');
   const config = JSON.parse(await readFile(new URL('../wrangler.jsonc', import.meta.url), 'utf8'));
   assert.equal(config.main, './worker/index.mjs');
   assert.equal(config.assets.binding, 'ASSETS');
-  assert.deepEqual(config.assets.run_worker_first, ['/sitemap.xml']);
+  assert.deepEqual(config.assets.run_worker_first, ['/sitemap.xml', '/productos/*']);
   assert.equal(config.assets.directory, './dist/miqa-store-frontend/browser');
   assert.equal(config.assets.html_handling, 'drop-trailing-slash');
   assert.equal(config.assets.not_found_handling, 'single-page-application');
   assert.equal(config.vars.SITEMAP_BACKEND_URL, BACKEND);
+  assert.equal(config.vars.SEO_PAGES_BACKEND_BASE_URL, 'https://api-store.solucionesmicaela.com/api/public/seo/pages');
 });

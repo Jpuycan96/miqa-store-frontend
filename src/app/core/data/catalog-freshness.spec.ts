@@ -78,6 +78,19 @@ describe('Catalog freshness after hydration', () => {
     await hydrate(); http.expectNone(base + '/categories');
   });
 
+  it('can confirm a Worker product and category listing without reading transferred snapshots', async () => {
+    setup();
+    api.findBySlug(product.slug, { fresh: true }).subscribe();
+    api.list({ category: 'categoria' }, { fresh: true }).subscribe();
+    for (const path of ['/products/old', '/products?category=categoria']) {
+      const request = http.expectOne(base + path);
+      expect(request.request.transferCache).toBe(false);
+      expect(request.request.cache).toBe('no-store');
+      request.flush(path.includes('?') ? [product] : product);
+    }
+    await hydrate(); http.expectNone(request => request.url.includes('/products'));
+  });
+
   it('replaces a prerendered detail with unavailable when the live API returns 404', async () => {
     setup(); const ids: (string | undefined)[] = [];
     api.findBySlug(product.slug).subscribe(product => ids.push(product?.id));

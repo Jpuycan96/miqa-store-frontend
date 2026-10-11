@@ -1,6 +1,6 @@
 import { ProductImageView } from '../../../shared/product-images/product-image';
 import { productImages } from '../../../shared/product-images/product-images';
-import { ChangeDetectionStrategy, Component, computed, effect, inject, signal, DestroyRef } from '@angular/core';
+import { afterRenderEffect, ChangeDetectionStrategy, Component, computed, effect, inject, signal, DestroyRef } from '@angular/core';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { catchError, combineLatest, debounceTime, distinctUntilChanged, map, of, startWith, Subject, switchMap } from 'rxjs';
@@ -10,6 +10,7 @@ import { QuoteStore } from '../../../core/quote/quote-store';
 import { QuotePresentation } from '../../../core/quote/quote-presentation';
 import { QuotePanel } from '../../../core/quote/quote-panel/quote-panel';
 import { breadcrumb, PAGE_SEO, Seo } from '../../../core/seo/seo';
+import { CatalogHandoff } from '../../../core/seo/catalog-handoff';
 
 @Component({
   selector: 'app-catalog', imports: [RouterLink, ProductImageView, QuotePanel],
@@ -17,6 +18,7 @@ import { breadcrumb, PAGE_SEO, Seo } from '../../../core/seo/seo';
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class Catalog {
+  readonly handoff = inject(CatalogHandoff);
   private readonly source = inject(ProductCatalog);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
@@ -49,27 +51,37 @@ export class Catalog {
   readonly state = toSignal(combineLatest([
     toObservable(this.category).pipe(distinctUntilChanged()),
     this.search, this.refresh.pipe(startWith(undefined))
-  ]).pipe(switchMap(([category, search]) => this.source.list({ category, search }).pipe(
-    map(products => ({ products: products.filter(product => product.published), loading: false, error: false })),
-    startWith({ products: [], loading: true, error: false }),
-    catchError(() => of({ products: [], loading: false, error: true }))
-  ))), { initialValue: { products: [], loading: true, error: false } });
+  ]).pipe(switchMap(([category, search]) => this.source.list({ category, search }, { fresh: this.handoff.visible() }).pipe(
+    map(products => ({ category, products: products.filter(product => product.published), loading: false, error: false })),
+    startWith({ category, products: [], loading: true, error: false }),
+    catchError(() => of({ category, products: [], loading: false, error: true }))
+  ))), { initialValue: { category: '', products: [], loading: true, error: false } });
   readonly categoryState = toSignal(combineLatest([
     toObservable(this.category).pipe(distinctUntilChanged()), this.route.queryParamMap,
     this.refresh.pipe(startWith(undefined))
-  ]).pipe(switchMap(() =>
-    this.source.categories().pipe(
-      map(categories => ({ categories, error: false })),
-      catchError(() => of({ categories: [], error: true }))
+  ]).pipe(switchMap(([category]) =>
+    this.source.categories({ fresh: this.handoff.visible() }).pipe(
+      map(categories => ({ category, categories, loading: false, error: false })),
+      startWith({ category, categories: [], loading: true, error: false }),
+      catchError(() => of({ category, categories: [], loading: false, error: true }))
     )
-  )), { initialValue: { categories: [], error: false } });
+  )), { initialValue: { category: '', categories: [], loading: true, error: false } });
   readonly categories = computed(() => this.categoryState().categories);
   readonly activeCategory = computed(() => this.categories().find(category => category.slug === this.category()) ?? null);
   readonly filtered = computed(() => this.state().products);
+  private readonly categoriesReady = computed(() => !this.categoryState().loading && !this.categoryState().error
+    && this.categoryState().category === this.category());
+  readonly categoryUnavailable = computed(() => this.isCategoryPage() && this.categoriesReady() && !this.activeCategory());
+  readonly handoffReady = computed(() => this.categoriesReady() && (this.categoryUnavailable()
+    || (!this.state().loading && !this.state().error && this.state().category === this.category())));
   retry() { this.refresh.next(); }
   readonly quote = inject(QuoteStore);
   readonly quotePresentation = inject(QuotePresentation);
   constructor() {
+    afterRenderEffect(() => {
+      if (this.handoffReady()) this.handoff.complete(this.isCategoryPage() ? `/productos/${this.category()}` : '/productos');
+      else if (this.state().error || this.categoryState().error) this.handoff.temporaryError();
+    });
     this.quotePresentation.catalogPage.set(true);
     this.destroyRef.onDestroy(() => {
       this.quotePresentation.catalogPage.set(false);
@@ -78,6 +90,14 @@ export class Catalog {
     const seo=inject(Seo);
     effect(()=>{
       this.query.set(this.requestedSearch());
+      if (this.isCategoryPage() && this.handoff.visible() && !this.handoffReady()) return;
+      if (this.categoryUnavailable()) {
+        seo.applyPage(`/productos/${this.category()}`, {
+          title: 'Categoría no disponible | MIQA', description: 'Explora los productos públicos disponibles de MIQA.',
+          robots: 'noindex,follow', structuredData: []
+        });
+        return;
+      }
       const category = this.activeCategory();
       const hasQueryParams = this.params().keys.length > 0;
       if (this.isCategoryPage() && category) {

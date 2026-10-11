@@ -11,12 +11,13 @@
     }
   ],
   "vars": {
-    "SITEMAP_BACKEND_URL": "https://api-store.solucionesmicaela.com/api/public/seo/sitemap.xml"
+    "SITEMAP_BACKEND_URL": "https://api-store.solucionesmicaela.com/api/public/seo/sitemap.xml",
+    "SEO_PAGES_BACKEND_BASE_URL": "https://api-store.solucionesmicaela.com/api/public/seo/pages"
   },
   "assets": {
     "directory": "./dist/miqa-store-frontend/browser",
     "binding": "ASSETS",
-    "run_worker_first": ["/sitemap.xml"],
+    "run_worker_first": ["/sitemap.xml", "/productos/*"],
     "html_handling": "drop-trailing-slash",
     "not_found_handling": "single-page-application"
   }
