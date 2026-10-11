@@ -1,3 +1,6 @@
+import { of } from 'rxjs';
+import { ProductCatalog } from '../../core/data/product-catalog';
+import { erpProduct } from '../../testing/erp.fixture';
 import { provideTestCatalog } from '../../testing/catalog.fixture';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
@@ -39,47 +42,29 @@ describe('Local catalog and configurator', () => {
     expect(harness.routeNativeElement!.querySelectorAll('.catalog-card').length).toBeGreaterThan(2);
   });
 
-  it('requires dimensions and a single material before adding AREA; resets on slug change', async () => {
-    const harness = await RouterTestingHarness.create('/productos/vinil-impreso');
+  it.each(['vinil-impreso', 'tarjetas-personales', 'roll-up'])('does not configure legacy product %s', async slug => {
+    const harness = await RouterTestingHarness.create('/productos/' + slug);
+    await harness.fixture.whenStable();
     const element = harness.routeNativeElement!;
-    const add = element.querySelector<HTMLButtonElement>('.add-button')!;
-    expect(add.disabled).toBe(true);
-    for (const [id, value] of [['width', '2.5'], ['height', '1.2']]) {
-      const input = element.querySelector<HTMLInputElement>('#' + id)!;
-      input.value = value; input.dispatchEvent(new Event('input'));
-    TestBed.tick();
-    await new Promise(resolve => setTimeout(resolve, 320));
-    }
-    await harness.fixture.whenStable();
-    expect(add.disabled).toBe(true);
-    element.querySelector<HTMLInputElement>('input[type=radio]')!.click();
-    expect(element.querySelector('input[type=checkbox]')).toBeNull();
-    await harness.fixture.whenStable();
-    expect(add.disabled).toBe(false);
-    expect(element.querySelector('.area')?.textContent).toContain('3.00 m²');
-    add.click(); await harness.fixture.whenStable();
-    const store = TestBed.inject(QuoteStore);
-    expect(store.items()[0].selectedMaterial?.name).toBe('Vinil blanco');
-    expect(store.items()[0].selectedExtras ?? []).toEqual([]);
-    expect(store.isOpen()).toBe(false);
-    await harness.navigateByUrl('/productos/banner');
-    expect(element.querySelector<HTMLInputElement>('#width')!.value).toBe('');
-    expect(element.querySelector<HTMLInputElement>('input[type=radio]')!.checked).toBe(false);
+    expect(element.textContent).toContain('disponible para configurar');
+    expect(element.querySelector('form')).toBeNull();
+    expect(element.querySelector('app-erp-configurator')).toBeNull();
+    expect(TestBed.inject(QuoteStore).items()).toEqual([]);
+    await harness.navigateByUrl('/productos/inexistente');
+    expect(harness.routeNativeElement!.querySelector('.unavailable')).not.toBeNull();
   });
 
-  it('configures PACK and QUANTITY and handles unknown products', async () => {
-    const harness = await RouterTestingHarness.create('/productos/tarjetas-personales');
-    const element = harness.routeNativeElement!;
-    expect(element.querySelector('.presentation')?.textContent).toContain('1 millar');
-    element.querySelector<HTMLButtonElement>('[aria-label="Aumentar cantidad"]')!.click();
+  it.each(['ERP', 'UNAVAILABLE', 'LEGACY', undefined] as const)('handles configuration mode %s without a legacy fallback', async mode => {
+    const product = { ...erpProduct('ESCALA'), configuration: mode ? { ...erpProduct('ESCALA').configuration!, mode } : undefined };
+    TestBed.overrideProvider(ProductCatalog, { useValue: { categories: () => of([]), findBySlug: () => of(product) } });
+    const harness = await RouterTestingHarness.create('/productos/erp-banner');
     await harness.fixture.whenStable();
-    expect(element.querySelector('#quantity-help')?.textContent).toContain('2 millares = 2,000 unidades');
-    await harness.navigateByUrl('/productos/roll-up');
-    expect(element.querySelector('.presentation')).toBeNull();
-    expect(element.querySelector('#quantity-help')?.textContent).toContain('1 unidad');
-    await harness.navigateByUrl('/productos/inexistente');
-    expect(element.querySelector('h1')?.textContent).toContain('no está disponible');
-    expect(element.querySelector('.add-button')).toBeNull();
+    const element = harness.routeNativeElement!;
+    expect(!!element.querySelector('app-erp-configurator')).toBe(mode === 'ERP');
+    if (mode !== 'ERP') {
+      expect(element.textContent).toContain('disponible para configurar');
+      expect(element.querySelector('form')).toBeNull();
+    }
   });
 
   it('keeps a product slug on the detail route instead of treating it as a category', async () => {

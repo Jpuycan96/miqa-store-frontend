@@ -71,21 +71,15 @@ describe('Quick catalog quoting', () => {
     expect(h.routeNativeElement!.querySelector('.has-quote')).toBeNull();
   });
 
-  it('opens the AREA detail and validates measures before adding', async () => {
+  it('opens a legacy AREA detail without offering retired configuration', async () => {
     const h = await RouterTestingHarness.create('/productos');
     h.routeNativeElement!.querySelector<HTMLButtonElement>('[data-product="vinil-impreso"] .configure')!.click();
     await h.fixture.whenStable();
     const el = h.routeNativeElement!;
-    const add = el.querySelector<HTMLButtonElement>('.add-button')!;
-    expect(add.disabled).toBe(true);
-    for (const id of ['width', 'height']) {
-      const input = el.querySelector<HTMLInputElement>('#' + id)!;
-      input.value = '2'; input.dispatchEvent(new Event('input', { bubbles: true }));
-    }
-    el.querySelector<HTMLInputElement>('input[type=radio]')!.click();
-    await h.fixture.whenStable();
-    expect(add.disabled).toBe(false); add.click(); await h.fixture.whenStable();
-    expect(TestBed.inject(QuoteStore).items()[0].areaSquareMeters).toBe(4);
+    expect(el.querySelector('#product-title')?.textContent).toContain('Vinil');
+    expect(el.querySelector('.product-copy form')).toBeNull();
+    expect(el.textContent).toContain('disponible para configurar');
+    expect(TestBed.inject(QuoteStore).items()).toEqual([]);
   });
 
   it('navigates from the image while the name remains plain text', async () => {

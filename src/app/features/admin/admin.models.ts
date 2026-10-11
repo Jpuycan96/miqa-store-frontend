@@ -9,5 +9,4 @@ export interface ProductInput {
  seoTitle: string | null; seoDescription: string | null;
 }
 export interface AdminProduct extends ProductInput { catalogMode?: 'ERP' | 'LEGACY'; id: string; category: AdminCategory; image: string; materials: AdminOption[]; extras: AdminOption[]; images: AdminImage[]; }
-export type OptionInput = Omit<AdminOption,'id'>;
 export type ImageInput = Omit<AdminImage,'id' | 'publicUrl'>;

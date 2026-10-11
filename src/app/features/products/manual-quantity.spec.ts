@@ -33,37 +33,12 @@ function type(input: HTMLInputElement, value: string, finish = true) {
   if (finish) input.dispatchEvent(new Event('blur'));
 }
 
-it.each(['/productos/roll-up'])('initializes and edits quantities with relative buttons in %s', async path => {
-  const h = await RouterTestingHarness.create(path);
+it('does not expose legacy quantity editing on the public detail', async () => {
+  const h = await RouterTestingHarness.create('/productos/roll-up');
   await h.fixture.whenStable();
-  const control = h.routeNativeElement!.querySelector('.quantity-control')!;
-  const input = control.querySelector('input')!;
-  const buttons = control.querySelectorAll('button');
-  expect(input.value).toBe('12');
-  expect(input.step).toBe('1');
-  for (const value of ['13', '50', '73']) {
-    type(input, value); await h.fixture.whenStable(); expect(input.value).toBe(value);
-  }
-  type(input, '50'); await h.fixture.whenStable();
-  buttons[1].click(); await h.fixture.whenStable(); expect(input.value).toBe('62');
-  type(input, '50'); await h.fixture.whenStable();
-  buttons[0].click(); await h.fixture.whenStable(); expect(input.value).toBe('38');
-  type(input, '13'); await h.fixture.whenStable();
-  buttons[0].click(); await h.fixture.whenStable(); expect(input.value).toBe('12');
-  expect(buttons[0].disabled).toBe(true);
-  for (const value of ['11', '0', '-9', '', 'invalid']) {
-    type(input, value, false); await h.fixture.whenStable();
-    if (!value) expect(input.value).toBe('');
-    input.dispatchEvent(new Event('blur')); await h.fixture.whenStable();
-    expect(input.value).toBe('12');
-  }
-  type(input, '55.9', false);
-  input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
-  await h.fixture.whenStable(); expect(input.value).toBe('55');
-  type(input, '50'); await h.fixture.whenStable();
-  h.routeNativeElement!.querySelector<HTMLButtonElement>('.quick-add, .add-button')!.click();
-  await h.fixture.whenStable();
-  expect(TestBed.inject(QuoteStore).items()[0].quantity).toBe(50);
+  expect(h.routeNativeElement!.querySelector('.quantity-control')).toBeNull();
+  expect(h.routeNativeElement!.textContent).toContain('disponible para configurar');
+  expect(TestBed.inject(QuoteStore).items()).toEqual([]);
 });
 
 it.each(['app-quote-panel'])('preserves manual quantities and exact WhatsApp text from %s', async selector => {

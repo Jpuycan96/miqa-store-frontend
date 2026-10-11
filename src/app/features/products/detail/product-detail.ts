@@ -1,17 +1,13 @@
 import { QuotePanel } from '../../../core/quote/quote-panel/quote-panel';
 import { QuotePresentation } from '../../../core/quote/quote-presentation';
-import { QuantityInput } from '../../../shared/quantity-input';
 import { ErpConfigurator } from '../erp-configurator/erp-configurator';
-import { DecimalPipe } from '@angular/common';
 import { ProductImageGallery } from '../../../shared/product-images/product-image-gallery';
 import { afterRenderEffect, ChangeDetectionStrategy, Component, computed, effect, inject, DestroyRef } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { catchError, combineLatest, Subject, distinctUntilChanged, map, of, startWith, switchMap } from 'rxjs';
 import { ProductCatalog } from '../../../core/data/product-catalog';
 import { QuoteStore } from '../../../core/quote/quote-store';
-import { calculateArea, createQuoteItem, normalizeQuantity, quantityLabel } from '../../../core/quote/quote-utils';
 import { breadcrumb, INSTITUTIONAL_IMAGE, Seo } from '../../../core/seo/seo';
 import { Product } from '../../../shared/models/product';
 import { productImages } from '../../../shared/product-images/product-images';
@@ -20,7 +16,7 @@ import { CatalogHandoff } from '../../../core/seo/catalog-handoff';
 interface ProductState { slug?: string; product?: Product; loading: boolean; error: boolean; }
 
 @Component({
-  selector: 'app-product-detail', imports: [QuotePanel, ErpConfigurator, QuantityInput, ProductImageGallery, RouterLink, ReactiveFormsModule, DecimalPipe],
+  selector: 'app-product-detail', imports: [QuotePanel, ErpConfigurator, ProductImageGallery, RouterLink],
   templateUrl: './product-detail.html', styleUrl: './product-detail.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -86,27 +82,6 @@ export class ProductDetail {
       && this.categories().some(category => category.slug === this.state().slug)))));
   readonly awaitingHandoff = computed(() => this.handoff.visible() && !this.handoffReady() && !this.temporaryFailure());
   readonly category = computed(() => this.categories().find(category => category.slug === this.product()?.categorySlug));
-  readonly form = new FormGroup({
-    quantity: new FormControl<number | null>(1, [Validators.required, Validators.min(1)]),
-    width: new FormControl<number | null>(null, [Validators.required, Validators.min(0.01)]),
-    height: new FormControl<number | null>(null, [Validators.required, Validators.min(0.01)]),
-    material: new FormControl('', { nonNullable: true }),
-    notes: new FormControl('', { nonNullable: true, validators: [Validators.maxLength(1000)] })
-  });
-  private readonly values = toSignal(this.form.valueChanges, { initialValue: this.form.getRawValue() });
-  readonly area = computed(() => calculateArea(this.values().width ?? 0, this.values().height ?? 0));
-  readonly quantity = computed(() => this.values().quantity ?? 0);
-  readonly label = quantityLabel;
-  readonly configuration = computed(() => ({
-    quantity: this.quantity(), widthMeters: this.values().width ?? undefined,
-    heightMeters: this.values().height ?? undefined, materialId: this.values().material ?? '',
-    notes: this.values().notes ?? ''
-  }));
-  readonly canAdd = computed(() => {
-    const product = this.product();
-    return !!product && !!createQuoteItem(product, this.configuration(), 'preview');
-  });
-
   constructor() {
     afterRenderEffect(() => {
       if (this.handoffReady()) this.handoff.complete(`/productos/${this.state().slug}`);
@@ -117,13 +92,8 @@ export class ProductDetail {
     });
     effect(() => this.quotePresentation.productDetail.set(!!this.product()));
     inject(DestroyRef).onDestroy(() => { this.quotePresentation.productDetail.set(false); this.quotePresentation.dismissEmpty(); });
-    let initializedProductId: string | undefined;
     effect(() => {
       const product = this.product();
-      if (product && initializedProductId !== product.id) {
-        this.form.reset({ quantity: product.minQuantity ?? 1, width: null, height: null, material: '', notes: '' });
-        initializedProductId = product.id;
-      }
       if (this.handoff.visible() && !this.handoffReady()) return;
       const path = `/productos/${encodeURIComponent(this.state().slug ?? this.route.snapshot.paramMap.get('slug') ?? '')}`;
       const title = product?.seoTitle?.trim() || (product ? `${product.name} | MIQA` : 'Producto no disponible | MIQA');
@@ -140,11 +110,4 @@ export class ProductDetail {
     });
   }
 
-  changeQuantity(delta: number) {
-    this.form.controls.quantity.setValue(normalizeQuantity(this.quantity() + delta, this.product()?.minQuantity));
-  }
-  add() {
-    const product = this.product();
-    if (product) this.quote.addItem(product, this.configuration());
-  }
 }

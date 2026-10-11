@@ -40,13 +40,13 @@ describe('Shared product detail presentation', () => {
     expect(el.querySelector('.compact-detail')).not.toBeNull();
     expect(el.querySelector('#integrated-quote-panel')).toBeNull();
     expect(!!el.querySelector('app-erp-configurator')).toBe(mode === 'ERP');
-    expect(!!el.querySelector('.add-button')).toBe(mode === 'LEGACY');
+    if (mode !== 'ERP') { expect(el.querySelector('form')).toBeNull(); expect(el.textContent).toContain('disponible para configurar'); }
     expect(TestBed.inject(QuotePresentation).productDetail()).toBe(true);
     fixture.destroy(); expect(TestBed.inject(QuotePresentation).productDetail()).toBe(false);
   });
   it('shows the integrated panel after adding and removes it with the last line', async () => {
     const fixture = await setup(PRODUCTS[2]); const el: HTMLElement = fixture.nativeElement;
-    el.querySelector<HTMLButtonElement>('.add-button')!.click(); await fixture.whenStable();
+    TestBed.inject(QuoteStore).addItem(PRODUCTS[2], { quantity: 1 }); await fixture.whenStable();
     const store = TestBed.inject(QuoteStore);
     expect(store.items()).toHaveLength(1);
     expect(el.querySelector('.quote-expanded')).not.toBeNull();
@@ -58,9 +58,9 @@ describe('Shared product detail presentation', () => {
     expect(el.querySelector('#integrated-quote-panel')).toBeNull();
     expect(el.querySelector('.quote-expanded')).toBeNull();
   });
-  it('uses the same integrated panel on mobile after a legacy addition', async () => {
+  it('preserves the integrated panel on mobile for a historical cart line', async () => {
     desktop = false; const fixture = await setup(PRODUCTS[2]);
-    fixture.componentInstance.add(); await fixture.whenStable();
+    TestBed.inject(QuoteStore).addItem(PRODUCTS[2], { quantity: 1 }); await fixture.whenStable();
     expect(TestBed.inject(QuoteStore).items()).toHaveLength(1);
     expect(fixture.nativeElement.querySelector('#integrated-quote-panel')).not.toBeNull();
     expect(fixture.nativeElement.querySelector('app-quote-drawer')).toBeNull();
@@ -93,7 +93,7 @@ describe('Shared product detail presentation', () => {
     expect(configurator.canAdd()).toBe(true);
   });
 
-  it.each(['ERP', 'LEGACY'] as const)('preserves the %s draft and quote when the hydration stream revalidates the same product', async mode => {
+  it.each(['ERP', 'LEGACY'] as const)('preserves the ERP draft or unavailable state and historical quote for %s when the hydration stream revalidates the same product', async mode => {
     const product = mode === 'ERP' ? erpProduct() : PRODUCTS[2];
     const updates = new BehaviorSubject<Product | undefined>(product);
     const fixture = await setup(product, updates);
@@ -102,16 +102,16 @@ describe('Shared product detail presentation', () => {
     const lines = structuredClone(quote.items());
     const configurator = mode === 'ERP' ? fixture.debugElement.query(By.directive(ErpConfigurator)).componentInstance as ErpConfigurator : null;
     if (configurator) configurator.form.patchValue({ quantity: 2.5, material: '19', notes: 'Borrador ERP', measures: { ancho: 2, alto: 3 } });
-    else fixture.componentInstance.form.patchValue({ quantity: 7, notes: 'Borrador legacy' });
+    else expect(fixture.nativeElement.querySelector('.product-copy form')).toBeNull();
     await fixture.whenStable();
-    const before = configurator?.form.getRawValue() ?? fixture.componentInstance.form.getRawValue();
+    const before = configurator?.form.getRawValue();
     const revised: Product = { ...structuredClone(product), name: 'Título actualizado', seoTitle: 'SEO actualizado' };
     if (revised.configuration) revised.configuration.configurationVersion = '5';
     updates.next(revised); await fixture.whenStable();
     expect(fixture.nativeElement.querySelector('h1')?.textContent).toBe('Título actualizado');
     expect(document.title).toBe('SEO actualizado');
     if (configurator) expect(fixture.debugElement.query(By.directive(ErpConfigurator)).componentInstance).toBe(configurator);
-    expect(configurator?.form.getRawValue() ?? fixture.componentInstance.form.getRawValue()).toEqual(before);
+    expect(configurator?.form.getRawValue()).toEqual(before);
     expect(quote.items()).toEqual(lines);
   });
 
