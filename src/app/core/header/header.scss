@@ -16,8 +16,8 @@
 .category-menu{position:relative;flex:1;min-width:0}
 .category-row{display:flex;align-items:center}
 .category-row>a{flex:1}
-.subcategory-toggle{flex-shrink:0;min-width:32px;min-height:44px;padding:0 4px;border:0;background:transparent;color:#061b4f;cursor:pointer;font-size:18px}
-.subcategory-dropdown{position:absolute;top:calc(100% + 8px);left:4px;z-index:10;width:260px;max-width:calc(100vw - 64px);margin:0;padding:6px;list-style:none;background:#fff;border:1px solid #dce2e9;border-radius:8px;box-shadow:0 12px 32px #061b4f26,0 3px 8px #061b4f14}
+.subcategory-toggle{flex-shrink:0;min-width:24px;min-height:44px;padding:0;border:0;background:transparent;color:#061b4f;cursor:pointer}
+.subcategory-dropdown{position:absolute;top:calc(100% + 8px);left:4px;z-index:10;width:260px;max-width:calc(100vw - 64px);margin:0;padding:6px;list-style:none;background:#fff;border:1px solid #dce2e9;border-radius:8px;box-shadow:0 8px 24px rgba(0,20,60,.18),0 2px 6px rgba(0,20,60,.08)}
 // Keep the pointer inside the menu while crossing the visual separation.
 .subcategory-dropdown::before{content:'';position:absolute;left:-1px;right:-1px;top:-9px;height:8px}
 .desktop-nav .subcategory-dropdown a{padding:12px;min-height:44px;border:0;border-radius:4px;font-weight:500;overflow-wrap:anywhere;transition:background-color 160ms ease,color 160ms ease}

@@ -7,7 +7,7 @@
     <div class="category-menu" (pointerenter)="enterCategory($event,c.slug)" (pointerleave)="expandedCategory.set('')" (focusout)="categoryFocusOut($event)" (keydown.escape)="closeCategory($event)">
      <div class="category-row">
       <a class="category-link" [class.active]="activeCategory() === c.slug" [attr.aria-current]="activeCategory() === c.slug ? 'page' : null" [routerLink]="c.subcategories ? '/productos' : categoryLink(c.slug)" [queryParams]="c.subcategories ? commercialLink(c.slug) : null" (click)="navigate()">{{c.name}}</a>
-      @if(c.subcategories?.length){<button type="button" class="subcategory-toggle" [attr.aria-label]="'Subcategorías de ' + c.name" [attr.aria-expanded]="expandedCategory()===c.slug" [attr.aria-controls]="'desktop-subcategories-'+c.slug" (click)="toggleCategory(c.slug)" (keydown.arrowdown)="expandedCategory.set(c.slug);$event.preventDefault()">⌄</button>}
+      @if(c.subcategories?.length){<button type="button" class="subcategory-toggle" [attr.aria-label]="'Subcategorías de ' + c.name" [attr.title]="'Subcategorías de ' + c.name" [attr.aria-expanded]="expandedCategory()===c.slug" [attr.aria-controls]="'desktop-subcategories-'+c.slug" (click)="toggleCategory(c.slug)" (keydown.arrowdown)="expandedCategory.set(c.slug);$event.preventDefault()"></button>}
      </div>
      @if(c.subcategories?.length){
       <ul class="subcategory-dropdown" [id]="'desktop-subcategories-'+c.slug" [hidden]="expandedCategory()!==c.slug">
@@ -47,7 +47,7 @@
   @for(c of categories();track c.slug){
    <div class="mobile-category" (keydown.escape)="closeCategory($event)" (focusout)="categoryFocusOut($event)">
     <div class="category-row"><a [class.active]="activeCategory() === c.slug" [attr.aria-current]="activeCategory() === c.slug ? 'page' : null" [routerLink]="c.subcategories ? '/productos' : categoryLink(c.slug)" [queryParams]="c.subcategories ? commercialLink(c.slug) : null" (click)="navigate()">{{c.name}}</a>
-     @if(c.subcategories?.length){<button type="button" class="subcategory-toggle" [attr.aria-label]="'Subcategorías de ' + c.name" [attr.aria-expanded]="expandedCategory()===c.slug" [attr.aria-controls]="'mobile-subcategories-'+c.slug" (click)="toggleCategory(c.slug)">⌄</button>}
+     @if(c.subcategories?.length){<button type="button" class="subcategory-toggle" [attr.aria-label]="'Subcategorías de ' + c.name" [attr.title]="'Subcategorías de ' + c.name" [attr.aria-expanded]="expandedCategory()===c.slug" [attr.aria-controls]="'mobile-subcategories-'+c.slug" (click)="toggleCategory(c.slug)"></button>}
     </div>
     @if(c.subcategories?.length){<ul class="mobile-subcategories" [id]="'mobile-subcategories-'+c.slug" [hidden]="expandedCategory()!==c.slug">
      @for(sub of c.subcategories;track sub.erpSubcategoryId){<li><a routerLink="/productos" [queryParams]="commercialLink(c.slug,sub.slug)" [class.active]="activeSubcategory()===sub.slug" [attr.aria-current]="activeSubcategory()===sub.slug ? 'page' : null" (click)="navigate()">{{sub.name}}</a></li>}

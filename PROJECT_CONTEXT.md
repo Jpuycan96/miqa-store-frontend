@@ -1,3 +1,17 @@
+## Scroll interno de modelos ERP — local, 21 de octubre de 2026
+
+- Solo erp-configurator.scss: model-cards con altura máxima total 280 px desktop/tablet y 264 px móvil,
+  overflow-y auto/overflow-x hidden, scrollbar discreto, padding para foco y overscroll vertical contenido.
+  Listas cortas conservan altura natural; radios, columnas/divisoria, filas y reglas de negocio intactos.
+- 282/282 pruebas Angular aprobadas. Build offline final correcto (15 rutas de fixtures, no publicar),
+  cinco avisos CSS no bloqueantes: cuatro existentes más configurador 4.39 kB/umbral 4 kB, límite 8 kB.
+- Edge con API/pricing simulados y tráfico externo bloqueado: 3/20 modelos a 390/768/1440, seis auditorías
+  axe sin infracciones, sin overflow ni excepciones. Todos seleccionables por flechas, seleccionado visible
+  con scroll nativo de foco, precio actualizado, mínimo y agregado al carrito correctos; rueda al límite
+  del listado no mueve la página. Evidencia ignorada .tmp/model-scroll-results.json. No prueba con ERP real
+  ni garantía de todos los controles en una sola pantalla: depende del contenido y tamaño de viewport.
+- Cambios previos del encabezado preservados. Sin backend/BD/ERP, commit, push ni deploy.
+
 ## Menú con árbol comercial vacío — 21 de octubre de 2026
 
 - Propietario confirma V13 y sincronización PROD SUCCESS: 6 categorías, 153 servicios, 0 subcategorías,
