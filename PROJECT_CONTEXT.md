@@ -1,3 +1,89 @@
+## Menú con árbol comercial vacío — 21 de octubre de 2026
+
+- Propietario confirma V13 y sincronización PROD SUCCESS: 6 categorías, 153 servicios, 0 subcategorías,
+  0 asignaciones. GET reales actuales: commercial/categories 200/[], categories 200/6, commercial/products
+  sin filtros y products 200/49. Esto reemplaza el bloqueo histórico por 404 descrito más abajo.
+- Cambio mínimo solo en Header: si la lectura comercial responde correctamente [], consulta categories()
+  y conserva rutas históricas /productos/{slug} en desktop/móvil, sin filtros comerciales ni dropdowns vacíos.
+  Con árbol comercial no vacío conserva comportamiento previo; errores HTTP no activan fallback y mantienen
+  reintento. Sin cambios en productos, servicios API, carrito, backend, datos o configuración de entornos.
+- Cuatro nuevas regresiones de fallback (incluido filtrado real por ruta), prueba anterior de reintento
+  actualizada y mock HTTP del catálogo ajustado. Suite completa 282/282 en 39 archivos; Worker 58/58.
+  Build production real correcto: 57 URLs/58 rutas, cuatro avisos CSS previos no bloqueantes. HTML producido
+  muestra 6 enlaces históricos desktop/móvil y 49 tarjetas; 196 archivos sin referencias TEST según scan.
+- Salida real aislada .tmp/production-readiness/dist; sitemap/_redirects fuente restaurados por el arnés.
+  Frontend listo para el escenario PROD actual sin clasificación por subcategorías. No commit/push/deploy.
+
+## Preparación de producción — 21 de octubre de 2026, sin despliegue
+
+- Propietario confirma mantener frontend Cloudflare y API Vultr. Informe/procedimiento futuro, inventario,
+  dependencias, preflight, respaldos, orden backend→sync→frontend y rollback en PRODUCTION_READINESS.md.
+- Frontend main e17c2c8 y backend main c0b3173 coinciden con origin/main local y git ls-remote real.
+  Cambios comerciales aún sin commits, incluidos archivos nuevos backend/V13; trabajo anterior preservado.
+- GET PROD: categorías históricas 200/6, productos 200/49, ambos endpoints /api/public/commercial 404,
+  auth/me 401. OPTIONS CORS administrativo 200/origen HTTPS exacto/Authorization; imagen pública de muestra 200.
+  No publicar frontend comercial antes de endpoints/snapshot PROD útiles. No se accedió a DB ni ERP PROD.
+- Build real npm run build production exitoso con API pública PROD (solo lectura), 57 URLs y 58 rutas,
+  salida .tmp/production-readiness/dist; public/sitemap.xml y _redirects originales restaurados byte a byte.
+  278/278 tests Angular (39 archivos), 58/58 Worker; dry-run Wrangler con esos assets exitoso sin subida.
+  196 archivos de artefacto sin referencias al túnel/módulos TEST según patrones del informe. Cuatro avisos
+  CSS no bloqueantes. Dist habitual sigue offline/no publicable; reconstruir después de habilitar backend PROD.
+- V13 es el delta local comercial; pendientes reales requieren leer flyway_schema_history PROD. ERP PROD
+  requiere endpoint/esquema/credencial propios; si faltan, cambio independiente, no promover DEV/TEST.
+  Backend package/tests actuales, respaldo restaurable y compatibilidad de rollback sobre V13 quedan como gates.
+- Sin deploy, commit/push, migraciones, reinicios, secretos en informe, cambios backend/ERP/LaserMonitor ni
+  configuración funcional. Esta preparación solo añade informe, contexto y evidencias ignoradas .tmp.
+
+## Ajuste visual de submenús del encabezado — local, 21 de octubre de 2026
+
+- Solo header.scss: desplegables alineados al inicio del texto de cada categoría (4 px de padding del
+  enlace), separación vertical 8 px con puente transparente para mantener hover, fondo blanco, borde
+  gris claro, radio 8 px y sombra en dos capas. Retirada alineación derecha especial de la última categoría.
+  Ancho 260 px, texto con wrapping, z-index local 10 dentro del header sticky 30 existente. Hover/foco
+  celeste con transición 160 ms; reduced motion respetado. Lógica/template/API/datos preservados.
+- Build offline existente exitoso, 15 rutas; cuatro avisos CSS no bloqueantes (header 4.88 kB/4 kB,
+  catálogo, detalle y panel). Dist contiene fixtures, solo validación, no publicar. Cinco regresiones de
+  commercial-navigation.spec.ts aprobadas. Edge/API simulada con tráfico externo interceptado: siete
+  categorías verificadas a 1200/1280/1440/1920, alineación exacta, gap 8 px y por encima del contenido;
+  sin overflow en 360/390/768/1024/1199 y anchos desktop. Hover, Escape/foco y selección móvil conservados;
+  tres auditorías axe sin infracciones ni excepciones JS. Evidencia ignorada .tmp/commercial-navigation/.
+- Sin backend, datos, producción, commit, push ni deploy. Cambios locales anteriores conservados.
+
+## Frontend local hacia TEST por túnel — 21 de octubre de 2026
+
+- Esta configuración reemplaza la referencia anterior de development a localhost:8081. `npm start`
+  conserva ng serve/development, con API de origen relativo y proxy `/api/**`, `/media/**` hacia
+  `http://127.0.0.1:18083` (túnel del propietario a MIQA TEST 8083). No fallback ni llamadas directas al ERP.
+- Replacements development de main browser/server incorporan test-http.config: mismo interceptor admin,
+  adaptación recursiva de URLs absolutas de media PROD restauradas a `/media/` local en respuestas JSON.
+  Necesario porque TEST entrega esas referencias; servicios/env productivo/SSR productivo preservados.
+  JWT/localStorage administrativos preexistentes intactos; sin credenciales añadidas ni login real.
+- GET TEST reales: árbol público 2 categorías/2 hijas, listado sin filtro 25 productos. Merchandising:
+  slug impresion-gran-formato-1, hija subcategoria-44, llaveros-acrilicos; Impresión Gran Formato:
+  merchandising-1, hija subcategoria-46, impresion-uv. Cada hija devuelve un producto. Nombres/slugs
+  cruzados se conservaron y reportaron, sin corregir datos ni atribuir causa. Totales DB 7/25/126 y 3
+  asignaciones/SUCCESS son contexto informado por propietario, no resultados de consultas DB en esta tarea.
+- Autenticación sin sesión devuelve 401 directo y por proxy. Imagen de muestra `/media/products/...`
+  devuelve 401 por TEST; se muestra placeholder, nunca fallback PROD. Entrega de medios pendiente de otra
+  tarea. Admin editorial existe; no pantalla de gestión de subcategorías/servicios/asignaciones ni SUCCESS global.
+- 275/275 pruebas existentes aprobadas; 3/3 nuevas pruebas de medios aprobadas separadamente. ng serve
+  development compiló browser/server y SSR/proxy reales en 4201, porque 4200 estaba ocupado y no se detuvo
+  el proceso existente. Edge con datos reales: catálogo filtrado, dropdown desktop/móvil 1440/390, dos axe
+  sin infracciones, sin overflow/excepciones JS ni tráfico externo. Evidencia ignorada .tmp/test-integration.
+- Sin npm run build/generador sitemap productivo, backend/ERP/DB, autenticación desactivada, escrituras API,
+  instalaciones, commit/push/deploy. Cambios previos conservados. Reiniciar npm start en 4200 para cargar
+  proxy/replacements; URLs exactas, límites y reversión selectiva en README, sección TEST 21/10/2026.
+
+## Navegación comercial con dropdowns — local, 20 de octubre de 2026
+
+- Propuesta 1 implementada en Header existente: blanco/sombra/celeste, sin imágenes/banners/segunda barra/sidebar. Hover desktop dentro del contenedor padre/opciones sin hueco; botones separados permiten abrir con teclado o touch sin perder el clic de navegación del padre. Escape/foco/aria-expanded/aria-controls; sin dropdown vacío.
+- DTO real leído en backend CommercialCatalogService/Controller (solo lectura). Nuevos modelos comerciales y capacidad commercialCategories de ProductCatalog; CatalogApiService consume /api/public/commercial/categories y /commercial/products con commercialCategory/subcategory/search. Productos conservan mapeo/editorial y se deduplican por ID. No cambios backend ni endpoints administrativos.
+- URLs /productos?commercialCategory={slug}&subcategory=subcategoria-{idERP}&buscar={texto}; filtros persistentes/compartibles. Padre omite hija, mantiene búsqueda; TODOS limpia todo. Rutas históricas /productos/:slug y ?categoria/buscar, imágenes, detalle, carrito/regresar, SEO, Worker y sitemap conservados. Sin filtros comerciales se usa /api/public/products como antes.
+- Estado del catálogo toma filtros URL juntos, sin segunda espera de búsqueda posterior al debounce del header; switchMap cancela peticiones previas. Header conserva árbol en cambios de query y lo refresca al cambiar de path/reintentar. Categorías históricas siguen revalidándose para contenido editorial/SEO existente. Adaptadores de catálogo antiguos sin capacidad comercial mantienen navegación previa; producción no hace fallback ante error HTTP comercial.
+- Nuevas cinco pruebas commercial-navigation.spec.ts y tres API; pruebas HTTP anteriores adaptadas a endpoint independiente de menú. Suite completa npm.cmd test -- --watch=false: 275/275 en 38 archivos. Build node scripts/build-catalog-offline.cjs exitoso, 15 rutas offline; tres avisos CSS previos más aviso header 4.51 kB (umbral 4 kB, límite 8 kB intacto). Sin instalación, servicios/bases/ERP reales, sincronización, commit/push/deploy. Dist contiene fixtures, no publicable.
+- README documenta contratos, interacción y límites. Pendiente comprobación con clasificación real tras disponibilidad/despliegue autorizados del backend; no se inventan IDs ni asignaciones para producción.
+- Edge headless local con API simulada y tráfico externo interceptado/bloqueado: desktop 1440, móvil 390 y breakpoint 1200 px, tres auditorías axe sin infracciones ni overflow/excepciones JS. Hover mantiene dropdown al pasar a opciones, Escape devuelve foco y selección móvil cierra menú. Capturas/resultado y arnés ignorados bajo .tmp/commercial-navigation*. Primeros intentos CDP expiraron dentro del sandbox; ejecución fuera del sandbox aprobada y satisfactoria. No es validación de datos reales ni despliegue.
+
 ## Redirecciones de categorias Legacy - local, 11 de octubre de 2026
 
 - Verificacion HTTP publica previa: letreros-publicitarios, merchandising, impresion-gran-formato e imprenta-papeleria devolvieron 404; sus destinos propuestos devolvieron 200. No se encontro una categoria publica equivalente a Imprenta y Papeleria en el sitemap actual.

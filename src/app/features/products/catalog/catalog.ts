@@ -1,9 +1,9 @@
 import { ProductImageView } from '../../../shared/product-images/product-image';
 import { productImages } from '../../../shared/product-images/product-images';
-import { afterRenderEffect, ChangeDetectionStrategy, Component, computed, effect, inject, signal, DestroyRef } from '@angular/core';
+import { afterRenderEffect, ChangeDetectionStrategy, Component, computed, effect, inject, DestroyRef } from '@angular/core';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { catchError, combineLatest, debounceTime, distinctUntilChanged, map, of, startWith, Subject, switchMap } from 'rxjs';
+import { catchError, combineLatest, distinctUntilChanged, map, of, startWith, Subject, switchMap } from 'rxjs';
 import { ProductCatalog } from '../../../core/data/product-catalog';
 import { Product } from '../../../shared/models/product';
 import { QuoteStore } from '../../../core/quote/quote-store';
@@ -42,19 +42,18 @@ export class Catalog {
   private readonly routeParams = toSignal(this.route.paramMap, { initialValue: this.route.snapshot.paramMap });
   private readonly refresh = new Subject<void>();
   private readonly requestedSearch = computed(()=>(this.params().get('buscar')??'').slice(0,120));
-  readonly query = signal('');
+  readonly query = computed(() => this.requestedSearch());
   readonly isCategoryPage = computed(() => this.routeData()['categoryRoute'] === true);
   readonly category = computed(() => this.isCategoryPage() ? this.routeParams().get('slug') ?? '' : this.params().get('categoria') ?? '');
-  private readonly search = toObservable(this.query).pipe(
-    map(value => value.trim()), distinctUntilChanged(), debounceTime(300), startWith(''), distinctUntilChanged()
-  );
+  private readonly filters = computed(() => ({ category:this.category(), search:this.query().trim(),
+    ...(this.params().get('commercialCategory') ? {commercialCategory:this.params().get('commercialCategory')!} : {}),
+    ...(this.params().get('subcategory') ? {subcategory:this.params().get('subcategory')!} : {}) }));
   readonly state = toSignal(combineLatest([
-    toObservable(this.category).pipe(distinctUntilChanged()),
-    this.search, this.refresh.pipe(startWith(undefined))
-  ]).pipe(switchMap(([category, search]) => this.source.list({ category, search }, { fresh: this.handoff.visible() }).pipe(
-    map(products => ({ category, products: products.filter(product => product.published), loading: false, error: false })),
-    startWith({ category, products: [], loading: true, error: false }),
-    catchError(() => of({ category, products: [], loading: false, error: true }))
+    toObservable(this.filters), this.refresh.pipe(startWith(undefined))
+  ]).pipe(switchMap(([filters]) => this.source.list(filters, { fresh: this.handoff.visible() }).pipe(
+    map(products => ({ category:filters.category, products: products.filter(product => product.published), loading: false, error: false })),
+    startWith({ category:filters.category, products: [], loading: true, error: false }),
+    catchError(() => of({ category:filters.category, products: [], loading: false, error: true }))
   ))), { initialValue: { category: '', products: [], loading: true, error: false } });
   readonly categoryState = toSignal(combineLatest([
     toObservable(this.category).pipe(distinctUntilChanged()), this.route.queryParamMap,
@@ -89,7 +88,6 @@ export class Catalog {
     });
     const seo=inject(Seo);
     effect(()=>{
-      this.query.set(this.requestedSearch());
       if (this.isCategoryPage() && this.handoff.visible() && !this.handoffReady()) return;
       if (this.categoryUnavailable()) {
         seo.applyPage(`/productos/${this.category()}`, {
@@ -128,5 +126,5 @@ export class Catalog {
   filterCategory(category: string) {
     void this.router.navigate([], { relativeTo: this.route, queryParams: { categoria: category || null }, queryParamsHandling: 'merge' });
   }
-  reset() { this.query.set('');void this.router.navigate([], {relativeTo:this.route,queryParams:{categoria:null,buscar:null},queryParamsHandling:'merge'}); }
+  reset() { void this.router.navigate(['/productos']); }
 }

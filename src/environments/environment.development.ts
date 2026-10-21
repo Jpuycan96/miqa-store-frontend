@@ -1,3 +1,4 @@
 export const environment = {
-  storeApiBaseUrl: 'http://localhost:8081'
+  // Same-origin requests go through the development-only TEST proxy.
+  storeApiBaseUrl: ''
 } as const;

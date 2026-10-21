@@ -6,6 +6,7 @@ import { catchError, concat, defer, map, Observable, of, ReplaySubject, switchMa
 import { STORE_API_CONFIG } from '../config/store-api';
 import { CategoryDto, mapCategory, mapProduct, ProductDto } from './catalog-mapper';
 import type { CatalogFilters, CatalogRequestOptions, ProductCatalog } from './product-catalog';
+import type { CommercialCategory } from '../../shared/models/product';
 
 @Injectable({ providedIn: 'root' })
 export class CatalogApiService implements ProductCatalog {
@@ -45,14 +46,21 @@ export class CatalogApiService implements ProductCatalog {
       map(categories => categories.map(mapCategory))
     );
   }
+  commercialCategories(options: CatalogRequestOptions = {}) {
+    return this.get<readonly CommercialCategory[]>('/commercial/categories', new HttpParams(), options);
+  }
   list(filters: CatalogFilters = {}, options: CatalogRequestOptions = {}) {
     let params = new HttpParams();
     if (filters.category) params = params.set('category', filters.category);
     if (filters.search?.trim()) params = params.set('search', filters.search.trim());
     if (filters.featured !== undefined) params = params.set('featured', filters.featured);
-    return this.get<readonly ProductDto[]>('/products', params, options).pipe(
+    if (filters.commercialCategory) params = params.set('commercialCategory', filters.commercialCategory);
+    if (filters.subcategory) params = params.set('subcategory', filters.subcategory);
+    const path = filters.commercialCategory || filters.subcategory ? '/commercial/products' : '/products';
+    return this.get<readonly ProductDto[]>(path, params, options).pipe(
       map(products => sortProductsByName(products.filter(product => product.published)
-        .map(product => mapProduct(product, this.config.mediaBaseUrl)))));
+        .map(product => mapProduct(product, this.config.mediaBaseUrl))
+        .filter((product, index, all) => all.findIndex(other => other.id === product.id) === index))));
   }
   findBySlug(slug: string, options: CatalogRequestOptions = {}) {
     return this.get<ProductDto>('/products/' + encodeURIComponent(slug), new HttpParams(), options).pipe(

@@ -20,17 +20,28 @@ export class Header {
  readonly catalogMode = input(false);
  private readonly categoryRefresh = new Subject<void>();
  private readonly initialNavigationId = this.router.currentNavigation()?.id;
- readonly categories = toSignal(this.categoryRefresh.pipe(startWith(undefined),
-  switchMap(() => this.source.categories().pipe(catchError(() => of([]))))), {initialValue:[]});
+ readonly categoryState = toSignal(this.categoryRefresh.pipe(startWith(undefined),
+  switchMap(() => (this.source.commercialCategories?.().pipe(
+   switchMap(categories => categories.length ? of(categories) : this.source.categories())
+  ) ?? this.source.categories()).pipe(
+   map(categories=>({categories,loading:false,error:false})),
+   startWith({categories:[],loading:true,error:false}),
+   catchError(() => of({categories:[],loading:false,error:true}))))),
+  {initialValue:{categories:[],loading:true,error:false}});
+ readonly categories = computed(()=>this.categoryState().categories);
+ readonly expandedCategory = signal('');
+ readonly activeSubcategory = computed(()=>this.router.parseUrl(this.currentUrl()).queryParams['subcategory']??'');
  readonly menuOpen = signal(false);
  private readonly currentUrl = signal(this.router.url);
  readonly activeCategory = computed(()=>{
   const tree=this.router.parseUrl(this.currentUrl());
   const pathSlug=tree.root.children['primary']?.segments[1]?.path??'';
-  return this.categories().some(category=>category.slug===pathSlug)?pathSlug:tree.queryParams['categoria']??'';
+  return tree.queryParams['commercialCategory'] ?? this.categories().find(category=>category.subcategories?.some(sub=>sub.slug===tree.queryParams['subcategory']))?.slug
+   ?? (this.categories().some(category=>category.slug===pathSlug)?pathSlug:tree.queryParams['categoria']??'');
  });
  readonly searchOpen = signal(false);
  readonly search = new FormControl<string>(this.router.parseUrl(this.router.url).queryParams['buscar']??'',{nonNullable:true});
+ private readonly searchText = toSignal(this.search.valueChanges, {initialValue:this.search.value});
  readonly results = toSignal(this.search.valueChanges.pipe(
   map(value=>value.trim().slice(0,120)),debounceTime(250),
   switchMap(search=>{
@@ -48,16 +59,34 @@ export class Header {
  ),{initialValue:{products:[],loading:false,error:false}});
  constructor(){
   this.router.events.pipe(filter(event=>event instanceof NavigationEnd),takeUntilDestroyed()).subscribe(event=>{
+  const previousPath=this.currentUrl().split('?')[0];
   this.currentUrl.set(this.router.url);
-  if (event.id !== this.initialNavigationId) this.categoryRefresh.next();
+  if (event.id !== this.initialNavigationId && previousPath !== this.router.url.split('?')[0]) this.categoryRefresh.next();
+  this.expandedCategory.set('');
   if(this.catalogMode())this.search.setValue(this.router.parseUrl(this.router.url).queryParams['buscar']??'',{emitEvent:false});
  });}
  categoryLink(slug: string): string { return `/productos/${slug}`; }
+ commercialLink(slug: string, subcategory?: string) {
+  const search=this.catalogMode() ? this.router.parseUrl(this.currentUrl()).queryParams['buscar']??'' : this.searchText();
+  return {commercialCategory:slug,subcategory:subcategory??null,buscar:search.trim()||null};
+ }
+ retryCategories() { this.categoryRefresh.next(); }
+ enterCategory(event: PointerEvent, slug: string) { if(event.pointerType==='mouse') this.expandedCategory.set(slug); }
+ toggleCategory(slug: string) { this.expandedCategory.update(current=>current===slug?'':slug); }
+ closeCategory(event: Event) {
+  this.expandedCategory.set('');
+  const target=event.currentTarget as HTMLElement;
+  target.querySelector<HTMLButtonElement>('.subcategory-toggle')?.focus();
+  event.stopPropagation();
+ }
+ categoryFocusOut(event: FocusEvent) {
+  if (!(event.currentTarget as HTMLElement).contains(event.relatedTarget as Node | null)) this.expandedCategory.set('');
+ }
  private readonly searchToggle = viewChild<ElementRef<HTMLButtonElement>>('searchToggle');
  private readonly searchInput = viewChild<ElementRef<HTMLInputElement>>('searchInput');
  toggleSearch() { this.closeMenu(); this.searchOpen.update(open=>!open); if(this.searchOpen())setTimeout(()=>this.searchInput()?.nativeElement.focus()); }
  closeSearch() { this.searchOpen.set(false); this.searchToggle()?.nativeElement.focus(); }
- closeMenu() { this.menuOpen.set(false); }
+ closeMenu() { this.menuOpen.set(false); this.expandedCategory.set(''); }
  navigate() { this.closeMenu();this.searchOpen.set(false); }
  async openQuote() {
   this.navigate();

@@ -25,6 +25,10 @@ describe('Catalog HTTP integration without backend', () => {
     http = TestBed.inject(HttpTestingController);
   });
   afterEach(() => {
+    // Independent commercial navigation is covered by commercial-navigation.spec and API mapper tests.
+    http.match(base+'/commercial/categories').forEach(request=>{if(!request.cancelled)request.flush([
+      {id:'navigation',erpCategoryId:'1',...product.category,displayOrder:0,subcategories:[]}
+    ]);});
     try { http.verify(); } finally { TestBed.resetTestingModule(); localStorage.removeItem(QUOTE_STORAGE_KEY); }
   });
   it('renders loading, API errors, retry, API-only data and empty states', async () => {
@@ -32,7 +36,7 @@ describe('Catalog HTTP integration without backend', () => {
     const el = h.routeNativeElement!;
     expect(el.textContent).toContain('Cargando productos');
     expect(el.querySelectorAll('.catalog-card')).toHaveLength(0);
-    const categories=http.match(base + '/categories');expect(categories).toHaveLength(2);
+    const categories=http.match(base + '/categories');expect(categories).toHaveLength(1);
     categories.forEach(request=>request.flush([product.category]));
     http.expectOne(base + '/products').flush({}, { status: 503, statusText: 'Unavailable' });
     await h.fixture.whenStable();
@@ -126,8 +130,8 @@ describe('Catalog HTTP integration without backend', () => {
     const guard = http.expectOne(base + '/categories');
     expect(guard.request.transferCache).toBe(false); guard.flush([category]);
     const h = await creating;
-    const flushCategories = () => http.match(base + '/categories').forEach(request => {
-      if (!request.cancelled) request.flush([category]);
+    const flushCategories = () => http.match(request=>request.url===base+'/categories'||request.url===base+'/commercial/categories').forEach(request => {
+      if (!request.cancelled) request.flush([{...category,id:category.slug,erpCategoryId:'3',displayOrder:0,subcategories:[]}]);
     });
     flushCategories(); http.expectOne(request => request.url === base + '/products').flush([{ ...product, category }]);
     await h.fixture.whenStable(); expect(h.routeNativeElement!.querySelector('h1')?.textContent).toBe('Título inicial');
@@ -147,7 +151,8 @@ describe('Catalog HTTP integration without backend', () => {
     http.expectOne(request => request.params.get('search') === 'producto').flush([{ ...product, category }]);
     await h.fixture.whenStable();
     expect(h.routeNativeElement!.querySelector('h1')?.textContent).toBe('Título actualizado con filtros');
-    expect(h.routeNativeElement!.querySelector('.desktop-nav')?.textContent).toContain('Nombre posfiltro');
+    // Search refreshes category editorial data, but does not redundantly reload commercial navigation.
+    expect(h.routeNativeElement!.querySelector('.desktop-nav')?.textContent).toContain('Nombre actual');
     expect(document.querySelector('meta[name=robots]')?.getAttribute('content')).toBe('noindex,follow');
   });
 });

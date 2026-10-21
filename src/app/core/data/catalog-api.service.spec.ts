@@ -28,6 +28,31 @@ describe('Catalog API', () => {
     TestBed.tick();
   });
   afterEach(() => http.verify());
+  it('consumes the exact commercial tree without editorial subcategory fields', () => {
+    const categories = [{id:'local',erpCategoryId:'8',name:'Comercial',slug:'comercial',displayOrder:0,
+      subcategories:[{erpSubcategoryId:'10',erpCategoryId:'8',name:'Subcategoría',slug:'subcategoria-10',displayOrder:1}]}];
+    api.commercialCategories().subscribe(result=>expect(result).toEqual(categories));
+    http.expectOne(base+'/commercial/categories').flush(categories);
+  });
+  it('combines commercial filters and search in one request and deduplicates product identities', () => {
+    api.list({commercialCategory:'comercial',subcategory:'subcategoria-10',search:' texto ',category:'principal'})
+      .subscribe(products=>expect(products.map(product=>product.id)).toEqual(['987']));
+    const request=http.expectOne(r=>r.url===base+'/commercial/products');
+    expect(request.request.params.get('commercialCategory')).toBe('comercial');
+    expect(request.request.params.get('subcategory')).toBe('subcategoria-10');
+    expect(request.request.params.get('search')).toBe('texto');
+    expect(request.request.params.get('category')).toBe('principal');
+    request.flush([API_PRODUCT,API_PRODUCT,{...API_PRODUCT,id:'hidden',published:false}]);
+    http.expectNone(base+'/products');
+  });
+  it('supports subcategory-only shared URLs and propagates commercial errors without unfiltered fallback', () => {
+    let failed=false;
+    api.list({subcategory:'subcategoria-10'}).subscribe({error:()=>failed=true});
+    const request=http.expectOne(r=>r.url===base+'/commercial/products');
+    expect(request.request.params.get('subcategory')).toBe('subcategoria-10');
+    request.flush({}, {status:503,statusText:'Unavailable'});
+    expect(failed).toBe(true);http.expectNone(base+'/products');
+  });
   it('provides the HTTP implementation and preserves category order', () => {
     expect(TestBed.inject(ProductCatalog)).toBe(api);
     const categories = [{ slug: 'z', name: 'First', displayOrder: 0 }, { slug: 'a', name: 'Second', displayOrder: 1 }];

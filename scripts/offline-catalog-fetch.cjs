@@ -27,6 +27,7 @@ globalThis.fetch = async (input, init) => {
     if (url.pathname === '/api/public/pricing/evaluate' && method === 'POST') body = { status: 'QUOTE_REQUIRED' };
     else if (method !== 'GET') throw Error('Offline validation forbids API writes');
     else if (url.pathname === '/api/public/categories') body = categories;
+    else if (url.pathname === '/api/public/commercial/categories') body = [];
     else if (url.pathname === '/api/public/category-slug-redirects') body = [];
     else if (url.pathname === '/api/public/products') body = products.filter(product =>
       (!url.searchParams.has('category') || product.categorySlug === url.searchParams.get('category'))

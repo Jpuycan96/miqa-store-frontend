@@ -3,8 +3,22 @@
  <div class="header-shell main-bar" [class.searching]="searchOpen()">
   <a routerLink="/" aria-label="MIQA Soluciones Gráficas, inicio" class="brand" (click)="navigate()"><img ngSrc="/images/brand/logo-miqa3.png" width="2048" height="768" priority alt="MIQA Soluciones Gráficas"></a>
   <nav aria-label="Categorías de productos" class="desktop-nav">
-   @for(c of categories();track c.slug){<a class="category-link" [class.active]="activeCategory() === c.slug" [attr.aria-current]="activeCategory() === c.slug ? 'page' : null" [routerLink]="categoryLink(c.slug)" (click)="navigate()">{{c.name}}</a>}
-   <a class="all" [class.active]="!activeCategory()" [attr.aria-current]="!activeCategory() ? 'page' : null" href="/productos">TODOS</a>
+   @for(c of categories();track c.slug){
+    <div class="category-menu" (pointerenter)="enterCategory($event,c.slug)" (pointerleave)="expandedCategory.set('')" (focusout)="categoryFocusOut($event)" (keydown.escape)="closeCategory($event)">
+     <div class="category-row">
+      <a class="category-link" [class.active]="activeCategory() === c.slug" [attr.aria-current]="activeCategory() === c.slug ? 'page' : null" [routerLink]="c.subcategories ? '/productos' : categoryLink(c.slug)" [queryParams]="c.subcategories ? commercialLink(c.slug) : null" (click)="navigate()">{{c.name}}</a>
+      @if(c.subcategories?.length){<button type="button" class="subcategory-toggle" [attr.aria-label]="'Subcategorías de ' + c.name" [attr.aria-expanded]="expandedCategory()===c.slug" [attr.aria-controls]="'desktop-subcategories-'+c.slug" (click)="toggleCategory(c.slug)" (keydown.arrowdown)="expandedCategory.set(c.slug);$event.preventDefault()">⌄</button>}
+     </div>
+     @if(c.subcategories?.length){
+      <ul class="subcategory-dropdown" [id]="'desktop-subcategories-'+c.slug" [hidden]="expandedCategory()!==c.slug">
+       @for(sub of c.subcategories;track sub.erpSubcategoryId){<li><a routerLink="/productos" [queryParams]="commercialLink(c.slug,sub.slug)" [class.active]="activeSubcategory()===sub.slug" [attr.aria-current]="activeSubcategory()===sub.slug ? 'page' : null" (click)="navigate()">{{sub.name}}</a></li>}
+      </ul>
+     }
+    </div>
+   }
+   @if(categoryState().loading){<span role="status" class="navigation-status">Cargando categorías…</span>}
+   @if(categoryState().error){<span role="alert" class="navigation-status">No pudimos cargar las categorías. <button type="button" (click)="retryCategories()">Reintentar</button></span>}
+   <a class="all" [class.active]="!activeCategory() && !activeSubcategory()" [attr.aria-current]="!activeCategory() && !activeSubcategory() ? 'page' : null" routerLink="/productos" (click)="navigate()">TODOS</a>
   </nav>
   <div id="site-search" class="inline-search" [hidden]="!searchOpen()" (keydown.escape)="closeSearch()" role="search">
    <input #searchInput id="header-product-search" type="search" maxlength="120" aria-label="Buscar productos" placeholder="Buscar productos" [formControl]="search">
@@ -28,8 +42,19 @@
  <nav id="mobile-nav" aria-label="Navegación móvil" [hidden]="!menuOpen()" (keydown.escape)="closeMenu();menu.focus()" class="mobile-nav header-shell">
   <a routerLink="/" (click)="navigate()">INICIO</a><span aria-disabled="true">NOSOTROS <small>Próximamente</small></span><span aria-disabled="true">UBÍCANOS <small>Próximamente</small></span>
   <p class="menu-label">PRODUCTOS</p>
-  @for(c of categories();track c.slug){<a [class.active]="activeCategory() === c.slug" [attr.aria-current]="activeCategory() === c.slug ? 'page' : null" [routerLink]="categoryLink(c.slug)" (click)="navigate()">{{c.name}}</a>}
-  <a [class.active]="!activeCategory()" [attr.aria-current]="!activeCategory() ? 'page' : null" href="/productos">TODOS</a>
+  @if(categoryState().loading){<p role="status">Cargando categorías…</p>}
+  @if(categoryState().error){<p role="alert">No pudimos cargar las categorías. <button type="button" (click)="retryCategories()">Reintentar</button></p>}
+  @for(c of categories();track c.slug){
+   <div class="mobile-category" (keydown.escape)="closeCategory($event)" (focusout)="categoryFocusOut($event)">
+    <div class="category-row"><a [class.active]="activeCategory() === c.slug" [attr.aria-current]="activeCategory() === c.slug ? 'page' : null" [routerLink]="c.subcategories ? '/productos' : categoryLink(c.slug)" [queryParams]="c.subcategories ? commercialLink(c.slug) : null" (click)="navigate()">{{c.name}}</a>
+     @if(c.subcategories?.length){<button type="button" class="subcategory-toggle" [attr.aria-label]="'Subcategorías de ' + c.name" [attr.aria-expanded]="expandedCategory()===c.slug" [attr.aria-controls]="'mobile-subcategories-'+c.slug" (click)="toggleCategory(c.slug)">⌄</button>}
+    </div>
+    @if(c.subcategories?.length){<ul class="mobile-subcategories" [id]="'mobile-subcategories-'+c.slug" [hidden]="expandedCategory()!==c.slug">
+     @for(sub of c.subcategories;track sub.erpSubcategoryId){<li><a routerLink="/productos" [queryParams]="commercialLink(c.slug,sub.slug)" [class.active]="activeSubcategory()===sub.slug" [attr.aria-current]="activeSubcategory()===sub.slug ? 'page' : null" (click)="navigate()">{{sub.name}}</a></li>}
+    </ul>}
+   </div>
+  }
+  <a [class.active]="!activeCategory() && !activeSubcategory()" [attr.aria-current]="!activeCategory() && !activeSubcategory() ? 'page' : null" routerLink="/productos" (click)="navigate()">TODOS</a>
   <button (click)="toggleSearch()">Buscar productos</button><button (click)="openQuote()">Abrir cotización</button>
  </nav>
 

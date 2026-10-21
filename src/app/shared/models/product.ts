@@ -5,6 +5,22 @@ export interface ProductCategory {
   readonly name: string;
   readonly catalogHeadline?: string;
   readonly catalogDescription?: string;
+  readonly subcategories?: readonly CommercialSubcategory[];
+}
+
+export interface CommercialSubcategory {
+  readonly erpSubcategoryId: string;
+  readonly erpCategoryId: string;
+  readonly name: string;
+  readonly slug: string;
+  readonly displayOrder: number;
+}
+
+export interface CommercialCategory extends ProductCategory {
+  readonly id: string;
+  readonly erpCategoryId: string;
+  readonly displayOrder: number;
+  readonly subcategories: readonly CommercialSubcategory[];
 }
 
 export interface ProductMaterialOption {

@@ -13,6 +13,20 @@
 .desktop-nav a:hover{border-color:#16b8c4;color:#087e8a}
 .desktop-nav a.active{border-color:#16b8c4;font-weight:700;color:#061b4f}
 .all{color:#087e8a}
+.category-menu{position:relative;flex:1;min-width:0}
+.category-row{display:flex;align-items:center}
+.category-row>a{flex:1}
+.subcategory-toggle{flex-shrink:0;min-width:32px;min-height:44px;padding:0 4px;border:0;background:transparent;color:#061b4f;cursor:pointer;font-size:18px}
+.subcategory-dropdown{position:absolute;top:calc(100% + 8px);left:4px;z-index:10;width:260px;max-width:calc(100vw - 64px);margin:0;padding:6px;list-style:none;background:#fff;border:1px solid #dce2e9;border-radius:8px;box-shadow:0 12px 32px #061b4f26,0 3px 8px #061b4f14}
+// Keep the pointer inside the menu while crossing the visual separation.
+.subcategory-dropdown::before{content:'';position:absolute;left:-1px;right:-1px;top:-9px;height:8px}
+.desktop-nav .subcategory-dropdown a{padding:12px;min-height:44px;border:0;border-radius:4px;font-weight:500;overflow-wrap:anywhere;transition:background-color 160ms ease,color 160ms ease}
+.subcategory-dropdown a:hover,.subcategory-dropdown a:focus-visible,.subcategory-dropdown a.active,.mobile-subcategories a:hover,.mobile-subcategories a:focus-visible{background:#e6f7f8;color:#061b4f}
+.mobile-subcategories{list-style:none;margin:0;padding:0 0 8px 20px}
+.mobile-subcategories a{border-radius:4px;transition:background-color 160ms ease,color 160ms ease}
+@media(prefers-reduced-motion:reduce){.desktop-nav .subcategory-dropdown a,.mobile-subcategories a{transition:none}}
+.navigation-status{font-size:12px}
+.navigation-status button{background:transparent;border:0;color:#061b4f;text-decoration:underline;cursor:pointer}
 .controls{display:flex;gap:6px;align-items:center;margin-left:auto;flex-shrink:0}
 .icon-button{display:grid;place-items:center;width:44px;height:44px;background:none;border:0;color:inherit;border-radius:6px}
 .icon-button:hover{background:#e6f7f8}
@@ -32,9 +46,10 @@
 .search-results a:hover{background:#e6f7f8}
 .searching .desktop-nav{flex:0 0 auto;grid-template-columns:auto}
 .searching .category-link{display:none}
+.searching .category-menu{display:none}
 @media(max-width:767px){.searching .brand{flex-basis:70px}.searching .mobile-toggle{display:none}.searching .main-bar{gap:6px}}
 a:focus-visible,button:focus-visible,input:focus-visible{outline:3px solid #16b8c4;outline-offset:3px}
-@media(min-width:1200px){.desktop-nav{display:grid;grid-template-columns:repeat(6,minmax(0,1fr)) auto}
+@media(min-width:1200px){.desktop-nav{display:flex}
 .mobile-toggle,.mobile-nav:not([hidden]){display:none}
 }
 @media(max-width:767px){.top-strip{display:none}
