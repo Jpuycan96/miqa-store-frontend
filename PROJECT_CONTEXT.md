@@ -1,3 +1,19 @@
+## Repetición vertical de franjas — local, 28 de octubre de 2026
+
+- Causa: cuatro cápsulas con top fijo entre 360 y 1080 px; la capa sí crecía, pero las franjas no se repetían.
+- Solo catalog.scss: los cuatro elementos decorativos existentes usan cápsulas SVG como fondos repeat-y,
+  con longitudes/grosores y desfases horizontales/verticales distintos. La capa inset:0 sigue la altura real;
+  el tamaño del mosaico marca el ritmo visual, nunca la altura del catálogo ni una cantidad de productos.
+- Colores #00C9E5/#FE001A, extremos redondeados, superficies opacas, z-index -1, pointer-events:none y
+  aria-hidden existente conservados. Móvil mantiene dos motivos; tablet/escritorio cuatro. HTML intacto.
+- Build production real aprobado; fuentes sitemap/redirects preservadas. Angular 282/282 (39 archivos).
+  Cinco avisos CSS no bloqueantes; catálogo 6.00 kB, límite de error 8 kB.
+- Edge local: 20/101/200 tarjetas simuladas a 320/390/768/1024/1440/1920 px, capa y catálogo de igual altura,
+  sin overflow horizontal; capturas inicio/mitad/final con 200 tarjetas y franjas visibles en zonas inferiores.
+  Seis auditorías axe WCAG A/AA sin infracciones, sin excepciones JS y clics alcanzables.
+  Evidencias ignoradas .tmp/stripes-repeat-*. No prueba de integración comercial real.
+- Sin header/logo/backend/API/BD/ERP/GoPrint, commit, push ni despliegue. Vista previa nueva en puerto 4375.
+
 ## Continuidad de franjas del catálogo — local, 28 de octubre de 2026
 
 - Propietario confirma que el logo y las franjas anteriores ya están publicados. Este ajuste queda local.

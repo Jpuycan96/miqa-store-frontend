@@ -75,21 +75,32 @@ h2 { margin-block: 5px 8px; font-size: 20px; font-weight: 600; color: var(--miqa
 .catalog-decoration { position: absolute; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; }
 // Opaque content surfaces keep the shared decoration visible only in the surrounding space.
 .catalog-card, .catalog-heading, .results, .image-note, .status, .empty { background: #fff; }
-.stripe { position: absolute; width: clamp(460px, 62vw, 940px); height: 38px; border-radius: 999px; transform: rotate(-24deg); background: #00c9e5; }
-.stripe-left-top { top: 360px; left: -140px; }
-.stripe-right-top { top: 540px; right: -150px; height: 28px; background: #fe001a; }
-.stripe-left-bottom { top: 900px; left: -100px; width: clamp(400px, 54vw, 820px); height: 26px; background: #fe001a; }
-.stripe-right-bottom { top: 1080px; right: -120px; }
+// Each transparent vector tile repeats vertically across the full catalog height.
+.stripe {
+  position: absolute; inset: 0;
+  --stripe-width: clamp(520px, 68vw, 1000px);
+  --stripe-tile: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1000' height='1800' viewBox='0 0 1000 1800'%3E%3Crect x='30' y='340' width='940' height='38' rx='19' fill='%2300C9E5' transform='rotate(-24 500 359)'/%3E%3C/svg%3E");
+  background-image: var(--stripe-tile);
+  background-size: var(--stripe-width) auto;
+  background-repeat: repeat-y;
+}
+.stripe-right-top, .stripe-left-bottom {
+  --stripe-tile: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1000' height='1800' viewBox='0 0 1000 1800'%3E%3Crect x='90' y='345' width='820' height='28' rx='14' fill='%23FE001A' transform='rotate(-24 500 359)'/%3E%3C/svg%3E");
+}
+.stripe-left-top { background-position: left -140px top 0; }
+.stripe-right-top { background-position: right -150px top 180px; }
+.stripe-left-bottom { background-position: left -40px top 580px; }
+.stripe-right-bottom { background-position: right -80px top 820px; }
 @media (min-width: 600px) and (max-width: 1023px) {
-  .stripe { width: 520px; height: 28px; }
-  .stripe-left-top { top: 400px; left: -210px; }
-  .stripe-right-top { top: 600px; right: -230px; }
-  .stripe-left-bottom { top: 980px; left: -250px; }
-  .stripe-right-bottom { top: 1180px; right: -240px; }
+  .stripe { --stripe-width: 640px; }
+  .stripe-left-top { background-position: left -210px top 80px; }
+  .stripe-right-top { background-position: right -230px top 280px; }
+  .stripe-left-bottom { background-position: left -120px top 650px; }
+  .stripe-right-bottom { background-position: right -140px top 850px; }
 }
 @media (max-width: 599px) {
-  .stripe { width: 340px; height: 20px; transform: rotate(-28deg); }
-  .stripe-left-top { top: 450px; left: -220px; }
-  .stripe-right-top { top: 820px; right: -220px; }
+  .stripe { --stripe-width: 480px; }
+  .stripe-left-top { background-position: left -290px top 270px; }
+  .stripe-right-top { background-position: right -290px top 640px; }
   .stripe-left-bottom, .stripe-right-bottom { display: none; }
 }
