@@ -70,3 +70,23 @@ h2 { margin-block: 5px 8px; font-size: 20px; font-weight: 600; color: var(--miqa
   .product-image app-product-image { transition: transform 250ms ease; }
   .product-image:hover app-product-image { transform: scale(1.03); }
 }
+
+.catalog-backdrop { position: relative; isolation: isolate; background: #fff; }
+.catalog-decoration { position: absolute; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; }
+.stripe { position: absolute; width: 230px; height: 32px; border-radius: 999px; transform: rotate(-38deg); background: #00c9e5; }
+.stripe-left-top { top: 170px; left: -190px; }
+.stripe-right-top { top: 340px; right: -190px; background: #f71942; }
+.stripe-left-bottom { top: 70%; left: -190px; background: #f71942; }
+.stripe-right-bottom { top: 82%; right: -190px; }
+@media (min-width: 768px) {
+  .stripe-left-top, .stripe-left-bottom { left: -172px; }
+  .stripe-right-top, .stripe-right-bottom { right: -172px; }
+}
+@media (min-width: 1440px) {
+  .stripe-left-top, .stripe-left-bottom { left: calc((100% - 1320px) / 4 - 180px); }
+  .stripe-right-top, .stripe-right-bottom { right: calc((100% - 1320px) / 4 - 180px); }
+}
+@media (max-width: 767px) {
+  .stripe { height: 22px; opacity: .65; }
+  .stripe-left-bottom, .stripe-right-bottom { display: none; }
+}

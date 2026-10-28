@@ -6,8 +6,8 @@
 .top-strip a{display:grid;align-items:center;min-height:38px}
 .top-strip small{font-size:10px;font-weight:400;letter-spacing:0;color:#b6e8ed;margin-left:4px}
 .main-bar{display:flex;align-items:center;gap:20px;min-height:84px}
-.brand{display:flex;flex:0 0 154px}
-.brand img{width:100%;height:auto}
+.brand{position:relative;display:flex;flex:0 0 154px;height:58px}
+.brand img{object-fit:contain}
 .desktop-nav{display:none;align-items:center;justify-content:space-between;gap:4px;flex:1;min-width:0}
 .desktop-nav a{font-size:15px;font-weight:600;line-height:1.35;min-height:52px;padding:6px 4px;display:flex;align-items:center;min-width:0;border-bottom:2px solid transparent}
 .desktop-nav a:hover{border-color:#16b8c4;color:#087e8a}

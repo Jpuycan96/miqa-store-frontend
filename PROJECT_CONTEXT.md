@@ -1,3 +1,20 @@
+## Franjas del cat?logo y nuevo logo del header ? local, 28 de octubre de 2026
+
+- Cat?logo: una capa decorativa aria-hidden en el contenedor general, fuera de tarjetas;
+  cuatro c?psulas diagonales #00C9E5/#F71942, dos m?s discretas en m?vil. Posici?n absoluta,
+  z-index -1 dentro de isolation:isolate, pointer-events:none y recorte solo de la decoraci?n.
+  Tarjetas, filtros, b?squeda, rutas, carrito y l?gica comercial preservados.
+- Header: ngSrc /images/brand/logo-tienda-2.png, NgOptimizedImage fill/object-fit:contain,
+  espacio de 58 px de alto y anchos responsive existentes. El archivo ya existe en
+  public/images/brand/logo-tienda-2.png; el propietario ha comprobado visualmente su apariencia en el header.
+- Build Angular con scripts/build-catalog-offline.cjs correcto, 15 rutas simuladas, cinco avisos
+  CSS no bloqueantes (cat?logo 5.13 kB, header 4.89 kB; l?mite de error 8 kB). Salida offline,
+  solo validaci?n local. Suite existente 282/282 en 39 archivos. Edge headless con API simulada:
+  320/390/768/1024/1440/1920 sin overflow horizontal ni excepciones JS, botones accesibles,
+  men? m?vil y b?squeda funcionales. Header 78 px m?vil/124 px escritorio. El propietario ha comprobado visualmente
+  la apariencia del logo real en el header. Evidencias ignoradas .tmp/visual-brand-*.
+- Sin backend, PostgreSQL, ERP, GoPrint, migraciones, commit, push ni despliegue.
+
 ## Scroll interno de modelos ERP — local, 21 de octubre de 2026
 
 - Solo erp-configurator.scss: model-cards con altura máxima total 280 px desktop/tablet y 264 px móvil,

@@ -1,7 +1,7 @@
 <header class="site-header">
  <div class="top-strip"><nav class="header-shell" aria-label="Navegación superior"><a routerLink="/" (click)="navigate()">INICIO</a><span aria-disabled="true" title="Próximamente">NOSOTROS <small>Próximamente</small></span><span aria-disabled="true" title="Próximamente">UBÍCANOS <small>Próximamente</small></span></nav></div>
  <div class="header-shell main-bar" [class.searching]="searchOpen()">
-  <a routerLink="/" aria-label="MIQA Soluciones Gráficas, inicio" class="brand" (click)="navigate()"><img ngSrc="/images/brand/logo-miqa3.png" width="2048" height="768" priority alt="MIQA Soluciones Gráficas"></a>
+  <a routerLink="/" aria-label="MIQA Soluciones Gráficas, inicio" class="brand" (click)="navigate()"><img ngSrc="/images/brand/logo-tienda-2.png" fill priority alt="MIQA Soluciones Gráficas"></a>
   <nav aria-label="Categorías de productos" class="desktop-nav">
    @for(c of categories();track c.slug){
     <div class="category-menu" (pointerenter)="enterCategory($event,c.slug)" (pointerleave)="expandedCategory.set('')" (focusout)="categoryFocusOut($event)" (keydown.escape)="closeCategory($event)">

@@ -1,4 +1,11 @@
-﻿<section class="page-shell catalog" aria-labelledby="catalog-title">
+﻿<div class="catalog-backdrop">
+  <div class="catalog-decoration" aria-hidden="true">
+    <span class="stripe stripe-left-top"></span>
+    <span class="stripe stripe-right-top"></span>
+    <span class="stripe stripe-left-bottom"></span>
+    <span class="stripe stripe-right-bottom"></span>
+  </div>
+<section class="page-shell catalog" aria-labelledby="catalog-title">
   <div class="catalog-heading" [class.category-editorial]="activeCategory()" [style.display]="handoff.visible() && !handoffReady() ? 'none' : null">
     @if (categoryUnavailable()) {
       <div><h1 id="catalog-title">Esta categoría no está disponible.</h1><p>Explora los productos públicos del catálogo.</p><a routerLink="/productos">Ver todos los productos</a></div>
@@ -40,3 +47,5 @@
   }
   </div>@if (quotePresentation.panelVisible()) { <app-quote-panel id="integrated-quote-panel" /> }</div>
 </section>
+
+</div>
