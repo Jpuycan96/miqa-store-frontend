@@ -73,20 +73,23 @@ h2 { margin-block: 5px 8px; font-size: 20px; font-weight: 600; color: var(--miqa
 
 .catalog-backdrop { position: relative; isolation: isolate; background: #fff; }
 .catalog-decoration { position: absolute; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; }
-.stripe { position: absolute; width: 230px; height: 32px; border-radius: 999px; transform: rotate(-38deg); background: #00c9e5; }
-.stripe-left-top { top: 170px; left: -190px; }
-.stripe-right-top { top: 340px; right: -190px; background: #f71942; }
-.stripe-left-bottom { top: 70%; left: -190px; background: #f71942; }
-.stripe-right-bottom { top: 82%; right: -190px; }
-@media (min-width: 768px) {
-  .stripe-left-top, .stripe-left-bottom { left: -172px; }
-  .stripe-right-top, .stripe-right-bottom { right: -172px; }
+// Opaque content surfaces keep the shared decoration visible only in the surrounding space.
+.catalog-card, .catalog-heading, .results, .image-note, .status, .empty { background: #fff; }
+.stripe { position: absolute; width: clamp(460px, 62vw, 940px); height: 38px; border-radius: 999px; transform: rotate(-24deg); background: #00c9e5; }
+.stripe-left-top { top: 360px; left: -140px; }
+.stripe-right-top { top: 540px; right: -150px; height: 28px; background: #fe001a; }
+.stripe-left-bottom { top: 900px; left: -100px; width: clamp(400px, 54vw, 820px); height: 26px; background: #fe001a; }
+.stripe-right-bottom { top: 1080px; right: -120px; }
+@media (min-width: 600px) and (max-width: 1023px) {
+  .stripe { width: 520px; height: 28px; }
+  .stripe-left-top { top: 400px; left: -210px; }
+  .stripe-right-top { top: 600px; right: -230px; }
+  .stripe-left-bottom { top: 980px; left: -250px; }
+  .stripe-right-bottom { top: 1180px; right: -240px; }
 }
-@media (min-width: 1440px) {
-  .stripe-left-top, .stripe-left-bottom { left: calc((100% - 1320px) / 4 - 180px); }
-  .stripe-right-top, .stripe-right-bottom { right: calc((100% - 1320px) / 4 - 180px); }
-}
-@media (max-width: 767px) {
-  .stripe { height: 22px; opacity: .65; }
+@media (max-width: 599px) {
+  .stripe { width: 340px; height: 20px; transform: rotate(-28deg); }
+  .stripe-left-top { top: 450px; left: -220px; }
+  .stripe-right-top { top: 820px; right: -220px; }
   .stripe-left-bottom, .stripe-right-bottom { display: none; }
 }

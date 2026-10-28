@@ -1,3 +1,19 @@
+## Continuidad de franjas del catálogo — local, 28 de octubre de 2026
+
+- Propietario confirma que el logo y las franjas anteriores ya están publicados. Este ajuste queda local.
+- Solo catalog.scss: cuatro franjas más largas y próximas, longitudes/grosores distintos, extremos redondeados;
+  composición hacia el interior y entre filas. Tablet reposiciona cuatro; móvil conserva dos más discretas.
+- Rojo #FE001A: color exacto más frecuente entre píxeles rojos opacos de logo-tienda-2.png (1.471 píxeles).
+  Turquesa #00C9E5 conservado. Logo, header, dimensiones/contenido/lógica de tarjetas intactos.
+- Capa única aria-hidden existente, z-index -1 dentro de isolation:isolate, recorte y pointer-events:none.
+  Superficies blancas del contenido impiden que las franjas se vean bajo textos, imágenes o botones.
+- Build production real aprobado: 110 URLs/111 rutas; sitemap y redirects fuente preservados byte a byte.
+  Cinco avisos CSS no bloqueantes; catálogo 5.34 kB, límite de error 8 kB. Angular 282/282 en 39 archivos.
+- Edge con fixtures locales a 320/390/768/1024/1440/1920: sin overflow horizontal ni excepciones JS,
+  botones alcanzables, superficies opacas y seis auditorías axe WCAG A/AA sin infracciones.
+  Capturas y resultados ignorados en .tmp/stripes-review-*; no validan integración real de datos.
+- Sin backend/API/BD/ERP/GoPrint, commit, push ni despliegue. Vista previa local del build en puerto 4373.
+
 ## Franjas del cat?logo y nuevo logo del header ? local, 28 de octubre de 2026
 
 - Cat?logo: una capa decorativa aria-hidden en el contenedor general, fuera de tarjetas;
