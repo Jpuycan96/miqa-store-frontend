@@ -9,11 +9,13 @@ export interface ErpMaterial {
 export interface ErpConfiguration {
   cantidad: ErpQuantity;
   modoMaterial: 'FIJO' | 'SELECCION';
-  formaCotizacion: 'ESCALA' | 'M2' | 'METRO_LINEAL';
+  formaCotizacion: 'ESCALA' | 'M2' | 'METRO_LINEAL' | 'POR_MATERIAL';
   medidas: { modo: string; unidad: string | null; camposRequeridos: readonly string[] };
   materiales: readonly ErpMaterial[];
 }
+export interface ErpMaterialConfiguration { erpMaterialId: string; erpModelId: string | null; configuration: ErpConfiguration; }
 export interface PublicConfiguration {
+  materialConfigurations?: readonly ErpMaterialConfiguration[] | null;
   mode: 'LEGACY' | 'ERP' | 'UNAVAILABLE';
   publicationScope?: 'SERVICE' | 'MATERIAL' | null;
   fixedErpMaterialId?: string | null;
@@ -48,4 +50,14 @@ export function validFixedErpSelection(binding: PublicConfiguration, materialId:
   return binding.publicationScope === 'MATERIAL' && !!binding.fixedErpMaterialId
     && materialId === binding.fixedErpMaterialId
     && (binding.fixedErpModelId == null || modelId === binding.fixedErpModelId);
+}
+
+
+/** v1 stays homogeneous; v2 requires an exact material/model option, never a dimensional fallback. */
+export function effectiveErpConfiguration(binding: PublicConfiguration | undefined, materialId: string, modelId?: string): ErpConfiguration | null {
+  const config=binding?.configuration;
+  if (!config) return null;
+  if (config.formaCotizacion !== 'POR_MATERIAL') return config;
+  return binding?.materialConfigurations?.find(option=>option.erpMaterialId===materialId
+    && option.erpModelId===(modelId || null))?.configuration ?? null;
 }

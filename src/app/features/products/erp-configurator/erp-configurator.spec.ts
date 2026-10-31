@@ -3,7 +3,7 @@ import { PublicPricing } from '../../../core/data/public-pricing';
 import { of } from 'rxjs';
 import { ProductCatalog } from '../../../core/data/product-catalog';
 import { QuoteStore } from '../../../core/quote/quote-store';
-import { erpProduct, materialProduct } from '../../../testing/erp.fixture';
+import { erpProduct, materialProduct, mixedErpProduct } from '../../../testing/erp.fixture';
 import { ErpConfigurator } from './erp-configurator';
 
 describe('Public ERP configurator', () => {
@@ -39,6 +39,38 @@ describe('Public ERP configurator', () => {
     await fixture.whenStable();
     expect(fixture.componentInstance.form.controls.model.value).toBe('');
     expect(el.querySelector('#erp-model')).toBeNull();
+  });
+  it('switches v2 material 16 M2 to 30/31 ML and clears incompatible dimension fields',async()=>{
+    const f=TestBed.createComponent(ErpConfigurator);const product=mixedErpProduct();
+    f.componentRef.setInput('product',product);await f.whenStable();
+    const c=f.componentInstance;
+    expect(c.fields()).toEqual(['ancho','alto']);
+    c.form.controls.measures.controls['ancho'].setValue(2);c.form.controls.measures.controls['alto'].setValue(1);
+    c.form.controls.material.setValue('30');await f.whenStable();
+    expect(c.fields()).toEqual(['longitud']);expect(c.form.controls.measures.contains('ancho')).toBe(false);
+    expect(c.form.controls.measures.controls['longitud'].value).toBeNull();expect(c.validSelection()).toBe(false);
+    c.form.controls.measures.controls['longitud'].setValue(1.5);c.form.controls.quantity.setValue(2);await f.whenStable();
+    expect(c.validSelection()).toBe(true);c.add();
+    const item=TestBed.inject(QuoteStore).items()[0];expect(item.erp?.erpMaterialId).toBe('30');
+    expect(item.erp?.measures).toEqual({longitud:1.5});expect(item.productSlug).toBe(product.slug);
+    c.form.controls.material.setValue('31');await f.whenStable();expect(c.fields()).toEqual(['longitud']);
+  });
+  it('switches dimensions per model as well as per material without reusing the old fields',async()=>{
+    const product=mixedErpProduct();const binding=product.configuration!;
+    const material={erpMaterialId:'16',nombreReferencia:'Material con modelos',modoModelos:'SELECCION' as const,
+      modelos:[{erpModelId:'20',nombreReferencia:'Área'},{erpModelId:'21',nombreReferencia:'Lineal'}]};
+    binding.configuration={...binding.configuration!,modoMaterial:'FIJO',materiales:[material]};
+    const previous=binding.materialConfigurations!;
+    binding.materialConfigurations=[{erpMaterialId:'16',erpModelId:'20',configuration:{...previous[0].configuration,
+      materiales:[{...material,modoModelos:'FIJO',modelos:[material.modelos[0]]}]}},
+      {erpMaterialId:'16',erpModelId:'21',configuration:{...previous[1].configuration,
+      materiales:[{...material,modoModelos:'FIJO',modelos:[material.modelos[1]]}]}}];
+    const f=TestBed.createComponent(ErpConfigurator);f.componentRef.setInput('product',product);await f.whenStable();
+    expect(f.componentInstance.fields()).toEqual(['ancho','alto']);
+    f.componentInstance.form.controls.model.setValue('21');await f.whenStable();
+    expect(f.componentInstance.fields()).toEqual(['longitud']);
+    expect(f.componentInstance.form.controls.model.value).toBe('21');
+    expect(f.componentInstance.form.controls.measures.contains('ancho')).toBe(false);
   });
   it('shows M2 materials/models as single-choice radios and preserves their IDs', async () => {
     const fixture = TestBed.createComponent(ErpConfigurator);

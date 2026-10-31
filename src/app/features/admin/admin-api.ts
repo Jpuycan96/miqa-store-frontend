@@ -1,13 +1,14 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
 import { timeout } from 'rxjs';
-import { ProductErpBinding, ErpServiceProjection, MaterialDraftBatch, MaterialDraft } from './erp-catalog.models';
+import { ProductErpBinding, ErpServiceProjection, MaterialDraftBatch, MaterialDraft, MaterialPublication } from './erp-catalog.models';
 import { STORE_API_CONFIG } from '../../core/config/store-api';
 import { AdminCategory, AdminProduct, CategoryInput, ProductInput, AdminImage, ImageInput } from './admin.models';
 @Injectable({providedIn:'root'})
 export class AdminApi {
  private readonly http=inject(HttpClient);
  private readonly base=inject(STORE_API_CONFIG).baseUrl.replace(/\/+$/,'')+'/api/admin';
+ materialPublications(){return this.http.get<MaterialPublication[]>(this.base+'/erp-catalog/material-publications').pipe(timeout(10000));}
  erpServices(){return this.http.get<ErpServiceProjection[]>(this.base+'/erp-catalog/services').pipe(timeout(10000));}
  createMaterialDrafts(serviceId:string,input:MaterialDraftBatch){return this.http.post<MaterialDraft[]>(this.base+'/erp-catalog/services/'+encodeURIComponent(serviceId)+'/material-drafts',input).pipe(timeout(60000));}
  erpBinding(id:string){return this.http.get<ProductErpBinding>(this.base+'/erp-catalog/bindings/'+encodeURIComponent(id)).pipe(timeout(10000));}

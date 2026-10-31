@@ -30,11 +30,12 @@ describe('material publication admin panel',()=>{
   beforeEach(()=>{TestBed.configureTestingModule({providers:[provideRouter([]),provideHttpClient(),provideHttpClientTesting()]});
     http=TestBed.inject(HttpTestingController);base=TestBed.inject(STORE_API_CONFIG).baseUrl+'/api/admin';});
   afterEach(()=>http.verify());
-  function panel(services=[service()]){
+  function panel(services=[service()],publications:import('./erp-catalog.models').MaterialPublication[]=[],selectedService='17'){
     const f=TestBed.createComponent(AdminMaterialDrafts);
     http.expectOne(base+'/erp-catalog/services').flush(services);
+    http.expectOne(base+'/erp-catalog/material-publications').flush(publications);
     http.expectOne(base+'/categories').flush([category,{...category,id:'inactive',active:false}]);
-    f.componentInstance.form.controls.serviceId.setValue('17');f.detectChanges();return f;
+    f.componentInstance.form.controls.serviceId.setValue(selectedService);f.detectChanges();return f;
   }
   function selectFirst(c:AdminMaterialDrafts){c.rows.at(0).controls.selected.setValue(true);c.form.controls.categoryId.setValue(category.id);}
   it('lists only available services, their own approved materials and corresponding models',()=>{
@@ -43,6 +44,33 @@ describe('material publication admin panel',()=>{
     c.rows.at(0).controls.selected.setValue(true);c.rows.at(1).controls.selected.setValue(true);f.detectChanges();
     expect(f.nativeElement.querySelectorAll('[formControlName=erpModelId]').length).toBe(1);
     expect(f.nativeElement.textContent).toContain('Modelo A');expect(c.categories()).toEqual([category]);
+  });
+  it('marks published and draft materials as existing and excludes disabled selections from creation',()=>{
+    const f=panel([service()],[
+      {productId:'published',erpServiceId:'17',erpMaterialId:'10',erpModelId:'201',published:true,bindingActive:true},
+      {productId:'draft',erpServiceId:'17',erpMaterialId:'11',erpModelId:null,published:false,bindingActive:false},
+      {productId:'other-service',erpServiceId:'19',erpMaterialId:'10',erpModelId:null,published:true,bindingActive:true}
+    ]);const c=f.componentInstance;c.form.controls.categoryId.setValue('commercial');f.detectChanges();
+    const boxes=Array.from(f.nativeElement.querySelectorAll('input[type=checkbox]')) as HTMLInputElement[];
+    expect(boxes).toHaveLength(2);expect(boxes.every(box=>box.checked && box.disabled)).toBe(true);
+    expect(f.nativeElement.textContent).toContain('Producto existente · Publicado');
+    expect(f.nativeElement.textContent).toContain('Producto existente · Borrador');
+    expect(c.selectedRows()).toHaveLength(0);expect(c.buildRequest()).toBeNull();
+    c.rows.at(0).controls.selected.enable();expect(c.buildRequest()).toBeNull();
+    c.submit();http.expectNone(req=>req.method==='POST');
+  });
+  it('recognizes the confirmed noncanonical MATERIAL 1/16 and keeps 25/46 independent despite identical names',()=>{
+    const uv=service(1,'1'),ecoga=service(1,'25');
+    uv.lastKnownErp!.configuracion!.materiales=[{erpMaterialId:'16',nombreReferencia:'Vinil Adhesivo Microperforado Blanco',modoModelos:'SIN_MODELO',modelos:[]}];
+    ecoga.lastKnownErp!.configuracion!.materiales=[{erpMaterialId:'46',nombreReferencia:'Vinil Adhesivo Microperforado Blanco',modoModelos:'SIN_MODELO',modelos:[]}];
+    const f=panel([uv,ecoga],[{productId:'0823c7d9-5648-49c5-b23f-34b0ec4eb63d',erpServiceId:'1',erpMaterialId:'16',erpModelId:null,published:true,bindingActive:true}],'1');
+    const c=f.componentInstance;
+    const box=f.nativeElement.querySelector('input[type=checkbox]') as HTMLInputElement;
+    expect(box.checked).toBe(true);expect(box.disabled).toBe(true);expect(c.buildRequest()).toBeNull();
+    c.form.controls.serviceId.setValue('25');f.detectChanges();
+    expect(c.rows.at(0).controls.selected.disabled).toBe(false);
+    expect(c.rows.at(0).controls.selected.value).toBe(false);
+    expect(c.existingFor(c.rows.at(0))).toEqual([]);
   });
   it('requires active category and at least one selected material',()=>{
     const f=panel();const c=f.componentInstance;
@@ -96,6 +124,7 @@ describe('material publication admin panel',()=>{
   it('keeps the panel read-only on catalog load failure with retry available',()=>{
     const f=TestBed.createComponent(AdminMaterialDrafts);
     http.expectOne(base+'/erp-catalog/services').flush({}, {status:503,statusText:'Unavailable'});
+    http.match(base+'/erp-catalog/material-publications').forEach(req=>expect(req.cancelled).toBe(true));
     http.match(base+'/categories').forEach(req=>expect(req.cancelled).toBe(true));f.detectChanges();
     expect(f.componentInstance.error()).toContain('No se pudo cargar');expect(f.componentInstance.canSubmit()).toBe(false);
   });
@@ -105,6 +134,7 @@ describe('material publication admin panel',()=>{
     http.expectOne(base+'/erp-catalog/bindings/old').flush({active:true,state:'AVAILABLE',publicationScope:'SERVICE'});f.detectChanges();
     f.componentInstance.openDrafts();f.detectChanges();
     http.expectOne(base+'/erp-catalog/services').flush([service()]);http.expectOne(base+'/categories').flush([category]);
+    http.expectOne(base+'/erp-catalog/material-publications').flush([]);
     const panelDebug=f.debugElement.query(node=>node.componentInstance instanceof AdminMaterialDrafts);
     const c=panelDebug.componentInstance as AdminMaterialDrafts;c.form.controls.serviceId.setValue('17');selectFirst(c);c.submit();
     http.expectOne(base+'/erp-catalog/services/17/material-drafts').flush([draft]);

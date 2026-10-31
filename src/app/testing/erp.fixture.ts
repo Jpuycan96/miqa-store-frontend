@@ -35,3 +35,17 @@ export function materialProduct(fixedModel: string | null = null, materialId = '
       modelos: fixedModel ? models.filter(model => model.erpModelId === fixedModel) : models }] }
   } };
 }
+
+
+export function mixedErpProduct(): Product {
+  const product=erpProduct('M2');const binding=product.configuration!;const base=binding.configuration!;
+  const materials=['16','30','31'].map(id=>({erpMaterialId:id,nombreReferencia:id==='16'?'Microperforado':'Magnético '+id,
+    modoModelos:'SIN_MODELO' as const,modelos:[]}));
+  binding.configuration={...base,formaCotizacion:'POR_MATERIAL',modoMaterial:'SELECCION',
+    medidas:{modo:'POR_MATERIAL',unidad:null,camposRequeridos:['cantidad']},materiales:materials};
+  binding.materialConfigurations=materials.map(material=>({erpMaterialId:material.erpMaterialId,erpModelId:null,
+    configuration:{...base,modoMaterial:'FIJO',formaCotizacion:material.erpMaterialId==='16'?'M2':'METRO_LINEAL',
+      medidas:material.erpMaterialId==='16'?{modo:'SUPERFICIE',unidad:'m',camposRequeridos:['ancho','alto','cantidad']}:
+        {modo:'LONGITUD',unidad:'m',camposRequeridos:['longitud','cantidad']},materiales:[material]}}));
+  return product;
+}

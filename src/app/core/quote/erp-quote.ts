@@ -1,11 +1,11 @@
 import { Product } from '../../shared/models/product';
 import { QuoteConfiguration, QuoteItem } from '../../shared/models/quote-item';
-import { validErpQuantity, validFixedErpSelection } from '../../shared/models/erp-configuration';
+import { validErpQuantity, validFixedErpSelection, effectiveErpConfiguration } from '../../shared/models/erp-configuration';
 
 export function createErpQuoteItem(product: Product, selection: QuoteConfiguration, id: string): QuoteItem | null {
   const binding = product.configuration;
-  const config = binding?.configuration;
   const chosen = selection.erp;
+  const config = chosen ? effectiveErpConfiguration(binding,chosen.erpMaterialId,chosen.erpModelId) : null;
   if (!product.published || binding?.mode !== 'ERP' || !config || !chosen
       || chosen.erpServiceId !== binding.erpServiceId || chosen.catalogRevision !== binding.catalogRevision
       || chosen.configurationVersion !== binding.configurationVersion || !validErpQuantity(selection.quantity, config.cantidad)) return null;

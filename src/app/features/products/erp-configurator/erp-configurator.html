@@ -1,5 +1,5 @@
 @if (config(); as config) {
-  <form [formGroup]="form" (ngSubmit)="add()" [class.m2-layout]="config.formaCotizacion === 'M2'" [class.without-measures]="!fields().length">
+  <form [formGroup]="form" (ngSubmit)="add()" [class.m2-layout]="effectiveConfig()?.formaCotizacion === 'M2'" [class.without-measures]="!fields().length">
     <ng-template #quantityField>
       <div class="field quantity-field">
         <label for="erp-quantity">Cantidad ({{ config.cantidad.unidad }})</label>

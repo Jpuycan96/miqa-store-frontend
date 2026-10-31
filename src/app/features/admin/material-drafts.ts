@@ -5,7 +5,7 @@ import { FormArray, FormControl, FormGroup, ReactiveFormsModule, Validators } fr
 import { finalize, forkJoin, TimeoutError } from 'rxjs';
 import { AdminApi, adminError } from './admin-api';
 import type { AdminCategory } from './admin.models';
-import type { ErpServiceProjection, MaterialDraft, MaterialDraftBatch } from './erp-catalog.models';
+import type { ErpServiceProjection, MaterialDraft, MaterialDraftBatch, MaterialPublication } from './erp-catalog.models';
 import type { ErpMaterial } from '../../shared/models/erp-configuration';
 
 type MaterialRow = FormGroup<{
@@ -29,6 +29,7 @@ export class AdminMaterialDrafts {
   readonly error = signal('');
   readonly services = signal<ErpServiceProjection[]>([]);
   readonly categories = signal<AdminCategory[]>([]);
+  readonly publications = signal<MaterialPublication[]>([]);
   readonly form = new FormGroup({
     serviceId: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
     categoryId: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
@@ -36,7 +37,7 @@ export class AdminMaterialDrafts {
   });
   readonly values = toSignal(this.form.valueChanges, { initialValue: this.form.getRawValue() });
   readonly rows = this.form.controls.materials;
-  readonly selectedRows = computed(() => { this.values(); return this.rows.controls.filter(row => row.controls.selected.value); });
+  readonly selectedRows = computed(() => { this.values(); return this.rows.controls.filter(row => row.controls.selected.value && !row.controls.selected.disabled); });
   readonly selectedService = computed(() => this.services().find(service => service.erpServiceId === this.values().serviceId));
   readonly summary = computed(() => this.selectedRows().map(row => {
     const material = this.materialFor(row);
@@ -59,9 +60,10 @@ export class AdminMaterialDrafts {
     if (this.busy()) return;
     this.loading.set(true); this.error.set(''); this.services.set([]); this.categories.set([]);
     this.rows.clear(); this.form.controls.serviceId.setValue(''); this.form.controls.categoryId.setValue('');
-    forkJoin({ services: this.api.erpServices(), categories: this.api.categories() })
+    forkJoin({ services: this.api.erpServices(), categories: this.api.categories(), publications: this.api.materialPublications() })
       .pipe(takeUntilDestroyed(this.destroyRef), finalize(() => this.loading.set(false)))
       .subscribe({ next: result => {
+        this.publications.set(result.publications);
         this.services.set(result.services.filter(service => this.available(service)));
         this.categories.set(result.categories.filter(category => category.active));
       }, error: error => this.error.set('No se pudo cargar el catálogo administrativo. ' + adminError(error)) });
@@ -69,7 +71,7 @@ export class AdminMaterialDrafts {
   private available(service: ErpServiceProjection): boolean {
     const source = service.lastKnownErp;
     return service.available && service.syncState === 'AVAILABLE' && source?.erpServiceId === service.erpServiceId
-      && source.contractVersion === 1 && source.elegible && source.disponible && source.estadoConfiguracion === 'CONFIGURADA'
+      && (source.contractVersion === 1 || source.contractVersion === 2) && source.elegible && source.disponible && source.estadoConfiguracion === 'CONFIGURADA'
       && !!source.configuracion?.materiales.length;
   }
   private resetRows(): void {
@@ -78,18 +80,21 @@ export class AdminMaterialDrafts {
     for (const material of service?.lastKnownErp?.configuracion?.materiales ?? []) {
       this.rows.push(new FormGroup({
         erpMaterialId: new FormControl(material.erpMaterialId, { nonNullable: true }),
-        selected: new FormControl(false, { nonNullable: true }),
+        selected: new FormControl({ value: this.publications().some(p => p.erpServiceId === service!.erpServiceId && p.erpMaterialId === material.erpMaterialId), disabled: this.publications().some(p => p.erpServiceId === service!.erpServiceId && p.erpMaterialId === material.erpMaterialId) }, { nonNullable: true }),
         erpModelId: new FormControl('', { nonNullable: true }),
         name: new FormControl('', { nonNullable: true, validators: [Validators.maxLength(200)] })
       }));
     }
+  }
+  existingFor(row: MaterialRow): MaterialPublication[] {
+    return this.publications().filter(p => p.erpServiceId === this.form.controls.serviceId.value && p.erpMaterialId === row.controls.erpMaterialId.value);
   }
   materialFor(row: MaterialRow): ErpMaterial | undefined {
     const service = this.services().find(service => service.erpServiceId === this.form.controls.serviceId.value);
     return service?.lastKnownErp?.configuracion?.materiales.find(material => material.erpMaterialId === row.controls.erpMaterialId.value);
   }
   select(row: MaterialRow, event: Event): void {
-    if (this.busy()) return;
+    if (this.busy() || row.controls.selected.disabled || this.existingFor(row).length) return;
     const selected = (event.target as HTMLInputElement).checked;
     if (selected && !row.controls.selected.value && this.selectedRows().length >= 50) return;
     row.controls.selected.setValue(selected);
@@ -97,13 +102,13 @@ export class AdminMaterialDrafts {
   }
   buildRequest(): MaterialDraftBatch | null {
     const service = this.services().find(service => service.erpServiceId === this.form.controls.serviceId.value);
-    const selected = this.rows.controls.filter(row => row.controls.selected.value);
+    const selected = this.rows.controls.filter(row => row.controls.selected.value && !row.controls.selected.disabled);
     if (!service || !this.available(service) || selected.length < 1 || selected.length > 50
         || !this.categories().some(category => category.active && category.id === this.form.controls.categoryId.value)) return null;
     const ids = new Set<string>();
     for (const row of selected) {
       const material = this.materialFor(row);
-      if (!material || ids.has(material.erpMaterialId) || !row.controls.name.valid
+      if (!material || this.existingFor(row).length || ids.has(material.erpMaterialId) || !row.controls.name.valid
           || row.controls.erpModelId.value && !material.modelos.some(model => model.erpModelId === row.controls.erpModelId.value)) return null;
       ids.add(material.erpMaterialId);
     }

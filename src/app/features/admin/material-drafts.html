@@ -24,9 +24,12 @@
               @if (materialFor(row); as material) {
                 <div class="material-row" [formGroup]="row">
                   <label class="check"><input type="checkbox" [checked]="row.controls.selected.value"
-                    [disabled]="busy() || (!row.controls.selected.value && selectedRows().length >= 50)"
+                    [disabled]="row.controls.selected.disabled || busy() || (!row.controls.selected.value && selectedRows().length >= 50)"
                     (change)="select(row, $event)" aria-describedby="draft-limit">{{ material.nombreReferencia }}</label>
-                  @if (row.controls.selected.value) {
+                  @for (existing of existingFor(row); track existing.productId) {
+                    <p class="muted">Producto existente · {{ existing.published ? 'Publicado' : 'Borrador' }}{{ !existing.bindingActive ? ' · Vínculo deshabilitado' : '' }}</p>
+                  }
+                  @if (row.controls.selected.value && !row.controls.selected.disabled) {
                     <div class="fields row-fields">
                       @if (material.modelos.length) {
                         <label>Modelo fijo (opcional)<select formControlName="erpModelId"><option value="">Sin fijar modelo</option>

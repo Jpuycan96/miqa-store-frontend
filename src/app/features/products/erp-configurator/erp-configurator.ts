@@ -4,7 +4,7 @@ import { FormControl, FormGroup, FormRecord, ReactiveFormsModule } from '@angula
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { distinctUntilChanged, map, merge, of, Subject, switchMap, timer } from 'rxjs';
 import { formatPen, PricingRequest, PricingResult, PublicPricing } from '../../../core/data/public-pricing';
-import { validErpQuantity } from '../../../shared/models/erp-configuration';
+import { validErpQuantity, effectiveErpConfiguration } from '../../../shared/models/erp-configuration';
 import { Product } from '../../../shared/models/product';
 import { QuoteStore } from '../../../core/quote/quote-store';
 import { createQuoteItem } from '../../../core/quote/quote-utils';
@@ -28,7 +28,14 @@ export class ErpConfigurator {
   readonly config = computed(() => this.product().configuration?.configuration);
   readonly materialLocked = computed(() => this.product().configuration?.publicationScope === 'MATERIAL');
   readonly fixedModel = computed(() => this.materialLocked() ? this.product().configuration?.fixedErpModelId : null);
-  readonly fields = computed(() => this.config()?.medidas.camposRequeridos.filter(field => field !== 'cantidad') ?? []);
+  readonly effectiveConfig = computed(() => {
+    const values=this.values();
+    const material=this.config()?.materiales.find(m=>m.erpMaterialId===values.material) ?? this.config()?.materiales[0];
+    const model=material?.modoModelos==='SIN_MODELO' ? undefined : values.model || this.fixedModel() || material?.modelos[0]?.erpModelId;
+    return effectiveErpConfiguration(this.product().configuration,material?.erpMaterialId ?? '',model || undefined);
+  });
+  readonly fields = computed(() => this.effectiveConfig()?.medidas.camposRequeridos.filter(field => field !== 'cantidad') ?? [],
+    {equal:(a,b)=>a.length===b.length && a.every((field,index)=>field===b[index])});
   readonly form = new FormGroup({
     quantity: new FormControl<number | null>(1),
     material: new FormControl('', { nonNullable: true }),

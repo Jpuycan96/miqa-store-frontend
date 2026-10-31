@@ -1,5 +1,7 @@
 import type { ErpConfiguration } from '../../shared/models/erp-configuration';
 // Read-only subset of the backend Projection / ErpCatalogContract consumed by this UI.
+export interface MaterialPublication { productId:string; erpServiceId:string; erpMaterialId:string;
+ erpModelId:string|null; published:boolean; bindingActive:boolean; }
 export interface ProductErpBinding {
   productId: string;
   erpServiceId: string;
@@ -15,6 +17,7 @@ export interface ProductErpBinding {
 }
 
 export interface ErpTechnicalService {
+  materialConfigurations?: readonly import('../../shared/models/erp-configuration').ErpMaterialConfiguration[] | null;
   contractVersion: number; sourceSystem: string; erpServiceId: string; nombreReferencia: string;
   elegible: boolean; disponible: boolean; estadoConfiguracion: string;
   catalogRevision: string; configurationVersion: string | null; configuracion: ErpConfiguration | null;
