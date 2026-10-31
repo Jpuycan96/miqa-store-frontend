@@ -19,3 +19,19 @@ export function erpProduct(form: 'ESCALA' | 'M2' | 'METRO_LINEAL' = 'M2'): Produ
 export function erpSelection(measures: Record<string, number> = { ancho: 2.5, alto: 1.2 }): ErpSelection {
   return { erpServiceId: '1', catalogRevision: 'a'.repeat(64), configurationVersion: '4', erpMaterialId: '10', erpModelId: '20', measures };
 }
+
+/** Public-shaped MATERIAL fixture only, not a real published product. */
+export function materialProduct(fixedModel: string | null = null, materialId = '10'): Product {
+  const original = erpProduct('ESCALA');
+  const source = original.configuration!.configuration!;
+  const material = source.materiales.find(option => option.erpMaterialId === materialId)!;
+  const models = material.modoModelos === 'SIN_MODELO' ? [] : [
+    ...material.modelos, { erpModelId: '21', nombreReferencia: 'Segundo modelo' }
+  ];
+  return { ...original, id: 'material-banner', slug: 'banner-material', name: 'Banner comercial', configuration: {
+    ...original.configuration!, publicationScope: 'MATERIAL', fixedErpMaterialId: materialId, fixedErpModelId: fixedModel,
+    configuration: { ...source, modoMaterial: 'FIJO', materiales: [{ ...material,
+      modoModelos: fixedModel ? 'FIJO' : material.modoModelos,
+      modelos: fixedModel ? models.filter(model => model.erpModelId === fixedModel) : models }] }
+  } };
+}

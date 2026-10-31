@@ -188,11 +188,12 @@ export class QuoteStore {
         if (version !== this.restoreVersion) return;
         for (const product of products) this.products.set(product.id, product);
         try {
+          const unresolved: unknown[] = [];
           const restored = this.pendingSaved.flatMap((value: unknown) => {
-            if (!value || typeof value !== 'object') return [];
+            if (!value || typeof value !== 'object') { unresolved.push(value); return []; }
             const saved = value as Record<string, unknown>;
             const product = products.find(product => product.id === saved['productId']);
-            if (!product || typeof saved['quantity'] !== 'number') return [];
+            if (!product || typeof saved['quantity'] !== 'number') { unresolved.push(value); return []; }
             const material = saved['selectedMaterial'];
             const extraIds = Array.isArray(saved['selectedExtras']) ? saved['selectedExtras'].flatMap(extra =>
               extra && typeof extra === 'object' && typeof extra.id === 'string' ? [extra.id] : []) : [];
@@ -204,11 +205,13 @@ export class QuoteStore {
               materialId: material && typeof material === 'object' && 'id' in material && typeof material.id === 'string' ? material.id : undefined,
               extraIds, notes: typeof saved['notes'] === 'string' ? saved['notes'] : undefined
             }, `quote-${++this.nextId}`);
-            if (!item && (saved['erp'] || product.configuration?.mode === 'ERP' || product.configuration?.mode === 'UNAVAILABLE'))
-              this.persistenceWarning.set('Algunas opciones cambiaron. Vuelve al producto para configurarlo de nuevo.');
+            if (!item) unresolved.push(value);
             return item ? [item] : [];
           });
-          this.pendingSaved = [];
+          // Keep unresolved saved lines for recovery on the next reload, but never price or submit them.
+          this.pendingSaved = unresolved;
+          if (unresolved.length) this.persistenceWarning.set(
+            `${unresolved.length} producto(s) guardado(s) ya no están disponibles o sus opciones cambiaron. Vuelve al producto para revisarlos. Conservamos los datos guardados para recuperarlos; no se enviarán en esta solicitud.`);
           this.state.update(current => mergeQuoteItems([...restored, ...current]));
           this.persist();
         } catch {

@@ -1,4 +1,7 @@
 <section class="page-shell product-detail" [class.compact-detail]="!!product()" aria-labelledby="product-title">
+  @if (quote.persistenceWarning() && (!quotePresentation.panelVisible() || (quotePresentation.lateral() && !quotePresentation.sideOpen()))) {
+    <p class="cart-recovery-warning" role="status">{{ quote.persistenceWarning() }}</p>
+  }
   <a class="return-products" [routerLink]="returnToProducts()" (click)="returnToCatalog()">← Regresar a productos</a>
   <nav class="breadcrumb" aria-label="Ruta de navegación"><a routerLink="/">Inicio</a><span aria-hidden="true">/</span><a routerLink="/productos">Productos</a>@if (product(); as product) { <span aria-hidden="true">/</span><span aria-current="page">{{ product.name }}</span> }</nav>
   @if ((state().loading || awaitingHandoff()) && !product()) { <p role="status">Cargando producto…</p> }

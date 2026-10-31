@@ -32,8 +32,9 @@
       }
       <div class="option-fields">
         @if (config.materiales.length > 0) {
-        <fieldset class="material-options">
+        <fieldset class="material-options" [disabled]="materialLocked()">
           <legend>Material</legend>
+          @if (materialLocked()) { <p>Material incluido en este producto.</p> }
           <div class="choice-list">
             @for (material of config.materiales; track material.erpMaterialId) {
               <label class="choice">
@@ -46,8 +47,9 @@
         }
         @if (material(); as material) {
           @if (material.modoModelos !== 'SIN_MODELO' && material.modelos.length > 0) {
-            <fieldset class="model-options">
+            <fieldset class="model-options" [disabled]="!!fixedModel()">
               <legend>Modelo</legend>
+              @if (fixedModel()) { <p>Modelo incluido en este producto.</p> }
               <div class="model-cards">
                 @for (model of material.modelos; track model.erpModelId) {
                   <label class="model-card">

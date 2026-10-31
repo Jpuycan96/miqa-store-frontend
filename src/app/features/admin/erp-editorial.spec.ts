@@ -65,11 +65,37 @@ describe('V10 editorial admin',()=>{
   } finally {vi.useRealTimers();}
  });
  it('edits only editorial values and preserves identity and empty long description',()=>{
-  const f=TestBed.createComponent(AdminProductForm);http.expectOne(base+'/categories').flush([category]);http.expectOne(base+'/products/'+product.id).flush(product);f.detectChanges();const c=f.componentInstance;
+  const f=TestBed.createComponent(AdminProductForm);http.expectOne(base+'/categories').flush([category]);http.expectOne(base+'/products/'+product.id).flush(product);http.expectOne(base+'/erp-catalog/bindings/'+product.id).flush({publicationScope:'SERVICE'});f.detectChanges();const c=f.componentInstance;
   expect(c.form.valid).toBe(true);expect(c.form.controls.description.value).toBe('');expect(f.nativeElement.querySelector('[formControlName=categoryId]')).toBeNull();expect(f.nativeElement.querySelector('[formControlName=saleType]')).toBeNull();expect(f.nativeElement.querySelector('app-option-editor')).toBeNull();expect(f.nativeElement.querySelector('app-product-erp')).toBeNull();expect(f.nativeElement.querySelector('app-product-resources')).not.toBeNull();
   expect(f.nativeElement.querySelector('[formControlName=shortDescription]')).toBeNull();
   for(const field of ['description','seoTitle','seoDescription']) expect(f.nativeElement.querySelector('[formControlName='+field+']')).not.toBeNull();
   c.form.patchValue({name:'Titulo comercial',description:'Descripcion extensa',seoTitle:'Nuevo SEO',seoDescription:'Nueva descripcion SEO',displayOrder:8,featured:true,published:true,categoryId:'tampered',saleType:'AREA',unitLabel:'m2',minQuantity:5});c.save();const request=http.expectOne(base+'/products/'+product.id);expect(request.request.method).toBe('PUT');expect(request.request.body).toEqual({categoryId:category.id,name:'Titulo comercial',slug:product.slug,shortDescription:product.shortDescription,description:'Descripcion extensa',displayOrder:8,featured:true,published:true,seoTitle:'Nuevo SEO',seoDescription:'Nueva descripcion SEO',saleType:null,unitLabel:null,packSize:null,packLabel:null,minQuantity:null,quantityStep:null});request.flush({...product,name:'Titulo comercial'});
+ });
+ it('keeps material editing and explicit publication available without publishing on load',()=>{
+  const commercial={...category,id:'commercial',erpCategoryId:null,name:'Comercial'};
+  const material={...product,categoryId:commercial.id,category:commercial};
+  const f=TestBed.createComponent(AdminProductForm);
+  http.expectOne(base+'/categories').flush([category,commercial,{...commercial,id:'inactive',active:false}]);
+  http.expectOne(base+'/products/'+product.id).flush(material);
+  http.expectOne(base+'/erp-catalog/bindings/'+product.id).flush({publicationScope:'MATERIAL'});
+  f.detectChanges();const c=f.componentInstance;
+  expect(f.nativeElement.querySelector('[formControlName=published]').disabled).toBe(false);
+  expect(f.nativeElement.textContent).toContain('Se validarán al guardar');
+  expect(c.form.controls.categoryId.enabled).toBe(true);
+  expect(c.categories().map(item=>item.id)).toEqual([category.id,commercial.id]);
+  expect(f.nativeElement.querySelector('app-product-resources')).not.toBeNull();
+  for(const key of ['name','description','seoTitle','seoDescription'])expect(c.form.controls[key as 'name'].enabled).toBe(true);
+  c.form.patchValue({name:'Vinil comercial',description:'Descripción',seoTitle:'SEO nuevo',categoryId:category.id,published:true});
+  c.save();const req=http.expectOne(base+'/products/'+product.id);
+  expect(req.request.body.published).toBe(true);expect(req.request.body.categoryId).toBe(category.id);
+  expect(req.request.body.slug).toBe(product.slug);req.flush({...material,name:'Vinil comercial'});
+ });
+ it('does not expose an editor or permit saving if binding lookup fails',()=>{
+  const f=TestBed.createComponent(AdminProductForm);
+  http.expectOne(base+'/categories').flush([category]);http.expectOne(base+'/products/'+product.id).flush(product);
+  http.expectOne(base+'/erp-catalog/bindings/'+product.id).flush({}, {status:503,statusText:'Unavailable'});
+  f.detectChanges();expect(f.nativeElement.querySelector('form')).toBeNull();
+  f.componentInstance.save();http.expectNone(req=>req.method!=='GET');
  });
  it('lists only ERP categories and edits editorial fields without structural actions',()=>{
   const f=TestBed.createComponent(AdminCategories);http.expectOne(base+'/categories').flush([category,legacy.category]);f.detectChanges();expect(f.componentInstance.visibleItems()).toEqual([category]);expect(f.nativeElement.textContent).not.toContain('Legacy');expect(f.nativeElement.querySelectorAll('.compact-row button').length).toBe(1);
@@ -78,5 +104,48 @@ describe('V10 editorial admin',()=>{
  });
  it('counts ERP entries only on the existing dashboard',()=>{
   const f=TestBed.createComponent(AdminSummary);http.expectOne(base+'/categories').flush([category,legacy.category]);http.expectOne(base+'/products').flush([product,{...legacy,published:true,featured:true}]);f.detectChanges();expect(f.componentInstance.stats()?.map(s=>s.value)).toEqual([1,0,0,1]);expect(f.nativeElement.textContent).not.toContain('Nuevo producto');
+ });
+ it('shows backend publication validation errors and preserves the editor request for correction',()=>{
+  const f=TestBed.createComponent(AdminProductForm);
+  http.expectOne(base+'/categories').flush([category]);http.expectOne(base+'/products/'+product.id).flush(product);
+  http.expectOne(base+'/erp-catalog/bindings/'+product.id).flush({publicationScope:'MATERIAL'});f.detectChanges();
+  expect(f.componentInstance.form.controls.published.value).toBe(false);
+  http.expectNone(req=>req.method!=='GET');
+  f.componentInstance.form.controls.published.setValue(true);f.componentInstance.save();
+  http.expectOne(base+'/products/'+product.id).flush({message:'Material ERP retirado'}, {status:409,statusText:'Conflict'});f.detectChanges();
+  expect(f.nativeElement.querySelector('[role=alert]')?.textContent).toContain('Material ERP retirado');
+  expect(f.componentInstance.busy()).toBe(false);
+  expect(f.componentInstance.form.controls.published.value).toBe(true);
+ });
+ it('allows MATERIAL publishing explicitly, prevents double send and reports backend errors',()=>{
+  const f=TestBed.createComponent(AdminProductList);
+  http.expectOne(base+'/categories').flush([category]);http.expectOne(base+'/products').flush([product]);
+  http.expectOne(base+'/erp-catalog/bindings/'+product.id).flush({active:true,state:'AVAILABLE',publicationScope:'MATERIAL'});f.detectChanges();
+  expect(f.componentInstance.canTogglePublished(product)).toBe(true);
+  http.expectNone(req=>req.method!=='GET');
+  f.componentInstance.toggle(product,'published');f.componentInstance.toggle(product,'published');
+  const req=http.expectOne(base+'/products/'+product.id+'/published');expect(req.request.body).toEqual({published:true});
+  req.flush({message:'Modelo ERP retirado'}, {status:409,statusText:'Conflict'});f.detectChanges();
+  expect(f.nativeElement.querySelector('[role=alert]')?.textContent).toContain('Modelo ERP retirado');
+  expect(f.componentInstance.pending()).toBeNull();
+ });
+ it('allows MATERIAL unpublishing even with unavailable ERP and keeps the loaded published value',()=>{
+  const f=TestBed.createComponent(AdminProductForm);
+  http.expectOne(base+'/categories').flush([category]);http.expectOne(base+'/products/'+product.id).flush({...product,published:true});
+  http.expectOne(base+'/erp-catalog/bindings/'+product.id).flush({active:false,state:'UNAVAILABLE',publicationScope:'MATERIAL'});f.detectChanges();
+  expect(f.componentInstance.form.controls.published.value).toBe(true);expect(f.componentInstance.form.controls.published.enabled).toBe(true);
+  f.componentInstance.form.controls.published.setValue(false);f.componentInstance.save();
+  const req=http.expectOne(base+'/products/'+product.id);expect(req.request.body.published).toBe(false);req.flush(product);
+ });
+ it('blocks known unavailable MATERIAL publication but never blocks unpublishing',()=>{
+  const f=TestBed.createComponent(AdminProductList);
+  http.expectOne(base+'/categories').flush([category]);http.expectOne(base+'/products').flush([product]);
+  http.expectOne(base+'/erp-catalog/bindings/'+product.id).flush({active:false,state:'UNAVAILABLE',publicationScope:'MATERIAL'});f.detectChanges();
+  expect(f.componentInstance.canTogglePublished(product)).toBe(false);
+  f.componentInstance.toggle(product,'published');http.expectNone(req=>req.method!=='GET');
+  const published={...product,published:true};expect(f.componentInstance.canTogglePublished(published)).toBe(true);
+  f.componentInstance.toggle(published,'published');
+  const req=http.expectOne(base+'/products/'+product.id+'/published');expect(req.request.body).toEqual({published:false});
+  req.flush(product);flushList();
  });
 });

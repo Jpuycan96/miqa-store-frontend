@@ -3,7 +3,7 @@ import { PublicPricing } from '../../../core/data/public-pricing';
 import { of } from 'rxjs';
 import { ProductCatalog } from '../../../core/data/product-catalog';
 import { QuoteStore } from '../../../core/quote/quote-store';
-import { erpProduct } from '../../../testing/erp.fixture';
+import { erpProduct, materialProduct } from '../../../testing/erp.fixture';
 import { ErpConfigurator } from './erp-configurator';
 
 describe('Public ERP configurator', () => {
@@ -246,6 +246,32 @@ describe('Public ERP configurator', () => {
     expect(fixture.nativeElement.querySelector('.material-options')).toBeNull();
     expect(fixture.nativeElement.querySelector('.model-options')).toBeNull();
     expect(fixture.nativeElement.querySelector('#erp-quantity')).not.toBeNull();
+  });
+
+  it.each([null,'21'])('locks MATERIAL material and fixed model %s while retaining quantity and measures', async fixed => {
+    const fixture=TestBed.createComponent(ErpConfigurator);
+    fixture.componentRef.setInput('product',materialProduct(fixed)); await fixture.whenStable();
+    const component=fixture.componentInstance;
+    const el: HTMLElement=fixture.nativeElement;
+    expect(component.form.getRawValue()).toMatchObject({material:'10',model:fixed ?? '20'});
+    expect(el.querySelector<HTMLFieldSetElement>('.material-options')!.disabled).toBe(true);
+    expect(el.querySelector<HTMLFieldSetElement>('.model-options')!.disabled).toBe(!!fixed);
+    expect(el.querySelectorAll('.material-options input')).toHaveLength(1);
+    expect(component.canAdd()).toBe(true);
+    if (!fixed) {
+      el.querySelectorAll<HTMLInputElement>('.model-options input')[1].click(); await fixture.whenStable();
+      expect(component.selection().erp.erpModelId).toBe('21');
+    }
+    component.form.controls.quantity.setValue(1.5); await fixture.whenStable();
+    component.add();
+    expect(TestBed.inject(QuoteStore).items()[0]).toMatchObject({productId:'material-banner',quantity:1.5,erp:{erpMaterialId:'10',erpModelId:'21'}});
+  });
+  it('preselects a MATERIAL without model and does not render model controls', async () => {
+    const fixture=TestBed.createComponent(ErpConfigurator);
+    fixture.componentRef.setInput('product',materialProduct(null,'19')); await fixture.whenStable();
+    expect(fixture.componentInstance.form.getRawValue()).toMatchObject({material:'19',model:''});
+    expect(fixture.nativeElement.querySelector('.model-options')).toBeNull();
+    expect(fixture.componentInstance.canAdd()).toBe(true);
   });
 
 });

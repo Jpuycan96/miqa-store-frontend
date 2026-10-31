@@ -26,6 +26,8 @@ export class ErpConfigurator {
   readonly number = Number;
   readonly labels: Record<string, string> = { ancho: 'Ancho', alto: 'Alto', longitud: 'Longitud' };
   readonly config = computed(() => this.product().configuration?.configuration);
+  readonly materialLocked = computed(() => this.product().configuration?.publicationScope === 'MATERIAL');
+  readonly fixedModel = computed(() => this.materialLocked() ? this.product().configuration?.fixedErpModelId : null);
   readonly fields = computed(() => this.config()?.medidas.camposRequeridos.filter(field => field !== 'cantidad') ?? []);
   readonly form = new FormGroup({
     quantity: new FormControl<number | null>(1),
@@ -94,8 +96,12 @@ export class ErpConfigurator {
     const current = this.form.getRawValue();
     const materials = this.config()?.materiales.filter(material =>
       material.modoModelos === 'SIN_MODELO' || material.modelos.length > 0) ?? [];
-    const material = materials.find(option => option.erpMaterialId === current.material) ?? materials[0];
+    const fixedMaterial = this.product().configuration?.fixedErpMaterialId;
+    const material = this.materialLocked()
+      ? materials.find(option => option.erpMaterialId === fixedMaterial)
+      : materials.find(option => option.erpMaterialId === current.material) ?? materials[0];
     const model = material?.modoModelos === 'SIN_MODELO' ? undefined
+      : this.fixedModel() ? material?.modelos.find(option => option.erpModelId === this.fixedModel())
       : material?.modelos.find(option => option.erpModelId === current.model) ?? material?.modelos[0];
     return { material: material?.erpMaterialId ?? '', model: model?.erpModelId ?? '' };
   }

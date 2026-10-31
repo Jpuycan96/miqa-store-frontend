@@ -1,6 +1,6 @@
 import { Product } from '../../shared/models/product';
 import { QuoteConfiguration, QuoteItem } from '../../shared/models/quote-item';
-import { validErpQuantity } from '../../shared/models/erp-configuration';
+import { validErpQuantity, validFixedErpSelection } from '../../shared/models/erp-configuration';
 
 export function createErpQuoteItem(product: Product, selection: QuoteConfiguration, id: string): QuoteItem | null {
   const binding = product.configuration;
@@ -9,6 +9,7 @@ export function createErpQuoteItem(product: Product, selection: QuoteConfigurati
   if (!product.published || binding?.mode !== 'ERP' || !config || !chosen
       || chosen.erpServiceId !== binding.erpServiceId || chosen.catalogRevision !== binding.catalogRevision
       || chosen.configurationVersion !== binding.configurationVersion || !validErpQuantity(selection.quantity, config.cantidad)) return null;
+  if (!validFixedErpSelection(binding, chosen.erpMaterialId, chosen.erpModelId)) return null;
   const material = config.materiales.find(m => m.erpMaterialId === chosen.erpMaterialId);
   if (!material) return null;
   const model = material.modelos.find(m => m.erpModelId === chosen.erpModelId);

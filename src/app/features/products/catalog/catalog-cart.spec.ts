@@ -5,7 +5,7 @@ import { Catalog } from './catalog';
 import { ProductCatalog } from '../../../core/data/product-catalog';
 import { PublicPricing } from '../../../core/data/public-pricing';
 import { QuoteStore } from '../../../core/quote/quote-store';
-import { erpProduct } from '../../../testing/erp.fixture';
+import { erpProduct, materialProduct } from '../../../testing/erp.fixture';
 import { PRODUCTS } from '../../../core/data/products.mock';
 
 const unique = structuredClone(erpProduct('ESCALA'));
@@ -14,7 +14,7 @@ unique.configuration!.configuration!.materiales = [unique.configuration!.configu
 describe('Catalog always opens the product configurator', () => {
   beforeEach(() => { localStorage.clear(); sessionStorage.clear(); });
   afterEach(() => { TestBed.resetTestingModule(); localStorage.clear(); sessionStorage.clear(); });
-  it.each([unique, { ...unique, configuration: { ...unique.configuration!, mode: 'UNAVAILABLE' as const } }, erpProduct('M2'), erpProduct('METRO_LINEAL'), erpProduct('ESCALA'), ...PRODUCTS])('opens $name without adding, reloading or evaluating from the card', async product => {
+  it.each([materialProduct(), materialProduct("21"), unique, { ...unique, configuration: { ...unique.configuration!, mode: 'UNAVAILABLE' as const } }, erpProduct('M2'), erpProduct('METRO_LINEAL'), erpProduct('ESCALA'), ...PRODUCTS])('opens $name without adding, reloading or evaluating from the card', async product => {
     const evaluate = vi.fn(); const findBySlug = vi.fn();
     TestBed.configureTestingModule({ providers: [provideRouter([]),
       { provide: PublicPricing, useValue: { evaluate } },

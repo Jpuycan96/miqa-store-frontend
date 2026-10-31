@@ -6,6 +6,9 @@
     <span class="stripe stripe-right-bottom"></span>
   </div>
 <section class="page-shell catalog" aria-labelledby="catalog-title">
+  @if (quote.persistenceWarning() && (!quotePresentation.panelVisible() || (quotePresentation.lateral() && !quotePresentation.sideOpen()))) {
+    <p class="cart-recovery-warning" role="status">{{ quote.persistenceWarning() }}</p>
+  }
   <div class="catalog-heading" [class.category-editorial]="activeCategory()" [style.display]="handoff.visible() && !handoffReady() ? 'none' : null">
     @if (categoryUnavailable()) {
       <div><h1 id="catalog-title">Esta categoría no está disponible.</h1><p>Explora los productos públicos del catálogo.</p><a routerLink="/productos">Ver todos los productos</a></div>

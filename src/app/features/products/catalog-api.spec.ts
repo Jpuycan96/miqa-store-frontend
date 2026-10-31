@@ -1,3 +1,4 @@
+import { materialProduct, erpProduct } from '../../testing/erp.fixture';
 ﻿import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
@@ -154,5 +155,29 @@ describe('Catalog HTTP integration without backend', () => {
     // Search refreshes category editorial data, but does not redundantly reload commercial navigation.
     expect(h.routeNativeElement!.querySelector('.desktop-nav')?.textContent).toContain('Nombre actual');
     expect(document.querySelector('meta[name=robots]')?.getAttribute('content')).toBe('noindex,follow');
+  });
+  it('renders a MATERIAL detail with editorial SEO and locked technical options', async () => {
+    const derived=materialProduct('21');
+    const config=derived.configuration!.configuration!;
+    const measures=erpProduct('M2').configuration!.configuration!.medidas;
+    const dto={...product,id:derived.id,slug:derived.slug,name:derived.name,seoTitle:'Banner propio',configuration:{
+      ...derived.configuration!,configuration:{...config,formaCotizacion:'M2' as const,medidas:measures}
+    }};
+    const creating=RouterTestingHarness.create('/productos/'+derived.slug);
+    await new Promise(resolve=>setTimeout(resolve,0));
+    http.expectOne(base+'/categories').flush([]);
+    const harness=await creating;
+    http.match(base+'/categories').forEach(request=>request.flush([]));
+    http.expectOne(base+'/products/'+derived.slug).flush(dto);
+    await harness.fixture.whenStable();
+    const el=harness.routeNativeElement!;
+    expect(el.querySelector('h1')?.textContent).toBe(derived.name);
+    expect(document.title).toBe('Banner propio');
+    expect(el.querySelector<HTMLFieldSetElement>('.material-options')?.disabled).toBe(true);
+    expect(el.querySelector<HTMLFieldSetElement>('.model-options')?.disabled).toBe(true);
+    expect(el.querySelector<HTMLInputElement>('.model-options input')?.checked).toBe(true);
+    expect(el.querySelector('#erp-ancho')).toBeTruthy();
+    expect(el.querySelector('#erp-alto')).toBeTruthy();
+    http.expectNone(req=>req.url.includes('/pricing'));
   });
 });

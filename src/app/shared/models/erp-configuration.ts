@@ -15,6 +15,9 @@ export interface ErpConfiguration {
 }
 export interface PublicConfiguration {
   mode: 'LEGACY' | 'ERP' | 'UNAVAILABLE';
+  publicationScope?: 'SERVICE' | 'MATERIAL' | null;
+  fixedErpMaterialId?: string | null;
+  fixedErpModelId?: string | null;
   erpServiceId: string | null;
   catalogRevision: string | null;
   configurationVersion: string | null;
@@ -37,4 +40,12 @@ export function validErpQuantity(value: number, rules: ErpQuantity): boolean {
   if (!multiple) return true;
   const ratio = value / multiple;
   return Math.abs(ratio - Math.round(ratio)) < 0.00000001;
+}
+
+/** Optional metadata keeps old SERVICE responses compatible; MATERIAL must declare its fixed identity. */
+export function validFixedErpSelection(binding: PublicConfiguration, materialId: string, modelId?: string): boolean {
+  if (binding.publicationScope == null || binding.publicationScope === 'SERVICE') return true;
+  return binding.publicationScope === 'MATERIAL' && !!binding.fixedErpMaterialId
+    && materialId === binding.fixedErpMaterialId
+    && (binding.fixedErpModelId == null || modelId === binding.fixedErpModelId);
 }

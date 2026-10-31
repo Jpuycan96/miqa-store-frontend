@@ -1,0 +1,55 @@
+<section class="draft-panel" aria-labelledby="material-drafts-title">
+  <div class="heading"><div><h2 id="material-drafts-title" #heading tabindex="-1">Crear productos por material</h2>
+    <p class="muted">Selecciona materiales de un servicio ERP sincronizado. Se crearán borradores, sin publicarlos.</p></div>
+    <button type="button" (click)="close()" [disabled]="busy()">Cerrar panel</button></div>
+  @if (error()) { <p class="feedback error" role="alert">{{ error() }}</p> }
+  @if (loading()) { <p role="status">Cargando servicios y categorías...</p> }
+  @else {
+    <form [formGroup]="form" (ngSubmit)="submit()">
+      <fieldset [disabled]="busy()">
+        <div class="fields">
+          <label>Servicio ERP<select formControlName="serviceId"><option value="">Selecciona un servicio</option>
+            @for (service of services(); track service.erpServiceId) { <option [value]="service.erpServiceId">{{ service.lastKnownErp?.nombreReferencia }}</option> }
+          </select></label>
+          <label>Categoría comercial<select formControlName="categoryId"><option value="">Selecciona una categoría activa</option>
+            @for (category of categories(); track category.id) { <option [value]="category.id">{{ category.name }}</option> }
+          </select></label>
+        </div>
+        @if (!services().length) { <p class="muted">No hay servicios sincronizados disponibles.</p> }
+        @if (!categories().length) { <p class="muted">No hay categorías activas disponibles.</p> }
+        @if (selectedService()) {
+          <fieldset class="section"><legend>Materiales aprobados</legend><p id="draft-limit" class="muted" role="status">{{ selectedRows().length }} de 50 seleccionados</p>
+          <div class="material-options">
+            @for (row of rows.controls; track row.controls.erpMaterialId.value) {
+              @if (materialFor(row); as material) {
+                <div class="material-row" [formGroup]="row">
+                  <label class="check"><input type="checkbox" [checked]="row.controls.selected.value"
+                    [disabled]="busy() || (!row.controls.selected.value && selectedRows().length >= 50)"
+                    (change)="select(row, $event)" aria-describedby="draft-limit">{{ material.nombreReferencia }}</label>
+                  @if (row.controls.selected.value) {
+                    <div class="fields row-fields">
+                      @if (material.modelos.length) {
+                        <label>Modelo fijo (opcional)<select formControlName="erpModelId"><option value="">Sin fijar modelo</option>
+                          @for (model of material.modelos; track model.erpModelId) { <option [value]="model.erpModelId">{{ model.nombreReferencia }}</option> }
+                        </select></label>
+                      }
+                      <label>Nombre comercial (opcional)<input type="text" maxlength="200" formControlName="name" [placeholder]="material.nombreReferencia"></label>
+                    </div>
+                  }
+                </div>
+              }
+            }
+          </div></fieldset>
+        }
+        @if (selectedRows().length > 50) { <p class="feedback error" role="alert">El máximo es 50 productos por envío.</p> }
+        @if (summary().length) {
+          <section class="section" aria-labelledby="draft-summary"><h3 id="draft-summary">Resumen: {{ summary().length }} borradores</h3><p>Categoría: {{ categoryName() }}</p>
+          <ul>@for (item of summary(); track item.id) { <li><strong>{{ item.name }}</strong> - {{ item.material }}@if (item.model) { / {{ item.model }} }</li> }</ul>
+          <p class="muted">Cada producto tendrá identidad, imágenes y contenido comercial propios. Los precios y reglas técnicas siguen perteneciendo al ERP.</p></section>
+        }
+      </fieldset>
+      <div class="actions"><button type="submit" class="primary" [disabled]="!canSubmit()">{{ busy() ? 'Creando borradores...' : 'Crear borradores' }}</button>
+        <button type="button" (click)="load()" [disabled]="busy()">Actualizar servicios y categorías</button></div>
+    </form>
+  }
+</section>
