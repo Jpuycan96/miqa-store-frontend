@@ -1,4 +1,3 @@
-import { sortProductsByName } from '../../shared/models/product-order';
 import { isPlatformBrowser } from '@angular/common';
 import { ApplicationRef, DestroyRef, inject, Injectable, PLATFORM_ID, TransferState } from '@angular/core';
 import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
@@ -58,9 +57,9 @@ export class CatalogApiService implements ProductCatalog {
     if (filters.subcategory) params = params.set('subcategory', filters.subcategory);
     const path = filters.commercialCategory || filters.subcategory ? '/commercial/products' : '/products';
     return this.get<readonly ProductDto[]>(path, params, options).pipe(
-      map(products => sortProductsByName(products.filter(product => product.published)
+      map(products => products.filter(product => product.published)
         .map(product => mapProduct(product, this.config.mediaBaseUrl))
-        .filter((product, index, all) => all.findIndex(other => other.id === product.id) === index))));
+        .filter((product, index, all) => all.findIndex(other => other.id === product.id) === index)));
   }
   findBySlug(slug: string, options: CatalogRequestOptions = {}) {
     return this.get<ProductDto>('/products/' + encodeURIComponent(slug), new HttpParams(), options).pipe(

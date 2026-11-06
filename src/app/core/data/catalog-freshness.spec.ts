@@ -50,6 +50,27 @@ describe('Catalog freshness after hydration', () => {
     expect(complete).toBe(true); // No ongoing subscription or polling.
   });
 
+  it('preserves backend featured/commercial/tie order on both product endpoints and refresh', async () => {
+    setup(false); await hydrate();
+    for (const filters of [{}, { category: 'categoria', search: 'Match', commercialCategory: 'commercial', subcategory: 'subcategoria-1' }]) {
+      const versions: string[][] = [];
+      const rows = [
+        { ...product, id: 'featured-z', name: 'Z destacado', featured: true },
+        { ...product, id: 'featured-b', name: 'B destacado', featured: true },
+        { ...product, id: 'ordinary-z', name: 'Z normal' },
+        { ...product, id: 'ordinary-a', name: 'A normal' }
+      ];
+      const path = 'commercialCategory' in filters ? '/commercial/products' : '/products';
+      api.list(filters).subscribe(result => versions.push(result.map(p => p.id)));
+      http.expectOne(r => r.url === base + path).flush([...rows, rows[0], { ...product, published: false }]);
+      expect(versions).toEqual([rows.map(p => p.id)]);
+      api.list(filters).subscribe(result => versions.push(result.map(p => p.id)));
+      const refreshed = [ { ...rows[3], featured: true }, ...rows.slice(0, 3) ];
+      http.expectOne(r => r.url === base + path).flush(refreshed);
+      expect(versions[1]).toEqual(refreshed.map(p => p.id));
+    }
+  });
+
   it('makes only one fresh request on a client page without transferred state', async () => {
     setup(false); api.list().subscribe();
     const request = http.expectOne(base + '/products');

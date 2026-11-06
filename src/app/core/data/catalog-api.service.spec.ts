@@ -66,8 +66,8 @@ describe('Catalog API', () => {
     }));
     http.expectOne(base + '/categories').flush([{slug:'merchandising',name:'Merchandising',catalogHeadline:' Personaliza lo que quieras. ',catalogDescription:' Productos personalizados para tu marca, negocio o evento. '}]);
   });
-  it('sorts the full API list alphabetically in Spanish', () => {
-    api.list().subscribe(products => expect(products.map(p => p.name)).toEqual(['Álbum', 'banner', 'Volantes']));
+  it('preserves the API commercial order instead of sorting by name', () => {
+    api.list().subscribe(products => expect(products.map(p => p.name)).toEqual(['Volantes', 'banner', 'Álbum']));
     http.expectOne(base + '/products').flush(['Volantes', 'banner', 'Álbum'].map((name, id) => ({...API_PRODUCT, id, name})));
   });
   it('keeps legacy descriptions visible', () => {
