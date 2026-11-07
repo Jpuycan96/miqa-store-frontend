@@ -5,7 +5,8 @@ import { App } from '../../app';
 import { routes } from '../../app.routes';
 import { provideTestCatalog } from '../../testing/catalog.fixture';
 import { PRODUCTS } from '../data/products.mock';
-import { QuoteStore } from './quote-store';
+import { QuoteStore, QUOTE_STORAGE_KEY } from './quote-store';
+import { createQuoteItem } from './quote-utils';
 import { QuotePresentation } from './quote-presentation';
 
 describe('One integrated quotation in the public flow', () => {
@@ -15,6 +16,29 @@ describe('One integrated quotation in the public flow', () => {
     vi.spyOn(window, 'scrollTo').mockImplementation(() => {});
   });
   afterEach(() => { TestBed.resetTestingModule(); vi.restoreAllMocks(); localStorage.clear(); sessionStorage.clear(); });
+
+  it('counts unresolved saved products in the header and removes them individually in the panel', async () => {
+    const saved=createQuoteItem(PRODUCTS[2],{quantity:2,notes:'Conservar instrucciones'},'saved')!;
+    const missing={...saved,productId:'missing',productName:'Producto retirado'};
+    localStorage.setItem(QUOTE_STORAGE_KEY,JSON.stringify([saved,missing,missing]));
+    const h=await RouterTestingHarness.create('/productos'); await h.fixture.whenStable();
+    const store=TestBed.inject(QuoteStore); const valid=store.items();
+    expect(store.totalItems()).toBe(3);
+    expect(h.routeNativeElement!.querySelector('.quote-count')?.textContent).toBe('3');
+    expect(h.routeNativeElement!.querySelector('.cart-recovery-warning')).toBeNull();
+    expect(h.routeNativeElement!.querySelectorAll('.recovery-item')).toHaveLength(2);
+    h.routeNativeElement!.querySelector<HTMLButtonElement>('.recovery-item button')!.click();
+    await h.fixture.whenStable();
+    expect(h.routeNativeElement!.querySelector('.quote-count')?.textContent).toBe('2');
+    expect(h.routeNativeElement!.querySelectorAll('.recovery-item')).toHaveLength(1);
+    expect(store.items()).toEqual(valid);
+    expect(JSON.parse(localStorage.getItem(QUOTE_STORAGE_KEY)!)).toEqual([missing,...valid]);
+    h.routeNativeElement!.querySelector<HTMLButtonElement>('.recovery-item button')!.click();
+    await h.fixture.whenStable();
+    expect(h.routeNativeElement!.querySelector('.quote-count')?.textContent).toBe('1');
+    expect(h.routeNativeElement!.querySelector('.saved-recovery')).toBeNull();
+    expect(store.items()).toEqual(valid);
+  });
 
   it('never mounts a quote drawer in the application root and preserves add feedback', async () => {
     const fixture = TestBed.createComponent(App); await fixture.whenStable();

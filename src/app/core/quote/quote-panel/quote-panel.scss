@@ -95,3 +95,8 @@ dialog[open] { display: block; }
 @media (hover: hover) and (prefers-reduced-motion: no-preference) { .quote-tab { transition: padding 220ms ease; } .quote-tab:hover { padding-right: 18px; } }
 
 .quote-tab[hidden] { display: none; }
+
+.saved-recovery { padding: 12px; border: 1px solid #a26b12; border-radius: 8px; background: #fff9ed; }
+.recovery-item { grid-template-columns: minmax(0, 1fr) auto; align-items: start; }
+.recovery-item h3 { overflow-wrap: anywhere; }
+.recovery-item .remove { min-height: 44px; }

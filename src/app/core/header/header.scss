@@ -8,12 +8,12 @@
 .main-bar{display:flex;align-items:center;gap:20px;min-height:84px}
 .brand{position:relative;display:flex;flex:0 0 154px;height:58px}
 .brand img{object-fit:contain}
-.desktop-nav{display:none;align-items:center;justify-content:space-between;gap:4px;flex:1;min-width:0}
+.desktop-nav{display:none;align-items:center;justify-content:space-between;gap:clamp(12px,1.2vw,24px);flex:1;min-width:0}
 .desktop-nav a{font-size:15px;font-weight:600;line-height:1.35;min-height:52px;padding:6px 4px;display:flex;align-items:center;min-width:0;border-bottom:2px solid transparent}
 .desktop-nav a:hover{border-color:#16b8c4;color:#087e8a}
 .desktop-nav a.active{border-color:#16b8c4;font-weight:700;color:#061b4f}
 .all{color:#087e8a}
-.category-menu{position:relative;flex:1;min-width:0}
+.category-menu{position:relative;flex:0 1 auto;min-width:min-content}
 .category-row{display:flex;align-items:center}
 .category-row>a{flex:1}
 .subcategory-toggle{flex-shrink:0;min-width:24px;min-height:44px;padding:0;border:0;background:transparent;color:#061b4f;cursor:pointer}

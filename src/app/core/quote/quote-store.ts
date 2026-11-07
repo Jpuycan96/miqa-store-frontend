@@ -29,8 +29,8 @@ export class QuoteStore {
     const sameTax = available.every(price => price.includesIgv === available[0]?.includesIgv);
     return {
       amount: available.length ? sumAmounts(available.map(price => price.amount)) : null,
-      complete: prices.length > 0 && available.length === prices.length && sameTax,
-      pending: prices.length - available.length,
+      complete: prices.length > 0 && available.length === prices.length && sameTax && !this.recoveryItems().length,
+      pending: prices.length - available.length + this.recoveryItems().length,
       includesIgv: available.length > 0 && available.every(price => price.includesIgv),
       mixedTax: !sameTax
     };
@@ -92,8 +92,30 @@ export class QuoteStore {
   private restoreVersion = 0;
   readonly items = this.state.asReadonly();
   readonly isOpen = this.visibility.asReadonly();
-  /** Count configured lines, not incompatible units such as millares and square metres. */
-  readonly totalItems = computed(() => this.items().length);
+  private readonly recoveryState = signal<readonly { id: string; productName: string; quantity: number | null; notes: string; value: unknown }[]>([]);
+  readonly recoveryItems = this.recoveryState.asReadonly();
+  /** Count active and saved lines, not incompatible units such as millares and square metres. */
+  readonly totalItems = computed(() => this.items().length + this.recoveryItems().length);
+  readonly recoveryWarning = computed(() => this.recoveryItems().length
+    ? `${this.recoveryItems().length} producto(s) guardado(s) no se pueden usar: no están disponibles o sus opciones cambiaron. Conservamos sus datos; no se enviarán en esta solicitud.` : '');
+
+  private showRecovery(values: readonly unknown[]) {
+    this.recoveryState.set(values.map(value => {
+      const saved = value && typeof value === 'object' ? value as Record<string, unknown> : {};
+      return { id: `recovery-${++this.nextId}`, value,
+        productName: typeof saved['productName'] === 'string' && saved['productName'].trim()
+          ? saved['productName'] : typeof saved['productId'] === 'string' ? saved['productId'] : 'Producto guardado sin identificar',
+        quantity: typeof saved['quantity'] === 'number' && Number.isFinite(saved['quantity']) ? saved['quantity'] : null,
+        notes: typeof saved['notes'] === 'string' ? saved['notes'] : '' };
+    }));
+  }
+
+  removeRecoveryItem(id: string) {
+    if (!this.recoveryItems().some(item => item.id === id)) return;
+    this.recoveryState.update(items => items.filter(item => item.id !== id));
+    this.pendingSaved = this.recoveryItems().map(item => item.value);
+    this.persist();
+  }
   readonly whatsappUrl = computed(() => {
     const items = this.items().map(item => ({
       ...item, quantity: item.erp ? item.quantity : normalizeQuantity(item.quantity, this.quantityRules(item).minimum)
@@ -162,7 +184,7 @@ export class QuoteStore {
     return { minimum: product?.minQuantity ?? 1, step: product?.step ?? 1 };
   }
 
-  clear() { this.restoreVersion++; this.pendingSaved = []; this.state.set([]); this.persist(); }
+  clear() { this.restoreVersion++; this.pendingSaved = []; this.recoveryState.set([]); this.state.set([]); this.persist(); }
 
   restore(): void {
     if (!this.browser || this.restored) return;
@@ -210,8 +232,7 @@ export class QuoteStore {
           });
           // Keep unresolved saved lines for recovery on the next reload, but never price or submit them.
           this.pendingSaved = unresolved;
-          if (unresolved.length) this.persistenceWarning.set(
-            `${unresolved.length} producto(s) guardado(s) ya no están disponibles o sus opciones cambiaron. Vuelve al producto para revisarlos. Conservamos los datos guardados para recuperarlos; no se enviarán en esta solicitud.`);
+          this.showRecovery(unresolved);
           this.state.update(current => mergeQuoteItems([...restored, ...current]));
           this.persist();
         } catch {

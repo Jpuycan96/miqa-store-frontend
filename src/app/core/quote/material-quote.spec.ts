@@ -75,20 +75,63 @@ describe('MATERIAL selection and cart recovery', () => {
     }
     const store=TestBed.inject(QuoteStore); store.restore();
     expect(store.items()).toEqual([]);
-    expect(store.persistenceWarning()).toContain('1 producto(s)');
+    expect(store.recoveryWarning()).toContain('1 producto(s)');
+    expect(store.recoveryItems()[0].productName).toBe(saved.productName);
+    expect(store.totalItems()).toBe(1);
     expect(JSON.parse(localStorage.getItem(QUOTE_STORAGE_KEY)!)).toEqual([saved]);
     products=[materialProduct()];
     const reloaded=TestBed.runInInjectionContext(() => new QuoteStore()); reloaded.restore();
     expect(reloaded.items()).toHaveLength(1);
     expect(reloaded.items()[0].erp?.erpModelId).toBe('21');
   });
-  it('shows the recovery warning on the catalog even when every saved line was removed', async () => {
+  it('removes one unresolved line without changing valid lines or remaining saved data', () => {
+    const saved=createQuoteItem(materialProduct(),selection(),'saved')!;
+    const missing={...saved,productId:'missing',productName:'Producto retirado',notes:'Conservar medidas'};
+    const stale={...saved,productName:'Opciones anteriores',erp:{...saved.erp!,configurationVersion:'old'}};
+    localStorage.setItem(QUOTE_STORAGE_KEY,JSON.stringify([saved,missing,stale]));
+    const store=TestBed.inject(QuoteStore); store.restore();
+    const valid=store.items();
+    expect(store.totalItems()).toBe(3);
+    expect(store.recoveryItems().map(item=>item.productName)).toEqual(['Producto retirado','Opciones anteriores']);
+    expect(store.priceSummary().complete).toBe(false);
+    expect(quoteRequest(store.items(),{name:'Cliente',phone:'999999999'},'').items).toHaveLength(1);
+    store.removeRecoveryItem(store.recoveryItems()[0].id);
+    expect(store.totalItems()).toBe(2); expect(store.items()).toEqual(valid);
+    expect(JSON.parse(localStorage.getItem(QUOTE_STORAGE_KEY)!)).toEqual([stale,...valid]);
+    const reloaded=TestBed.runInInjectionContext(()=>new QuoteStore()); reloaded.restore();
+    expect(reloaded.recoveryItems()).toHaveLength(1);
+    expect(reloaded.totalItems()).toBe(2);
+    store.removeRecoveryItem(store.recoveryItems()[0].id);
+    expect(store.totalItems()).toBe(1); expect(store.recoveryWarning()).toBe('');
+    expect(store.items()).toEqual(valid);
+  });
+  it('keeps malformed and duplicate saved entries until each is explicitly removed', () => {
+    const saved={productId:'missing',productName:'Retirado',quantity:2,notes:'Recuperable'};
+    localStorage.setItem(QUOTE_STORAGE_KEY,JSON.stringify([saved,saved,null])); products=[];
+    const store=TestBed.inject(QuoteStore); store.restore();
+    expect(store.totalItems()).toBe(3);
+    const ids=store.recoveryItems().map(item=>item.id);
+    store.removeRecoveryItem(ids[1]);
+    expect(store.recoveryItems().map(item=>item.id)).toEqual([ids[0],ids[2]]);
+    expect(JSON.parse(localStorage.getItem(QUOTE_STORAGE_KEY)!)).toEqual([saved,null]);
+    store.clear(); expect(store.totalItems()).toBe(0); expect(store.recoveryWarning()).toBe('');
+    expect(JSON.parse(localStorage.getItem(QUOTE_STORAGE_KEY)!)).toEqual([]);
+  });
+  it('shows unresolved saved products only inside the quote panel, even with no valid lines', async () => {
     const saved=createQuoteItem(materialProduct(),selection(),'saved')!;
     localStorage.setItem(QUOTE_STORAGE_KEY,JSON.stringify([saved])); products=[];
     TestBed.configureTestingModule({providers:[provideRouter([])]});
     const fixture=TestBed.createComponent(Catalog); await fixture.whenStable();
     expect(TestBed.inject(QuoteStore).items()).toHaveLength(0);
-    expect(fixture.nativeElement.querySelector('.cart-recovery-warning')?.textContent).toContain('1 producto(s)');
+    expect(fixture.nativeElement.querySelector('.cart-recovery-warning')).toBeNull();
+    expect(fixture.nativeElement.querySelector('app-quote-panel .saved-recovery')?.textContent).toContain('1 producto(s)');
+    expect(fixture.nativeElement.querySelector('.recovery-item')?.textContent).toContain(saved.productName);
     expect(JSON.parse(localStorage.getItem(QUOTE_STORAGE_KEY)!)).toEqual([saved]);
+    expect(fixture.nativeElement.querySelector('app-quote-panel .empty')).toBeNull();
+    expect(fixture.nativeElement.querySelector('app-quote-panel .count')?.textContent).toBe('1');
+    fixture.nativeElement.querySelector('.recovery-item button').click(); await fixture.whenStable();
+    expect(TestBed.inject(QuoteStore).totalItems()).toBe(0);
+    expect(fixture.nativeElement.querySelector('app-quote-panel')).toBeNull();
+    expect(JSON.parse(localStorage.getItem(QUOTE_STORAGE_KEY)!)).toEqual([]);
   });
 });

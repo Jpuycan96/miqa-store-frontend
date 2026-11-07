@@ -8,6 +8,24 @@
   <div class="panel-heading"><h2 id="quote-panel-title" tabindex="-1">Mi cotización</h2><span class="count" aria-label="Productos configurados">{{ quote.totalItems() }}</span>@if (presentation.lateral()) { <button type="button" class="close-panel" aria-label="Cerrar Mi cotizaci?n" (click)="closeSide()">?</button> }</div>
   <div class="panel-items">
     @if (quote.persistenceWarning()) { <p class="hint" role="status">{{ quote.persistenceWarning() }}</p> }
+    @if (quote.recoveryItems().length) {
+      <div class="saved-recovery" aria-labelledby="saved-recovery-title">
+        <h3 id="saved-recovery-title">Productos guardados por revisar</h3>
+        <p class="hint" role="status">{{ quote.recoveryWarning() }}</p>
+        <ul>
+          @for (item of quote.recoveryItems(); track item.id) {
+            <li class="recovery-item">
+              <div><h3>{{ item.productName }}</h3>
+                <p class="hint">No disponible o configuración desactualizada.</p>
+                @if (item.quantity !== null) { <p class="configuration">Cantidad guardada: {{ item.quantity }}</p> }
+                @if (item.notes) { <p class="configuration">Notas: {{ item.notes }}</p> }
+              </div>
+              <button type="button" class="remove" [attr.aria-label]="'Eliminar ' + item.productName + ' guardado de la cotización'" (click)="quote.removeRecoveryItem(item.id)">Eliminar</button>
+            </li>
+          }
+        </ul>
+      </div>
+    }
     @if (quote.items().length) {
       <ul>
         @for (item of quote.items(); track item.id) {
@@ -38,7 +56,7 @@
           </li>
         }
       </ul>
-    } @else {
+    } @else if (!quote.recoveryItems().length) {
       <p class="empty">Agrega productos y reúne aquí lo que necesitas para tu proyecto.</p>
       <button type="button" class="dismiss-empty" (click)="dismissEmpty()">Continuar viendo productos</button>
     }

@@ -19,7 +19,7 @@ input { width: 100%; min-width: 0; min-height: 44px; border: 1px solid #c4cbd4; 
 .product-image:focus-visible { outline: 3px solid #087e8a; outline-offset: 3px; }
 .category-name { margin-top: 10px; color: var(--muted); font-size: 9px; letter-spacing: .06em; text-transform: uppercase; }
 h2 { margin-block: 5px 8px; font-size: 20px; font-weight: 600; color: var(--miqa-navy); letter-spacing: -.025em; }
-.quick-quote { margin-top: auto; }
+.quick-quote { margin-top: auto; padding-bottom: 8px; }
 .presentation { font-size: 12px; margin-bottom: 6px; }
 .purchase-row { display: flex; align-items: center; gap: 10px; }
 .quantity-control { display: inline-flex; flex-shrink: 0; border: 1px solid #c4cbd4; border-radius: 99px; align-items: center; }
