@@ -15,5 +15,5 @@ export function productImages(product: ImageSource): readonly ProductImage[] {
     : [product.image, ...(product.gallery ?? [])].filter((url): url is string => !!url).map((url, index) => ({
         id: String(index), url, altText: product.imageAlt || product.name, primaryImage: index === 0, displayOrder: index
       }));
-  return images.filter((image, index) => !!image.url && images.findIndex(other => other.url === image.url) === index).slice(0, 3);
+  return images.filter((image, index) => !!image.url && images.findIndex(other => other.url === image.url) === index);
 }

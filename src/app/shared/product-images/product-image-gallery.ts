@@ -1,9 +1,10 @@
 import { ChangeDetectionStrategy, Component, computed, effect, ElementRef, input, signal, viewChildren } from '@angular/core';
 import { ImageSource, productImages } from './product-images';
+import { ProductImageViewer } from './product-image-viewer';
 import { ProductImageView } from './product-image';
 
 @Component({
-  selector: 'app-product-image-gallery', imports: [ProductImageView],
+  selector: 'app-product-image-gallery', imports: [ProductImageView, ProductImageViewer],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="gallery" [class.has-thumbnails]="images().length > 1">
@@ -16,14 +17,15 @@ import { ProductImageView } from './product-image';
           }
         </div>
       }
-      <div class="main-image"><app-product-image [src]="active()?.url ?? ''" [alt]="active()?.altText || product().name" [priority]="priority()" [sizes]="sizes()" /></div>
+      <button type="button" class="main-image" [attr.aria-label]="'Ampliar imagen de ' + product().name" (click)="viewer.open(product(), index())"><app-product-image [src]="active()?.url ?? ''" [alt]="active()?.altText || product().name" [priority]="priority()" [sizes]="sizes()" /></button>
     </div>
+    <app-product-image-viewer #viewer />
   `,
   styles: `
     :host { display:block; position:relative; width:100%; height:100%; }
     .gallery { display:grid; height:100%; min-height:0; grid-template-rows:minmax(0,1fr); }
     .gallery.has-thumbnails { grid-template-rows:minmax(0,1fr) 80px; gap:8px; }
-    .main-image { min-width:0; min-height:0; }
+    .main-image { display:block; min-width:0; min-height:0; width:100%; height:100%; padding:0; border:0; background:transparent; cursor:zoom-in; }
     .thumbnails { grid-row:2; display:flex; gap:6px; overflow:auto; }
     .thumbnails button { flex-shrink:0; width:80px; height:80px; box-sizing:border-box; border:2px solid transparent; padding:0; border-radius:6px; overflow:hidden; background:white; cursor:pointer; }
     /* Keep detail-image's main-image padding/scale out of the thumbnails. */

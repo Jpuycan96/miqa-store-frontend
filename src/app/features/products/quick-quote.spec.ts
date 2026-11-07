@@ -82,10 +82,11 @@ describe('Quick catalog quoting', () => {
     expect(TestBed.inject(QuoteStore).items()).toEqual([]);
   });
 
-  it('navigates from the image while the name remains plain text', async () => {
+  it('navigates from the product name while the image is a separate viewer action', async () => {
     const h = await RouterTestingHarness.create('/productos');
-    expect(h.routeNativeElement!.querySelector('.catalog-card h2 a')).toBeNull();
-    h.routeNativeElement!.querySelector<HTMLAnchorElement>('[data-product="roll-up"] .product-image')!.click();
+    expect(h.routeNativeElement!.querySelector('.catalog-card h2 a')).not.toBeNull();
+    expect(h.routeNativeElement!.querySelector('.catalog-card .product-image')?.tagName).toBe('BUTTON');
+    h.routeNativeElement!.querySelector<HTMLAnchorElement>('[data-product="roll-up"] .product-name-link')!.click();
     await h.fixture.whenStable();
     expect(h.routeNativeElement!.querySelector('#product-title')?.textContent).toContain('Roll Up');
     expect(h.routeNativeElement!.querySelector('app-product-image-lightbox')).toBeNull();

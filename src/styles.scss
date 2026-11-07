@@ -9,7 +9,7 @@
  --motion-ease: cubic-bezier(.2, .65, .3, 1);
 }
 * { box-sizing: border-box; }
-html { scroll-behavior: smooth; scroll-padding-top: 110px; }
+html { scroll-behavior: smooth; scroll-padding-top: var(--store-header-height, 110px); }
 body { margin: 0; font-family: var(--font-sans); color: var(--ink); background: var(--paper); -webkit-font-smoothing: antialiased; }
 button, input { font: inherit; }
 button, a { -webkit-tap-highlight-color: transparent; }
@@ -35,7 +35,7 @@ dialog p { color: var(--muted); line-height: 1.7; margin-bottom: 24px; }
 @media (min-width: 768px) { .page-shell { width: min(var(--page-width), calc(100% - 80px)); } }
 @media (min-width: 1024px) {
  html:has(app-home) {
-  --home-header-offset: 122px;
+  --home-header-offset: var(--store-header-height, 122px);
   scroll-behavior: auto;
   scroll-snap-type: y proximity;
   scroll-padding-top: var(--home-header-offset);

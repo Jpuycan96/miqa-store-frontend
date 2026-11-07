@@ -1,4 +1,4 @@
-:host { display: block; scroll-margin-top: 112px; min-width: 0; background: #fff; isolation: isolate; }
+:host { display: block; scroll-margin-top: var(--store-header-height, 112px); min-width: 0; background: #fff; isolation: isolate; }
 section { display: flex; flex-direction: column; max-height: none; overflow-y: visible; border-top: 1px solid #dce0e7; padding-top: 16px; color: var(--miqa-navy); background: #fff; }
 .panel-heading { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding-block: 4px 16px; } h2 { font-size: 21px; font-weight: 600; letter-spacing: -.03em; } .count { background: var(--surface); border-radius: 99px; padding: 4px 9px; font-size: 12px; }
 .panel-items { flex-shrink: 0; padding-right: 4px; }
@@ -10,7 +10,7 @@ h3 { font-size: 15px; font-weight: 600; } .configuration, .empty, .hint { font-s
 button { cursor: pointer; color: inherit; } button:disabled { opacity: .45; cursor: default; } .remove, .clear { min-height: 36px; border: 0; background: none; font-size: 12px; text-decoration: underline; text-underline-offset: 4px; }
 .panel-actions { padding-top: 16px; border-top: 1px solid #e0e3e8; flex-shrink: 0; }
 .panel-whatsapp { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 44px; padding: 10px 14px; border-radius: 99px; font-size: 13px; font-weight: 600; background: var(--miqa-cyan); color: var(--miqa-navy); } .panel-whatsapp:hover { background: #a4f2f2; } .clear { display: block; margin: 4px auto 0; }
-@media (min-width: 1280px) { :host { display: block; position: sticky; top: 112px; align-self: start; } }
+@media (min-width: 1280px) { :host { display: block; position: sticky; top: var(--store-header-height, 112px); align-self: start; } }
 
 li.updated { background: #e9fafa; box-shadow: inset 3px 0 #16b8c4; }
 
@@ -78,7 +78,7 @@ h3 { margin: 0; }
 .quote-total { display: grid; gap: 4px; margin-bottom: 10px; font-size: 13px; overflow-wrap: anywhere; }
 .quote-total p { margin: 0; font-size: 12px; }
 .quote-total small { font-size: 11px; }
-@media (min-width: 1280px) { section { max-height: calc(100dvh - 128px); border-top: 0; padding-top: 0; border-left: 1px solid #dce0e7; padding-left: 20px; overflow: auto; } }
+@media (min-width: 1280px) { section { max-height: calc(100dvh - var(--store-header-height, 112px) - 16px); border-top: 0; padding-top: 0; border-left: 1px solid #dce0e7; padding-left: 20px; overflow: auto; } }
 @media (min-width: 1280px) { :host(.compact) section { border-top: 0; padding-top: 0; border-left: 1px solid #dce0e7; } }
 @media (max-width: 1279px) { .quantity-control button, .quantity-control input, .remove { min-height: 44px; min-width: 44px; } }
 

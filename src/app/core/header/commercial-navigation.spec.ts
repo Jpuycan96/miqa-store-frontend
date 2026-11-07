@@ -62,7 +62,7 @@ describe('Commercial dropdown navigation',()=>{
     expect(el.querySelector('.desktop-nav .category-link.active')?.textContent).toBe('Comercial');
     expect(el.querySelector('.desktop-nav .subcategory-dropdown a.active')?.textContent).toBe('Primera');
     expect(el.querySelectorAll('.catalog-card')).toHaveLength(1);
-    const detail=el.querySelector<HTMLAnchorElement>('.product-image')!;
+    const detail=el.querySelector<HTMLAnchorElement>('.product-name-link')!;
     expect(detail.getAttribute('href')).toContain('/productos/tarjetas-personales');
     expect(decodeURIComponent(detail.getAttribute('href')!)).toContain('subcategory=subcategoria-10');
     const input=el.querySelector<HTMLInputElement>('#header-product-search')!;

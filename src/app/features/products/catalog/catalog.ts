@@ -1,3 +1,4 @@
+import { ProductImageViewer } from '../../../shared/product-images/product-image-viewer';
 import { ProductImageView } from '../../../shared/product-images/product-image';
 import { productImages } from '../../../shared/product-images/product-images';
 import { afterRenderEffect, ChangeDetectionStrategy, Component, computed, effect, inject, DestroyRef } from '@angular/core';
@@ -13,7 +14,7 @@ import { breadcrumb, PAGE_SEO, Seo } from '../../../core/seo/seo';
 import { CatalogHandoff } from '../../../core/seo/catalog-handoff';
 
 @Component({
-  selector: 'app-catalog', imports: [RouterLink, ProductImageView, QuotePanel],
+  selector: 'app-catalog', imports: [RouterLink, ProductImageView, ProductImageViewer, QuotePanel],
   templateUrl: './catalog.html', styleUrl: './catalog.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
 })

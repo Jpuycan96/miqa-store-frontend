@@ -48,7 +48,7 @@ describe('Global header search lifecycle', () => {
     expect(input.value).toBe('bolsas');expect(input.closest<HTMLElement>('#site-search')!.hidden).toBe(false);
     expect(store.items()).toEqual(saved);expect(store.totalItems()).toBe(1);
     expect(JSON.parse(localStorage.getItem(QUOTE_STORAGE_KEY)!)).toEqual(saved);
-    h.routeNativeElement!.querySelector<HTMLAnchorElement>('.product-image')!.click();await h.fixture.whenStable();
+    h.routeNativeElement!.querySelector<HTMLAnchorElement>('.product-name-link')!.click();await h.fixture.whenStable();
     expect(TestBed.inject(Router).url).toContain('/productos/featured-bags');
     expect(decodeURIComponent(TestBed.inject(Router).url)).toContain('/productos?buscar=bolsas');
     expect(input.value).toBe('');expect(input.closest<HTMLElement>('#site-search')!.hidden).toBe(true);
@@ -58,6 +58,37 @@ describe('Global header search lifecycle', () => {
     h.routeNativeElement!.querySelector<HTMLButtonElement>('.search-toggle')!.click();await h.fixture.whenStable();
     expect(input.closest<HTMLElement>('#site-search')!.hidden).toBe(false);
     expect(store.items()).toEqual(saved);
+  });
+  it.each(['/productos?commercialCategory=papeleria&subcategory=subcategoria-10','/productos/imprenta-papeleria'])('clears a global search automatically from %s without losing quote lines',async url=>{
+    setup();const h=await RouterTestingHarness.create(url);await h.fixture.whenStable();
+    const header=h.fixture.debugElement.query(By.directive(Header)).componentInstance as Header;
+    const store=TestBed.inject(QuoteStore);store.addItem(PRODUCTS[2],{quantity:2});const saved=store.items();
+    header.toggleSearch();header.search.setValue('bolsas');await wait();await h.fixture.whenStable();
+    expect(TestBed.inject(Router).url).toBe('/productos?buscar=bolsas');
+    header.search.setValue('');await wait();await h.fixture.whenStable();
+    expect(TestBed.inject(Router).url).toBe('/productos');expect(header.searchOpen()).toBe(false);
+    expect(h.routeNativeElement!.querySelectorAll('.catalog-card')).toHaveLength(products.length);
+    expect(store.items()).toEqual(saved);
+    await wait();expect(TestBed.inject(Router).url).toBe('/productos');
+  });
+  it('keeps the category context when text is removed before the debounce navigates',async()=>{
+    const list=setup();const h=await RouterTestingHarness.create('/productos?commercialCategory=papeleria');await h.fixture.whenStable();list.mockClear();
+    const header=h.fixture.debugElement.query(By.directive(Header)).componentInstance as Header;
+    header.toggleSearch();header.search.setValue('bolsas');header.search.setValue('');
+    await wait();await h.fixture.whenStable();expect(TestBed.inject(Router).url).toBe('/productos?commercialCategory=papeleria');
+    expect(header.searchOpen()).toBe(false);expect(list).not.toHaveBeenCalled();
+  });
+  it('removes only buscar when an existing URL still has a category context',async()=>{
+    const list=setup();const h=await RouterTestingHarness.create('/productos?commercialCategory=papeleria&subcategory=subcategoria-10&buscar=bolsas');await h.fixture.whenStable();
+    const header=h.fixture.debugElement.query(By.directive(Header)).componentInstance as Header;
+    header.toggleSearch();header.search.setValue('');await wait();await h.fixture.whenStable();
+    expect(TestBed.inject(Router).url).toBe('/productos?commercialCategory=papeleria&subcategory=subcategoria-10');
+    expect(list).toHaveBeenLastCalledWith({category:'',search:'',commercialCategory:'papeleria',subcategory:'subcategoria-10'},{fresh:false});
+    expect(header.searchOpen()).toBe(false);
+  });
+  it('keeps the accessible content shortcut on the current category path and query',async()=>{
+    setup();const h=await RouterTestingHarness.create('/productos/imprenta-papeleria?buscar=tarjetas');await h.fixture.whenStable();
+    expect(h.routeNativeElement!.querySelector('.skip-link')?.getAttribute('href')).toBe('/productos/imprenta-papeleria?buscar=tarjetas#catalog-content');
   });
   it('closes and clears after selecting a preview result, with keyboard links intact',async()=>{
     setup();const h=await RouterTestingHarness.create('/');await h.fixture.whenStable();

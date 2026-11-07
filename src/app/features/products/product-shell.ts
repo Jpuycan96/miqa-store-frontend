@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { Router, RouterOutlet } from '@angular/router';
 import { Header } from '../../core/header/header';
 import { Footer } from '../../core/footer/footer';
 import { CatalogHandoff } from '../../core/seo/catalog-handoff';
@@ -7,7 +7,7 @@ import { CatalogHandoff } from '../../core/seo/catalog-handoff';
 @Component({
   selector: 'app-product-shell',
   imports: [Header, Footer, RouterOutlet],
-  template: `<nav class="skip-navigation" aria-label="Acceso al contenido"><a class="skip-link" href="#catalog-content">Saltar al contenido</a></nav>
+  template: `<nav class="skip-navigation" aria-label="Acceso al contenido"><a class="skip-link" [attr.href]="contentHref()">Saltar al contenido</a></nav>
     <app-header [catalogMode]="true" />
     <div id="catalog-content" tabindex="-1" [attr.role]="handoff.visible() ? 'region' : 'main'"
       [attr.aria-label]="handoff.visible() ? 'Estado de la aplicación' : null"><router-outlet /></div>
@@ -20,4 +20,8 @@ import { CatalogHandoff } from '../../core/seo/catalog-handoff';
   }`,
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ProductShell { readonly handoff = inject(CatalogHandoff); }
+export class ProductShell {
+  readonly handoff = inject(CatalogHandoff);
+  private readonly router = inject(Router);
+  contentHref() { return this.router.url.split('#')[0] + '#catalog-content'; }
+}

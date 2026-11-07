@@ -1,5 +1,5 @@
 import { NgOptimizedImage } from '@angular/common';
-import { ChangeDetectionStrategy, Component, computed, ElementRef, inject, input, signal, viewChild } from '@angular/core';
+import { afterNextRender, afterRenderEffect, DestroyRef, ChangeDetectionStrategy, Component, computed, ElementRef, inject, input, signal, viewChild } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router, RouterLink } from '@angular/router';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
@@ -42,12 +42,20 @@ export class Header {
  readonly searchOpen = signal(false);
  readonly search = new FormControl<string>(this.router.parseUrl(this.router.url).queryParams['buscar']??'',{nonNullable:true});
  private readonly searchText = signal(this.search.value);
+ readonly compactCategories = signal(false);
+ readonly inlineCategories = signal(false);
+ private readonly headerElement = inject<ElementRef<HTMLElement>>(ElementRef);
+ private measureCategories?: () => void;
  private searchVersion = 0;
  private searchDestination?: string;
  readonly results = toSignal(this.search.valueChanges.pipe(
-  map(value=>{this.searchText.set(value);return {search:value.trim().slice(0,120),version:this.searchVersion};}),debounceTime(250),
+  map(value=>{
+   this.searchText.set(value);
+   if(!value.trim())this.clearSearch();
+   return {search:value.trim().slice(0,120),version:this.searchVersion};
+  }),debounceTime(250),
   switchMap(({search,version})=>{
-   if(version!==this.searchVersion)return of({products:[],loading:false,error:false});
+   if(!search || version!==this.searchVersion)return of({products:[],loading:false,error:false});
    if(this.catalogMode()){
     const options={queryParams:{buscar:search||null},replaceUrl:true};
     this.searchDestination=this.router.serializeUrl(this.router.createUrlTree(['productos'],options));
@@ -62,6 +70,51 @@ export class Header {
   })
  ),{initialValue:{products:[],loading:false,error:false}});
  constructor(){
+  const destroy=inject(DestroyRef);
+  afterNextRender(()=>{
+   if(typeof ResizeObserver==='undefined')return;
+   const root=this.headerElement.nativeElement;
+   const bar=root.querySelector<HTMLElement>('.main-bar')!;
+   const nav=root.querySelector<HTMLElement>('.desktop-nav')!;
+   const heightStyle=root.ownerDocument.documentElement.style;
+   const previousHeight=heightStyle.getPropertyValue('--store-header-height');
+   const canvas=document.createElement('canvas');
+   const context=canvas.getContext('2d');
+   this.measureCategories=()=>{
+    heightStyle.setProperty('--store-header-height',`${Math.ceil(root.getBoundingClientRect().height)}px`);
+    const links=[...nav.querySelectorAll<HTMLElement>('.category-row>a,.all')];
+    const needed=links.reduce((total,link)=>{
+     const style=getComputedStyle(link);if(context)context.font=style.font;
+     return total+(context?.measureText(link.textContent??'').width??link.scrollWidth)+8
+       +(link.parentElement?.querySelector('.subcategory-toggle')?24:0);
+    },0)+Math.max(0,links.length-1)*12;
+    const controls=bar.querySelector<HTMLElement>('.controls')!.getBoundingClientRect().width;
+    const brand=bar.querySelector<HTMLElement>('.brand')!.getBoundingClientRect().width;
+    const inline=!this.searchOpen() && needed<=bar.clientWidth-brand-controls-48;
+    this.inlineCategories.set(inline);
+    const tracks=getComputedStyle(nav).gridTemplateRows.trim();
+    const rows=tracks && tracks!=='none'?tracks.split(/\s+/).length:1;
+    this.compactCategories.set(!inline && rows>2);
+   };
+   const observer=new ResizeObserver(()=>this.measureCategories?.());
+   observer.observe(bar);observer.observe(nav);
+   this.measureCategories();
+   void document.fonts?.ready.then(()=>{if(!destroy.destroyed)this.measureCategories?.();});
+   destroy.onDestroy(()=>{observer.disconnect();if(previousHeight)heightStyle.setProperty('--store-header-height',previousHeight);else heightStyle.removeProperty('--store-header-height');});
+  });
+  afterRenderEffect(()=>{
+   this.categories();this.searchOpen();this.expandedCategory();this.measureCategories?.();
+   const root=this.headerElement.nativeElement;
+   for(const dropdown of root.querySelectorAll<HTMLElement>('.subcategory-dropdown:not([hidden])')){
+    dropdown.style.translate='none';
+    const bounds=dropdown.getBoundingClientRect();
+    const width=root.ownerDocument.defaultView?.innerWidth??0;
+    const shift=Math.min(0,width-16-bounds.right)+Math.max(0,16-bounds.left);
+    dropdown.style.translate=`${shift}px 0`;
+   }
+   if(this.compactCategories() && root.querySelector('.desktop-nav')?.contains(root.ownerDocument.activeElement))
+    root.querySelector<HTMLButtonElement>('.mobile-toggle')?.focus();
+  });
   this.router.events.pipe(filter(event=>event instanceof NavigationEnd),takeUntilDestroyed()).subscribe(event=>{
   const previousPath=this.currentUrl().split('?')[0];
   this.currentUrl.set(this.router.url);
@@ -73,6 +126,17 @@ export class Header {
    if(!ownSearch)this.closeSearch(false);
   }
  });}
+ private clearSearch() {
+  const tree=this.router.parseUrl(this.router.url);
+  const filtered=!!tree.queryParams['buscar'];
+  this.closeSearch(false);
+  if(filtered){
+   delete tree.queryParams['buscar'];
+   this.searchDestination=this.router.serializeUrl(tree);
+   void this.router.navigateByUrl(tree,{replaceUrl:true});
+  }
+  this.searchToggle()?.nativeElement.focus();
+ }
  categoryLink(slug: string): string { return `/productos/${slug}`; }
  commercialLink(slug: string, subcategory?: string) {
   const search=this.catalogMode() ? this.router.parseUrl(this.currentUrl()).queryParams['buscar']??'' : this.searchText();

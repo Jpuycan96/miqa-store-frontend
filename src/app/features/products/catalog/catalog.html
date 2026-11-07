@@ -24,11 +24,11 @@
     <div class="product-grid" [style.display]="handoff.visible() && !handoffReady() ? 'none' : null">
       @for (product of filtered(); track product.id; let index = $index) {
         <article class="catalog-card" [attr.data-product]="product.slug">
-          <a class="product-image" [routerLink]="['/productos', product.slug]" [queryParams]="{ regresar: catalogReturn() }" [attr.aria-label]="'Ver producto: ' + product.name">
+          <button type="button" class="product-image" (click)="imageViewer.open(product)" [attr.aria-label]="'Ampliar imagen de ' + product.name">
             <app-product-image [src]="imageFor(product)?.url ?? ''" [alt]="imageFor(product)?.altText || product.name" [priority]="index < 6" sizes="(min-width: 1280px) 24vw, (min-width: 1024px) 30vw, (min-width: 600px) 45vw, 90vw" />
-          </a>
+          </button>
           <p class="category-name">{{ categoryName(product.categorySlug) }}</p>
-          <h2>{{ product.name }}</h2>
+          <h2><a class="product-name-link" [routerLink]="['/productos', product.slug]" [queryParams]="{ regresar: catalogReturn() }">{{ product.name }}</a></h2>
           <div class="quick-quote">
             @if (product.configuration?.mode === 'UNAVAILABLE') {
               <p role="status">Temporalmente no disponible para configurar.</p>
@@ -49,3 +49,5 @@
 </section>
 
 </div>
+
+<app-product-image-viewer #imageViewer />

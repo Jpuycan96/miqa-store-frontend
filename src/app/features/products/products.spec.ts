@@ -28,7 +28,7 @@ describe('Local catalog and configurator', () => {
     await new Promise(resolve => setTimeout(resolve, 650));
     await harness.fixture.whenStable();
     expect(element.querySelectorAll('.catalog-card').length).toBe(1);
-    expect(element.querySelector('.catalog-card .product-image')?.getAttribute('href')).toContain('/productos/volantes-a5?regresar=');
+    expect(element.querySelector('.catalog-card .product-name-link')?.getAttribute('href')).toContain('/productos/volantes-a5?regresar=');
     input.value = 'no existe'; input.dispatchEvent(new Event('input'));
     TestBed.tick();
     await new Promise(resolve => setTimeout(resolve, 650));

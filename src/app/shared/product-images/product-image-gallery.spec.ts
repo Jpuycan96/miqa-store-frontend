@@ -50,8 +50,8 @@ describe('Product image gallery',()=>{
   f.nativeElement.querySelector('.main-image img').dispatchEvent(new Event('error'));await f.whenStable();
   expect(f.nativeElement.querySelector('.main-image .fallback')?.textContent).toContain('Imagen no disponible');
  });
- it('orders metadata primary first, caps at three and supports legacy gallery without duplicates',()=>{
+ it('orders metadata primary first, keeps all available images and supports legacy gallery without duplicates',()=>{
   expect(productImages({name:'p',images:[{...images[2],primaryImage:true},{...images[0],primaryImage:false},images[1]]}).map(i=>i.id)).toEqual(['3','1','2']);
-  expect(productImages({name:'p',image:'/images/one.png',gallery:['/images/one.png','/images/two.png','/images/three.png','/images/four.png']})).toHaveLength(3);
+  expect(productImages({name:'p',image:'/images/one.png',gallery:['/images/one.png','/images/two.png','/images/three.png','/images/four.png']})).toHaveLength(4);
  });
 });
