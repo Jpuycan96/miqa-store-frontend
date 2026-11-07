@@ -28,7 +28,7 @@ describe('Quick catalog quoting', () => {
     await h.navigateByUrl('/productos?categoria=imprenta-papeleria&buscar=tarjetas');
     await h.fixture.whenStable();
     expect(el.querySelectorAll('.catalog-card')).toHaveLength(1);
-    expect(search.value).toBe('tarjetas');
+    expect(search.value).toBe(''); // Navigation restores the normal header; the URL retains its filter.
     await h.navigateByUrl('/productos?categoria=impresion-gran-formato&buscar=tarjetas');
     await h.fixture.whenStable();
     expect(el.querySelectorAll('.catalog-card')).toHaveLength(0);

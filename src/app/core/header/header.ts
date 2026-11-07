@@ -41,13 +41,17 @@ export class Header {
  });
  readonly searchOpen = signal(false);
  readonly search = new FormControl<string>(this.router.parseUrl(this.router.url).queryParams['buscar']??'',{nonNullable:true});
- private readonly searchText = toSignal(this.search.valueChanges, {initialValue:this.search.value});
+ private readonly searchText = signal(this.search.value);
+ private searchVersion = 0;
+ private searchDestination?: string;
  readonly results = toSignal(this.search.valueChanges.pipe(
-  map(value=>value.trim().slice(0,120)),debounceTime(250),
-  switchMap(search=>{
+  map(value=>{this.searchText.set(value);return {search:value.trim().slice(0,120),version:this.searchVersion};}),debounceTime(250),
+  switchMap(({search,version})=>{
+   if(version!==this.searchVersion)return of({products:[],loading:false,error:false});
    if(this.catalogMode()){
-    const tree=this.router.parseUrl(this.router.url);
-    void this.router.navigate(tree.root.children['primary']?.segments.map(segment=>segment.path)??['productos'],{queryParams:{...tree.queryParams,buscar:search||null},replaceUrl:true});
+    const options={queryParams:{buscar:search||null},replaceUrl:true};
+    this.searchDestination=this.router.serializeUrl(this.router.createUrlTree(['productos'],options));
+    void this.router.navigate(['productos'],options);
     return of({products:[],loading:false,error:false});
    }
    return search ? this.source.list({search}).pipe(
@@ -63,7 +67,11 @@ export class Header {
   this.currentUrl.set(this.router.url);
   if (event.id !== this.initialNavigationId && previousPath !== this.router.url.split('?')[0]) this.categoryRefresh.next();
   this.expandedCategory.set('');
-  if(this.catalogMode())this.search.setValue(this.router.parseUrl(this.router.url).queryParams['buscar']??'',{emitEvent:false});
+  if(event.id!==this.initialNavigationId){
+   const ownSearch=event.urlAfterRedirects===this.searchDestination;
+   this.searchDestination=undefined;
+   if(!ownSearch)this.closeSearch(false);
+  }
  });}
  categoryLink(slug: string): string { return `/productos/${slug}`; }
  commercialLink(slug: string, subcategory?: string) {
@@ -84,16 +92,25 @@ export class Header {
  }
  private readonly searchToggle = viewChild<ElementRef<HTMLButtonElement>>('searchToggle');
  private readonly searchInput = viewChild<ElementRef<HTMLInputElement>>('searchInput');
- toggleSearch() { this.closeMenu(); this.searchOpen.update(open=>!open); if(this.searchOpen())setTimeout(()=>this.searchInput()?.nativeElement.focus()); }
- closeSearch() { this.searchOpen.set(false); this.searchToggle()?.nativeElement.focus(); }
+ toggleSearch() {
+  if(this.searchOpen()){this.closeSearch();return;}
+  this.closeMenu();this.searchOpen.set(true);
+  setTimeout(()=>{if(this.searchOpen())this.searchInput()?.nativeElement.focus();});
+ }
+ closeSearch(focus = true) {
+  this.searchVersion++;this.searchDestination=undefined;
+  this.searchOpen.set(false);this.search.setValue('',{emitEvent:false});this.searchText.set('');
+  if(focus)this.searchToggle()?.nativeElement.focus();
+ }
  closeMenu() { this.menuOpen.set(false); this.expandedCategory.set(''); }
- navigate() { this.closeMenu();this.searchOpen.set(false); }
+ // RouterLink must consume its parameters before the successful navigation clears the field.
+ navigate() { this.closeMenu();this.searchOpen.set(false);this.searchVersion++; }
  async openQuote() {
   this.navigate();
   this.quote.close();
   if (!this.quotePresentation.catalogPage() && !this.quotePresentation.productDetail()) {
    if (!await this.router.navigate(['/productos'])) return;
   }
-  this.quotePresentation.requestPanel();
+  this.closeSearch(false);this.quotePresentation.requestPanel();
  }
 }

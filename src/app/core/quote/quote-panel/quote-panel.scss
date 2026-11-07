@@ -1,5 +1,5 @@
-:host { display: block; scroll-margin-top: 112px; min-width: 0; }
-section { display: flex; flex-direction: column; max-height: none; overflow-y: visible; border-top: 1px solid #dce0e7; padding-top: 16px; color: var(--miqa-navy); }
+:host { display: block; scroll-margin-top: 112px; min-width: 0; background: #fff; isolation: isolate; }
+section { display: flex; flex-direction: column; max-height: none; overflow-y: visible; border-top: 1px solid #dce0e7; padding-top: 16px; color: var(--miqa-navy); background: #fff; }
 .panel-heading { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding-block: 4px 16px; } h2 { font-size: 21px; font-weight: 600; letter-spacing: -.03em; } .count { background: var(--surface); border-radius: 99px; padding: 4px 9px; font-size: 12px; }
 .panel-items { flex-shrink: 0; padding-right: 4px; }
 ul { list-style: none; margin: 0; padding: 0; } li { padding-block: 14px; border-top: 1px solid #e0e3e8; }
@@ -82,7 +82,7 @@ h3 { margin: 0; }
 @media (min-width: 1280px) { :host(.compact) section { border-top: 0; padding-top: 0; border-left: 1px solid #dce0e7; } }
 @media (max-width: 1279px) { .quantity-control button, .quantity-control input, .remove { min-height: 44px; min-width: 44px; } }
 
-dialog { position: static; margin: 0; border: 0; padding: 0; width: 100%; max-width: none; max-height: none; background: transparent; color: inherit; }
+dialog { position: static; margin: 0; border: 0; padding: 0; width: 100%; max-width: none; max-height: none; background: #fff; color: inherit; }
 dialog[open] { display: block; }
 :host(.lateral) { position: fixed; width: 0; height: 0; }
 :host(.lateral) dialog { position: fixed; inset: 0 0 0 auto; margin: 0; width: min(440px, 100vw); height: 100dvh; max-height: 100dvh; box-sizing: border-box; padding: 20px; background: #fff; overflow-y: auto; }

@@ -68,8 +68,7 @@ describe('Commercial dropdown navigation',()=>{
     const input=el.querySelector<HTMLInputElement>('#header-product-search')!;
     input.value='banner';input.dispatchEvent(new Event('input'));TestBed.tick();
     await new Promise(resolve=>setTimeout(resolve,320));await h.fixture.whenStable();
-    expect(TestBed.inject(Router).url).toContain('subcategory=subcategoria-10');
-    expect(TestBed.inject(Router).url).toContain('buscar=banner');
+    expect(TestBed.inject(Router).url).toBe('/productos?buscar=banner');
     expect(list).toHaveBeenCalledTimes(2);expect(commercialCategories).toHaveBeenCalledOnce();
     el.querySelector<HTMLAnchorElement>('.desktop-nav .category-link')!.click();await h.fixture.whenStable();
     expect(TestBed.inject(Router).url).toBe('/productos?commercialCategory=comercial&buscar=banner');

@@ -10,6 +10,9 @@ h1 { margin-top: 6px; color: var(--miqa-navy); font-size: clamp(27px, 2.7vw, 35p
 .field { min-width: 0; } label { display: block; font-size: 12px; font-weight: 600; margin-bottom: 6px; }
 input { width: 100%; min-width: 0; min-height: 44px; border: 1px solid #c4cbd4; border-radius: 12px; padding: 10px 14px; background: white; color: var(--ink); font: inherit; font-size: 14px; }
 .catalog-layout, .catalog-main { min-width: 0; }
+// Paint a continuous opaque content surface, including gaps and the action perimeter.
+// The decorative layer remains visible outside this surface, never against a button edge.
+.catalog-main { background: #fff; box-shadow: 12px 0 0 #fff, -12px 0 0 #fff, 0 12px 0 #fff; }
 .results { color: var(--muted); font-size: 12px; margin-block: 8px 12px; }
 .product-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 22px 18px; }
 .catalog-card { min-width: 0; display: flex; flex-direction: column; }
@@ -19,7 +22,7 @@ input { width: 100%; min-width: 0; min-height: 44px; border: 1px solid #c4cbd4; 
 .product-image:focus-visible { outline: 3px solid #087e8a; outline-offset: 3px; }
 .category-name { margin-top: 10px; color: var(--muted); font-size: 9px; letter-spacing: .06em; text-transform: uppercase; }
 h2 { margin-block: 5px 8px; font-size: 20px; font-weight: 600; color: var(--miqa-navy); letter-spacing: -.025em; }
-.quick-quote { margin-top: auto; padding-bottom: 8px; }
+.quick-quote { margin-top: auto; }
 .presentation { font-size: 12px; margin-bottom: 6px; }
 .purchase-row { display: flex; align-items: center; gap: 10px; }
 .quantity-control { display: inline-flex; flex-shrink: 0; border: 1px solid #c4cbd4; border-radius: 99px; align-items: center; }
