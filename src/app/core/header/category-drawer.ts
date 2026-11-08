@@ -1,11 +1,13 @@
 import { DOCUMENT } from '@angular/common';
-import { afterNextRender, afterRenderEffect, ChangeDetectionStrategy, Component, computed, DestroyRef, ElementRef, inject, input, output, signal, viewChild, viewChildren } from '@angular/core';
+import { afterNextRender, afterRenderEffect, ChangeDetectionStrategy, Component, computed, DestroyRef, effect, ElementRef, inject, input, output, signal, viewChild, viewChildren } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { switchMap, timer } from 'rxjs';
 import { ProductCategory } from '../../shared/models/product';
+import { CategoryMenuProducts, MenuProductGroup } from './category-menu-products';
 
 @Component({
  selector:'app-category-drawer',imports:[RouterLink],templateUrl:'./category-drawer.html',styleUrl:'./category-drawer.scss',
- changeDetection:ChangeDetectionStrategy.OnPush
+ changeDetection:ChangeDetectionStrategy.OnPush, providers:[CategoryMenuProducts]
 })
 export class CategoryDrawer {
  readonly categories=input<readonly ProductCategory[]>([]);
@@ -14,6 +16,8 @@ export class CategoryDrawer {
  readonly retry=output<void>();readonly navigated=output<void>();readonly openedChange=output<boolean>();
  readonly opened=signal(false);readonly selectedSlug=signal('');readonly mobile=signal(false);
  readonly selectedCategory=computed(()=>this.categories().find(c=>c.slug===this.selectedSlug()));
+ readonly productGroups=signal<Readonly<Record<string,MenuProductGroup>>>({});
+ private readonly menuProducts=inject(CategoryMenuProducts);
  private readonly document=inject(DOCUMENT);
  private readonly surface=viewChild<ElementRef<HTMLDialogElement>>('surface');
  private readonly closeButton=viewChild<ElementRef<HTMLButtonElement>>('closeButton');
@@ -24,6 +28,16 @@ export class CategoryDrawer {
  private opener?:HTMLElement;private overflow='';
  constructor(){
   const destroy=inject(DestroyRef);
+  effect(onCleanup=>{
+   const category=this.opened()?this.selectedCategory():undefined;
+   this.productGroups.set({});
+   if(!category)return;
+   // Avoid fetching every category crossed on the way to the intended hover target.
+   const subscription=timer(180).pipe(switchMap(()=>this.menuProducts.load(category))).subscribe(group=>{
+    this.productGroups.update(groups=>({...groups,[group.slug]:group}));
+   });
+   onCleanup(()=>subscription.unsubscribe());
+  });
   afterNextRender(()=>{
    const media=this.document.defaultView?.matchMedia?.('(max-width: 767px)');
    if(!media)return;
@@ -45,6 +59,7 @@ export class CategoryDrawer {
  }
  open(opener?:HTMLElement){
   if(this.opened())return;
+  this.menuProducts.clear();
   this.opener=opener??this.document.activeElement as HTMLElement;this.overflow=this.document.body.style.overflow;
   this.document.body.style.overflow='hidden';this.selectedSlug.set('');this.opened.set(true);this.openedChange.emit(true);
  }
@@ -52,6 +67,7 @@ export class CategoryDrawer {
   if(!this.opened())return;
   this.surface()?.nativeElement.close();this.opened.set(false);this.selectedSlug.set('');this.pendingFocus.set('');this.pendingPanelFocus.set(false);this.resetPanelScroll.set(false);
   this.document.body.style.overflow=this.overflow;if(notify)this.openedChange.emit(false);
+  this.menuProducts.clear();
   if(notify && this.opener?.isConnected)this.opener.focus({preventScroll:true});
  }
  select(slug:string){if(this.selectedSlug()!==slug){this.selectedSlug.set(slug);this.resetPanelScroll.set(true);}}
@@ -61,9 +77,11 @@ export class CategoryDrawer {
  navigate(){this.navigated.emit();this.close();}
  cancel(event:Event){event.preventDefault();this.close();}
  backdrop(event:MouseEvent){
-  const dialog=this.surface()?.nativeElement;if(!dialog||event.target!==dialog)return;
+  const dialog=this.surface()?.nativeElement;if(!dialog||(event.target!==dialog&&event.target!==dialog.querySelector('.drawer-layout')))return;
   const b=dialog.getBoundingClientRect();
-  if(event.clientX<b.left||event.clientX>b.right||event.clientY<b.top||event.clientY>b.bottom)this.close();
+  const panel=dialog.querySelector<HTMLElement>('.mega-panel')?.getBoundingClientRect();
+  const abovePanel=!this.mobile()&&panel&&event.clientX>=panel.left&&event.clientY<panel.top;
+  if(abovePanel||event.clientX<b.left||event.clientX>b.right||event.clientY<b.top||event.clientY>b.bottom)this.close();
  }
  onKey(event:KeyboardEvent){
   const dialog=this.surface()?.nativeElement;if(!dialog)return;
