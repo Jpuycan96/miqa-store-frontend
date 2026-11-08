@@ -34,9 +34,7 @@ describe('Local catalog and configurator', () => {
     await new Promise(resolve => setTimeout(resolve, 650));
     await harness.fixture.whenStable();
     expect(element.querySelector('.empty')).toBeTruthy();
-    const allUrl = element.querySelector('app-header a.all')!.getAttribute('href')!;
-    expect(allUrl).toBe('/productos');
-    await harness.navigateByUrl(allUrl);
+    element.querySelector<HTMLButtonElement>('.empty button')!.click();
     await new Promise(resolve => setTimeout(resolve, 650));
     await harness.fixture.whenStable();
     expect(harness.routeNativeElement!.querySelectorAll('.catalog-card').length).toBeGreaterThan(2);

@@ -1,0 +1,37 @@
+@if (opened()) {
+ <dialog #surface id="category-drawer" class="category-drawer" [class.has-selection]="selectedCategory()" aria-label="Menú de categorías" (cancel)="cancel($event)" (click)="backdrop($event)" (keydown)="onKey($event)">
+  <div class="drawer-layout">
+   <aside class="category-sidebar">
+    <header class="greeting"><h2>¡Hola!</h2><button #closeButton type="button" class="close-menu" aria-label="Cerrar menú" (click)="close()">×</button></header>
+    <nav class="category-list" aria-label="Categorías comerciales">
+     @if (loading()) { <p role="status" class="feedback">Cargando categorías…</p> }
+     @else if (error()) { <div role="alert" class="feedback">No pudimos cargar las categorías. <button type="button" class="retry" (click)="retry.emit()">Reintentar</button></div> }
+     @else {
+      @for (category of categories(); track category.slug) {
+       <button #categoryButton type="button" class="category-option" [attr.data-category]="category.slug" [class.current]="!selectedSlug() && activeCategory()===category.slug" [class.selected]="selectedSlug()===category.slug" [attr.aria-current]="activeCategory()===category.slug ? 'true' : null" [attr.aria-expanded]="selectedSlug()===category.slug" [attr.aria-controls]="selectedSlug()===category.slug ? 'commercial-mega-panel' : null" (pointerenter)="hover($event,category.slug)" (click)="select(category.slug)">
+        <span>{{ category.name }}</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg>
+       </button>
+      } @empty { <p class="feedback">Actualmente no hay categorías disponibles.</p> }
+     }
+    </nav>
+    <footer><a routerLink="/productos" class="all-products" (click)="navigate()">Ver todo el catálogo</a></footer>
+   </aside>
+   @if (selectedCategory(); as category) {
+    <section class="mega-panel" id="commercial-mega-panel" [attr.aria-label]="'Productos de ' + category.name">
+     <header class="mega-heading">
+      <button type="button" class="back-categories" (click)="back()">‹ Volver a categorías</button>
+      <div class="mega-title"><h2>{{ category.name }}</h2><button type="button" class="close-menu mega-close" aria-label="Cerrar menú" (click)="close()">×</button></div>
+      <a class="category-all" [attr.aria-label]="'Ver todos los productos de ' + category.name" routerLink="/productos" [queryParams]="link(category.slug)" (click)="navigate()">Ver todos los productos <span aria-hidden="true">→</span></a>
+     </header>
+     <nav class="mega-body" [attr.aria-label]="'Subcategorías de ' + category.name">
+      <ul class="subcategory-grid">
+       @for (sub of category.subcategories; track sub.erpSubcategoryId) {
+        <li><a routerLink="/productos" [queryParams]="link(category.slug,sub.slug)" [attr.aria-current]="activeSubcategory()===sub.slug ? 'page' : null" (click)="navigate()">{{ sub.name }}</a></li>
+       }
+      </ul>
+     </nav>
+    </section>
+   }
+  </div>
+ </dialog>
+}

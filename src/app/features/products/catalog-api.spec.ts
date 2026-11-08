@@ -1,3 +1,4 @@
+import { mockNativeDialogs } from '../../testing/dialog.fixture';
 import { materialProduct, erpProduct } from '../../testing/erp.fixture';
 ﻿import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
@@ -19,8 +20,10 @@ const product: ProductDto = {
   published: true, featured: false, saleType: 'QUANTITY', unitLabel: 'unidad'
 };
 describe('Catalog HTTP integration without backend', () => {
+  let restoreDialog:()=>void;
   let http: HttpTestingController;
   beforeEach(() => {
+    restoreDialog=mockNativeDialogs();
     localStorage.removeItem(QUOTE_STORAGE_KEY);
     TestBed.configureTestingModule({ providers: [provideRouter(routes), provideHttpClient(), provideHttpClientTesting()] });
     http = TestBed.inject(HttpTestingController);
@@ -30,7 +33,7 @@ describe('Catalog HTTP integration without backend', () => {
     http.match(base+'/commercial/categories').forEach(request=>{if(!request.cancelled)request.flush([
       {id:'navigation',erpCategoryId:'1',...product.category,displayOrder:0,subcategories:[]}
     ]);});
-    try { http.verify(); } finally { TestBed.resetTestingModule(); localStorage.removeItem(QUOTE_STORAGE_KEY); }
+    try { http.verify(); } finally { TestBed.resetTestingModule(); restoreDialog(); localStorage.removeItem(QUOTE_STORAGE_KEY); }
   });
   it('renders loading, API errors, retry, API-only data and empty states', async () => {
     const h = await RouterTestingHarness.create('/productos');
@@ -143,7 +146,9 @@ describe('Catalog HTTP integration without backend', () => {
     await h.fixture.whenStable();
     expect(h.routeNativeElement!.querySelector('h1')?.textContent).toBe('Título actual');
     expect(h.routeNativeElement!.querySelector('.intro')?.textContent).toBe('Texto actual');
-    expect(h.routeNativeElement!.querySelector('.desktop-nav')?.textContent).toContain('Nombre actual');
+    h.routeNativeElement!.querySelector<HTMLButtonElement>('.menu-toggle')!.click();await h.fixture.whenStable();
+    expect(h.routeNativeElement!.querySelector('.category-list')?.textContent).toContain('Nombre actual');
+    h.routeNativeElement!.querySelector<HTMLButtonElement>('.close-menu')!.click();await h.fixture.whenStable();
     expect(document.title).toContain('Nombre actual');
     category = { ...category, name: 'Nombre posfiltro', catalogHeadline: 'Título actualizado con filtros' };
     const searching = h.navigateByUrl('/productos/otra-nueva?buscar=producto');
@@ -153,7 +158,9 @@ describe('Catalog HTTP integration without backend', () => {
     await h.fixture.whenStable();
     expect(h.routeNativeElement!.querySelector('h1')?.textContent).toBe('Título actualizado con filtros');
     // Search refreshes category editorial data, but does not redundantly reload commercial navigation.
-    expect(h.routeNativeElement!.querySelector('.desktop-nav')?.textContent).toContain('Nombre actual');
+    h.routeNativeElement!.querySelector<HTMLButtonElement>('.menu-toggle')!.click();await h.fixture.whenStable();
+    expect(h.routeNativeElement!.querySelector('.category-list')?.textContent).toContain('Nombre actual');
+    h.routeNativeElement!.querySelector<HTMLButtonElement>('.close-menu')!.click();await h.fixture.whenStable();
     expect(document.querySelector('meta[name=robots]')?.getAttribute('content')).toBe('noindex,follow');
   });
   it('renders a MATERIAL detail with editorial SEO and locked technical options', async () => {

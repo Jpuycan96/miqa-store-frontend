@@ -1,3 +1,4 @@
+import { mockNativeDialogs } from './testing/dialog.fixture';
 import { provideTestCatalog } from './testing/catalog.fixture';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
@@ -8,7 +9,9 @@ import { Header } from './core/header/header';
 import { Categories } from './features/home/categories/categories';
 import { contactWhatsAppUrl } from './core/config/whatsapp';
 
-beforeEach(() => TestBed.configureTestingModule({ providers: [provideTestCatalog()] }));
+let restoreDialog:()=>void;
+beforeEach(() => {restoreDialog=mockNativeDialogs();TestBed.configureTestingModule({ providers: [provideTestCatalog()] });});
+afterEach(()=>{TestBed.resetTestingModule();restoreDialog();});
 describe('MIQA Home', () => {
  it('uses general WhatsApp links without contact notices and preserves product navigation', async () => {
   TestBed.configureTestingModule({ providers: [provideRouter(routes)] });
@@ -33,7 +36,7 @@ describe('MIQA Home', () => {
    link.click();
   }
   await harness.fixture.whenStable();
-  expect(element.querySelector<HTMLElement>('#mobile-nav')!.hidden).toBe(true);
+  expect(element.querySelector('app-category-drawer dialog')).toBeNull();
   expect(showModal).not.toHaveBeenCalled();
   expect(alert).not.toHaveBeenCalled();
   expect(element.querySelector('app-hero .primary-button')?.getAttribute('href')).toBe('/productos');
@@ -58,16 +61,16 @@ describe('MIQA Home', () => {
   const fixture = TestBed.createComponent(Header);
   await fixture.whenStable();
   const element: HTMLElement = fixture.nativeElement;
-  const toggle = element.querySelector<HTMLButtonElement>('.mobile-toggle')!;
+  const toggle = element.querySelector<HTMLButtonElement>('.menu-toggle')!;
   toggle.click();
   await fixture.whenStable();
   expect(toggle.getAttribute('aria-expanded')).toBe('true');
-  const nav = element.querySelector<HTMLElement>('#mobile-nav')!;
-  expect(nav.hidden).toBe(false);
-  nav.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+  const nav = element.querySelector<HTMLDialogElement>('app-category-drawer dialog')!;
+  expect((nav as HTMLDialogElement).open).toBe(true);
+  nav.dispatchEvent(new Event('cancel', {cancelable:true}));
   await fixture.whenStable();
   expect(toggle.getAttribute('aria-expanded')).toBe('false');
-  expect(nav.hidden).toBe(true);
+  expect(element.querySelector('app-category-drawer dialog')).toBeNull();
  });
  it('filters accents and shows an empty state for unknown categories', async () => {
   const fixture = TestBed.createComponent(Categories);

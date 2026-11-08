@@ -51,10 +51,10 @@ describe('Global header search lifecycle', () => {
     h.routeNativeElement!.querySelector<HTMLAnchorElement>('.product-name-link')!.click();await h.fixture.whenStable();
     expect(TestBed.inject(Router).url).toContain('/productos/featured-bags');
     expect(decodeURIComponent(TestBed.inject(Router).url)).toContain('/productos?buscar=bolsas');
-    expect(input.value).toBe('');expect(input.closest<HTMLElement>('#site-search')!.hidden).toBe(true);
+    expect(input.value).toBe('');expect(input.closest<HTMLElement>('#site-search')!.classList.contains('search-active')).toBe(false);
     h.routeNativeElement!.querySelector<HTMLAnchorElement>('.return-products')!.click();await h.fixture.whenStable();
     expect(TestBed.inject(Router).url).toBe('/productos?buscar=bolsas');
-    expect(input.value).toBe('');expect(input.closest<HTMLElement>('#site-search')!.hidden).toBe(true);
+    expect(input.value).toBe('');expect(input.closest<HTMLElement>('#site-search')!.classList.contains('search-active')).toBe(false);
     h.routeNativeElement!.querySelector<HTMLButtonElement>('.search-toggle')!.click();await h.fixture.whenStable();
     expect(input.closest<HTMLElement>('#site-search')!.hidden).toBe(false);
     expect(store.items()).toEqual(saved);

@@ -10,6 +10,7 @@ export function provideTestCatalog() {
       && (!filters.search || product.name.toLowerCase().includes(filters.search.toLowerCase()))
       && (filters.featured === undefined || product.featured === filters.featured))),
     categories: () => of(PRODUCT_CATEGORIES),
+    commercialCategories: () => of(PRODUCT_CATEGORIES.map((category,index)=>({...category,id:category.slug,erpCategoryId:String(index+1),displayOrder:index,subcategories:[]}))),
     findBySlug: (slug: string) => of(PRODUCTS.find(product => product.slug === slug))
   } };
 }

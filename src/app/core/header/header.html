@@ -1,30 +1,13 @@
 <header class="site-header">
- <div class="top-strip"><nav class="header-shell" aria-label="Navegación superior"><a routerLink="/" (click)="navigate()">INICIO</a><span aria-disabled="true" title="Próximamente">NOSOTROS <small>Próximamente</small></span><span aria-disabled="true" title="Próximamente">UBÍCANOS <small>Próximamente</small></span></nav></div>
- <div class="header-shell main-bar" [class.searching]="searchOpen()" [class.compact-categories]="compactCategories()" [class.inline-categories]="inlineCategories()">
+ <div class="header-shell main-bar">
   <a routerLink="/" aria-label="MIQA Soluciones Gráficas, inicio" class="brand" (click)="navigate()"><img ngSrc="/images/brand/logo-tienda-2.png" fill priority alt="MIQA Soluciones Gráficas"></a>
-  <nav aria-label="Categorías de productos" class="desktop-nav" [attr.inert]="compactCategories() ? '' : null" [attr.aria-hidden]="compactCategories() ? true : null">
-   @for(c of categories();track c.slug){
-    <div class="category-menu" (pointerenter)="enterCategory($event,c.slug)" (pointerleave)="expandedCategory.set('')" (focusout)="categoryFocusOut($event)" (keydown.escape)="closeCategory($event)">
-     <div class="category-row">
-      <a class="category-link" [class.active]="activeCategory() === c.slug" [attr.aria-current]="activeCategory() === c.slug ? 'page' : null" [routerLink]="c.subcategories ? '/productos' : categoryLink(c.slug)" [queryParams]="c.subcategories ? commercialLink(c.slug) : null" (click)="navigate()">{{c.name}}</a>
-      @if(c.subcategories?.length){<button type="button" class="subcategory-toggle" [attr.aria-label]="'Subcategorías de ' + c.name" [attr.title]="'Subcategorías de ' + c.name" [attr.aria-expanded]="expandedCategory()===c.slug" [attr.aria-controls]="'desktop-subcategories-'+c.slug" (click)="toggleCategory(c.slug)" (keydown.arrowdown)="expandedCategory.set(c.slug);$event.preventDefault()"></button>}
-     </div>
-     @if(c.subcategories?.length){
-      <ul class="subcategory-dropdown" [id]="'desktop-subcategories-'+c.slug" [hidden]="expandedCategory()!==c.slug">
-       @for(sub of c.subcategories;track sub.erpSubcategoryId){<li><a routerLink="/productos" [queryParams]="commercialLink(c.slug,sub.slug)" [class.active]="activeSubcategory()===sub.slug" [attr.aria-current]="activeSubcategory()===sub.slug ? 'page' : null" (click)="navigate()">{{sub.name}}</a></li>}
-      </ul>
-     }
-    </div>
-   }
-   @if(categoryState().loading){<span role="status" class="navigation-status">Cargando categorías…</span>}
-   @if(categoryState().error){<span role="alert" class="navigation-status">No pudimos cargar las categorías. <button type="button" (click)="retryCategories()">Reintentar</button></span>}
-   <a class="all" [class.active]="!activeCategory() && !activeSubcategory()" [attr.aria-current]="!activeCategory() && !activeSubcategory() ? 'page' : null" routerLink="/productos" (click)="navigate()">TODOS</a>
-  </nav>
-  <div id="site-search" class="inline-search" [hidden]="!searchOpen()" (keydown.escape)="closeSearch()" role="search">
-   <input #searchInput id="header-product-search" type="search" maxlength="120" aria-label="Buscar productos" placeholder="Buscar productos" [formControl]="search">
-   @if(!catalogMode() && search.value.trim()){
+  <button type="button" class="menu-toggle" #menuButton aria-label="Abrir menú de categorías" aria-haspopup="dialog" [attr.aria-controls]="menuOpen() ? 'category-drawer' : null" [attr.aria-expanded]="menuOpen()" (click)="openMenu(menuButton)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span>Menú</span></button>
+  <div id="site-search" class="inline-search" [class.search-active]="searchOpen()" (keydown.escape)="closeSearch()" role="search">
+   <input #searchInput id="header-product-search" type="search" maxlength="120" aria-label="Buscar productos" placeholder="Buscar productos en MIQA" [formControl]="search" (focus)="searchOpen.set(true)">
+   <button #searchToggle type="button" class="search-toggle" aria-label="Buscar productos" aria-controls="header-product-search" (click)="toggleSearch()"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg></button>
+   @if(searchOpen() && !catalogMode() && search.value.trim()){
     <div class="search-results">
-     @if(results().loading){<p role="status">Buscando...</p>}
+     @if(results().loading){<p role="status">Buscando…</p>}
      @else if(results().error){<p role="alert">No pudimos buscar productos.</p>}
      @else{
       @for(product of results().products;track product.id){<a [routerLink]="['/productos',product.slug]" (click)="navigate()">{{product.name}}</a>}
@@ -34,29 +17,9 @@
    }
   </div>
   <div class="controls">
-   <button class="icon-button quote-toggle" [attr.aria-label]="'Abrir cotización: ' + quote.totalItems() + ' productos configurados'" [attr.aria-controls]="catalogMode() && quotePresentation.panelVisible() ? 'integrated-quote-panel' : null" [attr.aria-expanded]="catalogMode() && quotePresentation.panelVisible() && (!quotePresentation.lateral() || quotePresentation.sideOpen())" (click)="openQuote()"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5H5v16h14V5h-3M8 3h8v4H8zM8 12h8M8 16h5"/></svg><span class="quote-count" aria-hidden="true">{{quote.totalItems()}}</span></button>
-   <button #searchToggle class="icon-button search-toggle" aria-label="Buscar productos" [attr.aria-expanded]="searchOpen()" aria-controls="site-search" (click)="toggleSearch()"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg></button>
-   <button #menu class="icon-button mobile-toggle" [attr.aria-expanded]="menuOpen()" aria-controls="mobile-nav" [attr.aria-label]="menuOpen() ? 'Cerrar menú' : 'Abrir menú'" (click)="closeSearch(false);menuOpen.set(!menuOpen())"><svg viewBox="0 0 24 24" aria-hidden="true"><path [attr.d]="menuOpen() ? 'M6 6l12 12M6 18L18 6' : 'M4 8h16M4 16h16'"/></svg></button>
+   <button type="button" class="quote-toggle" [attr.aria-label]="'Abrir cotización: ' + quote.totalItems() + ' productos configurados'" [attr.aria-controls]="catalogMode() && quotePresentation.panelVisible() ? 'integrated-quote-panel' : null" [attr.aria-expanded]="catalogMode() && quotePresentation.panelVisible() && (!quotePresentation.lateral() || quotePresentation.sideOpen())" (click)="openQuote()"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 3h3l3 12h11l3-9H6M9 15l-1 3h12"/><circle cx="9" cy="21" r="1"/><circle cx="19" cy="21" r="1"/></svg><span class="quote-count" aria-hidden="true">{{quote.totalItems()}}</span></button>
   </div>
  </div>
- <nav id="mobile-nav" aria-label="Navegación móvil" [hidden]="!menuOpen()" (keydown.escape)="closeMenu();menu.focus()" class="mobile-nav header-shell">
-  <a routerLink="/" (click)="navigate()">INICIO</a><span aria-disabled="true">NOSOTROS <small>Próximamente</small></span><span aria-disabled="true">UBÍCANOS <small>Próximamente</small></span>
-  <p class="menu-label">PRODUCTOS</p>
-  @if(categoryState().loading){<p role="status">Cargando categorías…</p>}
-  @if(categoryState().error){<p role="alert">No pudimos cargar las categorías. <button type="button" (click)="retryCategories()">Reintentar</button></p>}
-  @for(c of categories();track c.slug){
-   <div class="mobile-category" (keydown.escape)="closeCategory($event)" (focusout)="categoryFocusOut($event)">
-    <div class="category-row"><a [class.active]="activeCategory() === c.slug" [attr.aria-current]="activeCategory() === c.slug ? 'page' : null" [routerLink]="c.subcategories ? '/productos' : categoryLink(c.slug)" [queryParams]="c.subcategories ? commercialLink(c.slug) : null" (click)="navigate()">{{c.name}}</a>
-     @if(c.subcategories?.length){<button type="button" class="subcategory-toggle" [attr.aria-label]="'Subcategorías de ' + c.name" [attr.title]="'Subcategorías de ' + c.name" [attr.aria-expanded]="expandedCategory()===c.slug" [attr.aria-controls]="'mobile-subcategories-'+c.slug" (click)="toggleCategory(c.slug)"></button>}
-    </div>
-    @if(c.subcategories?.length){<ul class="mobile-subcategories" [id]="'mobile-subcategories-'+c.slug" [hidden]="expandedCategory()!==c.slug">
-     @for(sub of c.subcategories;track sub.erpSubcategoryId){<li><a routerLink="/productos" [queryParams]="commercialLink(c.slug,sub.slug)" [class.active]="activeSubcategory()===sub.slug" [attr.aria-current]="activeSubcategory()===sub.slug ? 'page' : null" (click)="navigate()">{{sub.name}}</a></li>}
-    </ul>}
-   </div>
-  }
-  <a [class.active]="!activeCategory() && !activeSubcategory()" [attr.aria-current]="!activeCategory() && !activeSubcategory() ? 'page' : null" routerLink="/productos" (click)="navigate()">TODOS</a>
-  <button (click)="toggleSearch()">Buscar productos</button><button (click)="openQuote()">Abrir cotización</button>
- </nav>
-
 </header>
+<app-category-drawer [categories]="categories()" [loading]="categoryState().loading" [error]="categoryState().error" [activeCategory]="activeCategory()" [activeSubcategory]="activeSubcategory()" [search]="menuSearch()" (openedChange)="menuOpen.set($event)" (retry)="retryCategories()" (navigated)="navigate()" />
 <app-floating-whatsapp />

@@ -1,149 +1,101 @@
 import { TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
 import { provideRouter, Router } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
-import { of, Subject, throwError } from 'rxjs';
+import { of, Subject } from 'rxjs';
 import { routes } from '../../app.routes';
 import { ProductCatalog } from '../data/product-catalog';
 import { provideTestCatalog } from '../../testing/catalog.fixture';
+import { mockNativeDialogs } from '../../testing/dialog.fixture';
 import { CommercialCategory } from '../../shared/models/product';
 import { Header } from './header';
+import { CategoryDrawer } from './category-drawer';
+import { QuoteStore } from '../quote/quote-store';
+import { PRODUCTS } from '../data/products.mock';
 
-const tree: readonly CommercialCategory[] = [
-  {id:'local',erpCategoryId:'8',name:'Comercial',slug:'comercial',displayOrder:0,subcategories:[
-    {erpSubcategoryId:'10',erpCategoryId:'8',name:'Primera',slug:'subcategoria-10',displayOrder:0},
-    {erpSubcategoryId:'11',erpCategoryId:'8',name:'Segunda',slug:'subcategoria-11',displayOrder:1}]},
-  {id:'empty',erpCategoryId:'9',name:'Sin subcategorías',slug:'sin-subcategorias',displayOrder:1,subcategories:[]}
-];
-
-describe('Commercial dropdown navigation',()=>{
-  function setup() {
-    const source=provideTestCatalog().useValue;
-    const commercialCategories=vi.fn(()=>of(tree));
-    const categories=vi.fn(source.categories);
-    const list=vi.fn(source.list);
-    TestBed.configureTestingModule({providers:[provideRouter(routes),{provide:ProductCatalog,useValue:{...source,categories,commercialCategories,list}}]});
-    return {commercialCategories,categories,list};
+const category=(name:string,id:string,count:number):CommercialCategory=>({id:'local-'+id,erpCategoryId:id,name,slug:id==='9'?'acrilicos':name.toLowerCase(),displayOrder:0,
+ subcategories:Array.from({length:count},(_,i)=>({erpSubcategoryId:id==='9'?'49':id+'-'+i,erpCategoryId:id,name:id==='9'?'Productos acrílicos':'Subcategoría larga '+i,slug:id==='9'?'subcategoria-49':'slug-api-'+id+'-'+i,displayOrder:i}))});
+const tree=[category('Acrílicos','9',1),category('Merchandising','2',32),category('Papelería','6',40)];
+describe('Commercial sidebar and mega menu',()=>{
+ let restore:()=>void;
+ beforeEach(()=>{restore=mockNativeDialogs();localStorage.clear();sessionStorage.clear();});
+ afterEach(()=>{TestBed.resetTestingModule();vi.restoreAllMocks();restore();localStorage.clear();sessionStorage.clear();});
+ function setup(){
+  const source=provideTestCatalog().useValue;const commercialCategories=vi.fn(()=>of<readonly CommercialCategory[]>(tree));const categories=vi.fn(source.categories);const list=vi.fn(source.list);
+  TestBed.configureTestingModule({providers:[provideRouter(routes),{provide:ProductCatalog,useValue:{...source,categories,commercialCategories,list}}]});return {commercialCategories,categories,list};
+ }
+ async function create(){setup();const f=TestBed.createComponent(Header);await f.whenStable();f.nativeElement.querySelector('.menu-toggle').focus();f.nativeElement.querySelector('.menu-toggle').click();await f.whenStable();return f;}
+ it('opens a modal, locks scroll, closes with X or Escape and restores focus',async()=>{
+  const f=await create();expect(f.nativeElement.querySelector('dialog').open).toBe(true);expect(document.body.style.overflow).toBe('hidden');
+  expect(f.nativeElement.querySelector('.greeting h2').textContent).toContain('¡Hola!');
+  f.nativeElement.querySelector('.close-menu').click();await f.whenStable();expect(f.nativeElement.querySelector('dialog')).toBeNull();
+  expect(document.activeElement).toBe(f.nativeElement.querySelector('.menu-toggle'));expect(document.body.style.overflow).toBe('');
+  f.nativeElement.querySelector('.menu-toggle').click();await f.whenStable();f.nativeElement.querySelector('dialog').dispatchEvent(new Event('cancel',{cancelable:true}));await f.whenStable();
+  expect(f.componentInstance.menuOpen()).toBe(false);expect(document.activeElement).toBe(f.nativeElement.querySelector('.menu-toggle'));
+ });
+ it('restores focus to Menu even if the search input had focus before a pointer click',async()=>{
+  setup();const f=TestBed.createComponent(Header);await f.whenStable();
+  f.nativeElement.querySelector('#header-product-search').focus();f.nativeElement.querySelector('.menu-toggle').click();await f.whenStable();
+  f.nativeElement.querySelector('.close-menu').click();await f.whenStable();
+  expect(document.activeElement).toBe(f.nativeElement.querySelector('.menu-toggle'));
+ });
+ it('opens a desktop category on hover and preserves real Acrílicos IDs, slugs and single child',async()=>{
+  const f=await create();const option=f.nativeElement.querySelector('[data-category="acrilicos"]');
+  const hover=new Event('pointerenter');Object.defineProperty(hover,'pointerType',{value:'mouse'});option.dispatchEvent(hover);await f.whenStable();
+  expect(f.nativeElement.querySelector('.mega-title h2').textContent).toBe('Acrílicos');
+  const links=f.nativeElement.querySelectorAll('.subcategory-grid a');expect(links).toHaveLength(1);
+  expect(links[0].textContent).toBe('Productos acrílicos');expect(links[0].getAttribute('href')).toBe('/productos?commercialCategory=acrilicos&subcategory=subcategoria-49');
+  expect(f.nativeElement.querySelector('.category-all').getAttribute('href')).toBe('/productos?commercialCategory=acrilicos');
+ });
+ it('renders every received child for large categories without fictional groups or empty columns',async()=>{
+  const f=await create();for(const [slug,count] of [['merchandising',32],['papelería',40]] as const){
+   f.nativeElement.querySelector(`[data-category="${slug}"]`).click();await f.whenStable();expect(f.nativeElement.querySelectorAll('.subcategory-grid li')).toHaveLength(count);
   }
-  it('opens on mouse hover, stays open through its options, and closes with Escape and restored focus',async()=>{
-    setup();const f=TestBed.createComponent(Header);await f.whenStable();
-    const wrapper:HTMLElement=f.nativeElement.querySelector('.category-menu');
-    const enter=new Event('pointerenter');Object.defineProperty(enter,'pointerType',{value:'mouse'});
-    wrapper.dispatchEvent(enter);await f.whenStable();
-    const toggle=wrapper.querySelector<HTMLButtonElement>('button')!;
-    const dropdown=wrapper.querySelector<HTMLUListElement>('ul')!;
-    expect(toggle.getAttribute('aria-expanded')).toBe('true');expect(dropdown.hidden).toBe(false);
-    const first=dropdown.querySelector<HTMLAnchorElement>('a')!;first.focus();await f.whenStable();
-    expect(dropdown.hidden).toBe(false);
-    first.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true}));await f.whenStable();
-    expect(dropdown.hidden).toBe(true);expect(document.activeElement).toBe(toggle);
-    toggle.click();await f.whenStable();expect(dropdown.hidden).toBe(false);
-    wrapper.dispatchEvent(new Event('pointerleave'));await f.whenStable();expect(dropdown.hidden).toBe(true);
-    const empty=f.nativeElement.querySelectorAll('.category-menu')[1];
-    expect(empty.querySelector('ul')).toBeNull();expect(empty.querySelector('button')).toBeNull();
-  });
-  it('supports mobile touch toggles, keyboard opening, and unique controls',async()=>{
-    setup();const f=TestBed.createComponent(Header);await f.whenStable();
-    f.nativeElement.querySelector('.mobile-toggle').click();await f.whenStable();
-    const toggle:HTMLButtonElement=f.nativeElement.querySelector('.mobile-category button');
-    const target=()=>f.nativeElement.querySelector('#'+toggle.getAttribute('aria-controls')) as HTMLUListElement;
-    expect(target().hidden).toBe(true);toggle.click();await f.whenStable();expect(target().hidden).toBe(false);
-    toggle.click();await f.whenStable();expect(target().hidden).toBe(true);
-    const desktop:HTMLButtonElement=f.nativeElement.querySelector('.desktop-nav button');
-    desktop.dispatchEvent(new KeyboardEvent('keydown',{key:'ArrowDown',bubbles:true}));await f.whenStable();
-    expect(desktop.getAttribute('aria-expanded')).toBe('true');
-    expect(desktop.getAttribute('aria-controls')).not.toBe(toggle.getAttribute('aria-controls'));
-  });
-  it('combines URL filters and search, preserves detail return links, and clears everything with Todos',async()=>{
-    const {list,commercialCategories}=setup();
-    const h=await RouterTestingHarness.create('/productos?commercialCategory=comercial&subcategory=subcategoria-10&buscar=tarjetas');
-    await h.fixture.whenStable();
-    expect(list).toHaveBeenCalledExactlyOnceWith({category:'',commercialCategory:'comercial',subcategory:'subcategoria-10',search:'tarjetas'},{fresh:false});
-    const el=h.routeNativeElement!;
-    expect(el.querySelector('.desktop-nav .category-link.active')?.textContent).toBe('Comercial');
-    expect(el.querySelector('.desktop-nav .subcategory-dropdown a.active')?.textContent).toBe('Primera');
-    expect(el.querySelectorAll('.catalog-card')).toHaveLength(1);
-    const detail=el.querySelector<HTMLAnchorElement>('.product-name-link')!;
-    expect(detail.getAttribute('href')).toContain('/productos/tarjetas-personales');
-    expect(decodeURIComponent(detail.getAttribute('href')!)).toContain('subcategory=subcategoria-10');
-    const input=el.querySelector<HTMLInputElement>('#header-product-search')!;
-    input.value='banner';input.dispatchEvent(new Event('input'));TestBed.tick();
-    await new Promise(resolve=>setTimeout(resolve,320));await h.fixture.whenStable();
-    expect(TestBed.inject(Router).url).toBe('/productos?buscar=banner');
-    expect(list).toHaveBeenCalledTimes(2);expect(commercialCategories).toHaveBeenCalledOnce();
-    el.querySelector<HTMLAnchorElement>('.desktop-nav .category-link')!.click();await h.fixture.whenStable();
-    expect(TestBed.inject(Router).url).toBe('/productos?commercialCategory=comercial&buscar=banner');
-    expect(list).toHaveBeenCalledTimes(3);
-    el.querySelectorAll<HTMLAnchorElement>('.desktop-nav .subcategory-dropdown a')[1].click();await h.fixture.whenStable();
-    expect(TestBed.inject(Router).url).toContain('subcategory=subcategoria-11');
-    expect(list).toHaveBeenCalledTimes(4);
-    el.querySelector<HTMLAnchorElement>('.desktop-nav .all')!.click();await h.fixture.whenStable();
-    expect(TestBed.inject(Router).url).toBe('/productos');
-    expect(el.querySelectorAll('.catalog-card').length).toBeGreaterThan(1);
-  });
-  it('category and subcategory links use commercial filters without leaking the historical category',async()=>{
-    setup();const f=TestBed.createComponent(Header);await f.whenStable();
-    f.componentInstance.search.setValue('texto');await new Promise(resolve=>setTimeout(resolve,300));await f.whenStable();
-    const category:HTMLAnchorElement=f.nativeElement.querySelector('.category-link');
-    expect(category.getAttribute('href')).toBe('/productos?commercialCategory=comercial&buscar=texto');
-    const child:HTMLAnchorElement=f.nativeElement.querySelector('.subcategory-dropdown a');
-    expect(child.getAttribute('href')).toBe('/productos?commercialCategory=comercial&subcategory=subcategoria-10&buscar=texto');
-  });
-  it('reports commercial errors without fallback, then retries an empty tree using public categories',async()=>{
-    const {commercialCategories,categories}=setup();
-    const pending=new Subject<readonly CommercialCategory[]>();commercialCategories.mockReturnValueOnce(pending);
-    const f=TestBed.createComponent(Header);await f.whenStable();
-    expect(f.nativeElement.textContent).toContain('Cargando categorías');
-    pending.error(new Error('offline'));await f.whenStable();
-    expect(f.nativeElement.querySelector('[role=alert]')).not.toBeNull();
-    expect(categories).not.toHaveBeenCalled();
-    commercialCategories.mockReturnValueOnce(of([]));
-    f.nativeElement.querySelector('.navigation-status button').click();await f.whenStable();
-    expect(categories).toHaveBeenCalledOnce();
-    expect(f.nativeElement.querySelectorAll('.category-menu').length).toBeGreaterThan(0);
-    expect(f.nativeElement.querySelector('.subcategory-dropdown')).toBeNull();
-    expect(f.nativeElement.querySelector('.desktop-nav .all').getAttribute('href')).toBe('/productos');
-  });
-  it('uses historical category routes on desktop and mobile when the commercial tree is empty',async()=>{
-    const {commercialCategories,categories,list}=setup();commercialCategories.mockReturnValue(of([]));
-    const f=TestBed.createComponent(Header);await f.whenStable();
-    const publicCategories=provideTestCatalog().useValue.categories();
-    publicCategories.subscribe(items=>{
-      expect(f.nativeElement.querySelectorAll('.category-menu')).toHaveLength(items.length);
-      expect(f.nativeElement.querySelectorAll('.mobile-category')).toHaveLength(items.length);
-      const expected='/productos/'+items[0].slug;
-      expect(f.nativeElement.querySelector('.category-link').getAttribute('href')).toBe(expected);
-      expect(f.nativeElement.querySelector('.mobile-category a').getAttribute('href')).toBe(expected);
-    });
-    expect(f.nativeElement.querySelector('.subcategory-toggle')).toBeNull();
-    expect(f.componentInstance.categoryState().error).toBe(false);
-    expect(list).not.toHaveBeenCalled();expect(categories).toHaveBeenCalledOnce();
-    f.nativeElement.querySelector('.category-link').click();await f.whenStable();
-    expect(TestBed.inject(Router).url).toMatch(/^\/productos\/[^?]+$/);
-  });
-  it('keeps nonempty commercial navigation without fetching historical categories',async()=>{
-    const {categories}=setup();const f=TestBed.createComponent(Header);await f.whenStable();
-    expect(categories).not.toHaveBeenCalled();
-    expect(f.nativeElement.querySelector('.category-link').getAttribute('href')).toBe('/productos?commercialCategory=comercial');
-  });
-  it('filters existing products through a fallback category without commercial parameters',async()=>{
-    const {commercialCategories,list}=setup();commercialCategories.mockReturnValue(of([]));
-    const h=await RouterTestingHarness.create('/productos');await h.fixture.whenStable();
-    list.mockClear();
-    const link=h.routeNativeElement!.querySelector<HTMLAnchorElement>('.category-link')!;
-    const slug=link.getAttribute('href')!.split('/').at(-1)!;
-    link.click();await h.fixture.whenStable();
-    expect(TestBed.inject(Router).url).toBe('/productos/'+slug);
-    expect(list).toHaveBeenCalledWith({category:slug,search:''},{fresh:false});
-    expect(h.routeNativeElement!.querySelectorAll('.catalog-card').length).toBeGreaterThan(0);
-  });
-  it('handles empty public categories and fallback failures without inventing categories',async()=>{
-    const {commercialCategories,categories}=setup();commercialCategories.mockReturnValue(of([]));
-    categories.mockReturnValueOnce(of([]));const f=TestBed.createComponent(Header);await f.whenStable();
-    expect(f.nativeElement.querySelector('.category-menu')).toBeNull();
-    expect(f.componentInstance.categoryState().error).toBe(false);
-    categories.mockReturnValueOnce(throwError(()=>new Error('offline')));
-    f.componentInstance.retryCategories();await f.whenStable();
-    expect(f.componentInstance.categoryState().error).toBe(true);
-    expect(f.nativeElement.querySelector('.desktop-nav .all').getAttribute('href')).toBe('/productos');
-  });
+ });
+ it('starts each newly selected category at the top while retaining independent list scrolling',async()=>{
+  const f=await create();f.nativeElement.querySelector('[data-category="merchandising"]').click();await f.whenStable();
+  const body=f.nativeElement.querySelector('.mega-body') as HTMLElement;body.scrollTop=400;
+  f.nativeElement.querySelector('[data-category="papeler\u00eda"]').click();await f.whenStable();
+  expect((f.nativeElement.querySelector('.mega-body') as HTMLElement).scrollTop).toBe(0);
+ });
+ it('uses the same surface with a back button on mobile and ignores hover',async()=>{
+  const f=await create();const drawer=f.debugElement.query(By.directive(CategoryDrawer)).componentInstance as CategoryDrawer;drawer.mobile.set(true);
+  const button=f.nativeElement.querySelector('.category-option');button.focus();const hover=new Event('pointerenter');Object.defineProperty(hover,'pointerType',{value:'mouse'});button.dispatchEvent(hover);await f.whenStable();
+  expect(drawer.selectedCategory()).toBeUndefined();button.click();await f.whenStable();expect(drawer.selectedCategory()?.slug).toBe('acrilicos');
+  expect(document.activeElement).toBe(f.nativeElement.querySelector('.back-categories'));
+  f.nativeElement.querySelector('.back-categories').click();await f.whenStable();expect(drawer.selectedCategory()).toBeUndefined();expect(document.activeElement).toBe(button);
+ });
+ it('supports arrow navigation and closes by clicking only outside the dialog',async()=>{
+  const f=await create();const buttons=f.nativeElement.querySelectorAll('.category-option');buttons[0].focus();
+  buttons[0].dispatchEvent(new KeyboardEvent('keydown',{key:'ArrowDown',bubbles:true,cancelable:true}));expect(document.activeElement).toBe(buttons[1]);
+  buttons[1].dispatchEvent(new KeyboardEvent('keydown',{key:'ArrowRight',bubbles:true,cancelable:true}));await f.whenStable();expect(f.nativeElement.querySelector('.mega-title h2').textContent).toBe('Merchandising');
+  const dialog=f.nativeElement.querySelector('dialog') as HTMLDialogElement;vi.spyOn(dialog,'getBoundingClientRect').mockReturnValue({left:0,top:0,right:800,bottom:700} as DOMRect);
+  dialog.dispatchEvent(new MouseEvent('click',{clientX:100,clientY:100}));expect(f.componentInstance.menuOpen()).toBe(true);
+  dialog.dispatchEvent(new MouseEvent('click',{clientX:900,clientY:100}));await f.whenStable();expect(f.componentInstance.menuOpen()).toBe(false);
+ });
+ it('navigates commercial subcategories and Ver todos with search preserved, without touching the quote',async()=>{
+  const {list}=setup();const h=await RouterTestingHarness.create('/productos?buscar=tarjetas');await h.fixture.whenStable();
+  const store=TestBed.inject(QuoteStore);store.addItem(PRODUCTS[2],{quantity:2});const saved=store.items();
+  const open=async()=>{h.routeNativeElement!.querySelector<HTMLButtonElement>('.menu-toggle')!.click();await h.fixture.whenStable();h.routeNativeElement!.querySelector<HTMLButtonElement>('[data-category="acrilicos"]')!.click();await h.fixture.whenStable();};
+  await open();h.routeNativeElement!.querySelector<HTMLAnchorElement>('.category-all')!.click();await h.fixture.whenStable();
+  expect(TestBed.inject(Router).url).toBe('/productos?commercialCategory=acrilicos&buscar=tarjetas');expect(h.routeNativeElement!.querySelector('app-category-drawer dialog')).toBeNull();
+  await open();h.routeNativeElement!.querySelector<HTMLAnchorElement>('.subcategory-grid a')!.click();await h.fixture.whenStable();
+  expect(TestBed.inject(Router).url).toBe('/productos?commercialCategory=acrilicos&subcategory=subcategoria-49&buscar=tarjetas');
+  expect(list).toHaveBeenLastCalledWith({category:'',search:'tarjetas',commercialCategory:'acrilicos',subcategory:'subcategoria-49'},{fresh:false});
+  expect(store.items()).toEqual(saved);await open();h.routeNativeElement!.querySelector<HTMLAnchorElement>('.all-products')!.click();await h.fixture.whenStable();expect(TestBed.inject(Router).url).toBe('/productos');
+ });
+ it('does not fall back to historical categories on empty data or errors, and supports retry',async()=>{
+  const {commercialCategories,categories}=setup();const pending=new Subject<readonly CommercialCategory[]>();commercialCategories.mockReturnValueOnce(pending);
+  const f=TestBed.createComponent(Header);await f.whenStable();f.nativeElement.querySelector('.menu-toggle').click();await f.whenStable();
+  expect(f.nativeElement.textContent).toContain('Cargando categorías');pending.error(new Error('offline'));await f.whenStable();expect(f.nativeElement.querySelector('[role=alert]')).not.toBeNull();
+  commercialCategories.mockReturnValueOnce(of([]));f.nativeElement.querySelector('.retry').click();await f.whenStable();
+  expect(f.nativeElement.textContent).toContain('Actualmente no hay categorías');expect(f.nativeElement.querySelectorAll('.category-option')).toHaveLength(0);expect(categories).not.toHaveBeenCalled();
+ });
+ it('includes categories arriving later from the API without changing their custom slugs',async()=>{
+  const {commercialCategories,categories}=setup();const pending=new Subject<readonly CommercialCategory[]>();commercialCategories.mockReturnValueOnce(pending);
+  const f=TestBed.createComponent(Header);await f.whenStable();f.nativeElement.querySelector('.menu-toggle').click();await f.whenStable();
+  pending.next([{...tree[0],erpCategoryId:'99',name:'Nueva desde API',slug:'categoria-especial',subcategories:[{...tree[0].subcategories[0],erpCategoryId:'99',erpSubcategoryId:'999',slug:'hija-personalizada'}]}]);await f.whenStable();
+  f.nativeElement.querySelector('.category-option').click();await f.whenStable();expect(f.nativeElement.querySelector('.subcategory-grid a').getAttribute('href')).toBe('/productos?commercialCategory=categoria-especial&subcategory=hija-personalizada');expect(categories).not.toHaveBeenCalled();
+ });
+ it('restores scrolling on destruction even if the menu is still open',async()=>{const f=await create();f.destroy();expect(document.body.style.overflow).toBe('');});
 });
