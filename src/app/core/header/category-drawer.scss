@@ -22,7 +22,10 @@ footer{flex-shrink:0;padding:12px 18px;border-top:1px solid #e4e9ed}
 
 .mega-heading{display:flex;align-items:center;justify-content:space-between;gap:18px;flex-shrink:0;padding:20px 22px 12px;background:#fff;color:#102638}
 .mega-title{display:flex;align-items:center;min-width:0;flex:0 1 74%;max-width:650px}
-.mega-title h2{max-width:100%;width:100%;padding:11px 30px 11px 20px;border-radius:0 40px 40px 0;background:#102638;color:#fff;font-size:20px;line-height:1.25}
+.category-banner{--tail-width:50px;display:flex;align-items:center;gap:10px;width:100%;min-width:0;min-height:50px;padding-right:calc(var(--tail-width) + 4px);background:#1765A3;color:#fff;border-radius:25px 0 0 25px;border-bottom-right-radius:var(--tail-width) 100%}
+.category-icon{display:grid;place-items:center;flex:0 0 50px;width:50px;height:50px;border-radius:50%;background:#1765A3}
+.category-icon svg{width:26px;height:26px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.mega-title h2{min-width:0;margin:0;padding-block:8px;color:#fff;font-size:20px;font-weight:600;line-height:1.25}
 .category-all{display:inline-flex;align-items:center;gap:8px;min-height:44px;flex-shrink:0;color:#102638;font-size:13px;text-decoration:underline;text-underline-offset:4px}
 .mega-body{flex:1;min-height:0;overflow:auto;overscroll-behavior:contain;padding:10px 22px 24px}
 .subcategory-grid{columns:4;column-gap:20px;max-width:760px;list-style:none;padding:0;margin:0}
@@ -46,7 +49,8 @@ footer{flex-shrink:0;padding:12px 18px;border-top:1px solid #e4e9ed}
  .mega-panel{margin-top:0;height:100%;border-radius:0}
  .mega-title{flex:1;max-width:none}
  .mega-heading{position:relative;flex-wrap:wrap;gap:6px 12px;padding:10px 18px}
- .mega-title h2{font-size:18px;padding:10px 22px 10px 14px}
+ .category-banner{--tail-width:28px;gap:8px}
+ .mega-title h2{font-size:18px}
  .back-categories{display:inline-flex;align-items:center;min-height:44px;flex-basis:100%;width:100%;margin:0;padding:0 44px 0 0;border:0;background:transparent;color:#102638;font:inherit;font-size:14px;cursor:pointer}
  .mega-close{position:absolute;right:12px;top:10px;display:grid}
  .mega-body{padding:8px 18px 24px}

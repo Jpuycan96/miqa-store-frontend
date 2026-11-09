@@ -20,7 +20,24 @@
     <section class="mega-panel" id="commercial-mega-panel" [attr.aria-label]="'Productos de ' + category.name">
      <header class="mega-heading">
       <button type="button" class="back-categories" (click)="back()">‹ Volver a categorías</button>
-      <div class="mega-title"><h2>{{ category.name }}</h2><button type="button" class="close-menu mega-close" aria-label="Cerrar menú" (click)="close()">×</button></div>
+      <div class="mega-title">
+       <div class="category-banner">
+        <span class="category-icon" aria-hidden="true">
+         <svg viewBox="0 0 24 24" focusable="false">
+          @switch (category.slug) {
+           @case ('merchandising-1') { <path d="M3 8h18v4H3zM5 12v9h14v-9M12 8v13M12 8H8.5a3 3 0 1 1 3-3.5L12 8Zm0 0h3.5a3 3 0 1 0-3-3.5L12 8Z"/> }
+           @case ('papeleria') { <path d="M6 3h9l4 4v14H6zM14 3v5h5M9 12h7M9 16h7"/> }
+           @case ('acrilicos') { <path d="m12 3 10 5-10 5L2 8l10-5Zm-10 9 10 5 10-5M2 16l10 5 10-5"/> }
+           @case ('impresion-gran-formato-1') { <path d="M6 8V3h12v5M6 17H3V8h18v9h-3M6 13h12v8H6zM17 10h1"/> }
+           @case ('cajas-empaques-y-bolsas') { <path d="m12 3 9 5v9l-9 5-9-5V8l9-5Zm-9 5 9 5 9-5M12 13v9M7.5 5.5l9 5"/> }
+           @default { <path d="M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z"/> }
+          }
+         </svg>
+        </span>
+        <h2>{{ category.name }}</h2>
+       </div>
+       <button type="button" class="close-menu mega-close" aria-label="Cerrar menú" (click)="close()">×</button>
+      </div>
       <a class="category-all" [attr.aria-label]="'Ver todos los productos de ' + category.name" routerLink="/productos" [queryParams]="link(category.slug)" (click)="navigate()">Ver todo <span aria-hidden="true">→</span></a>
      </header>
      <nav class="mega-body" [attr.aria-label]="'Subcategorías de ' + category.name">
