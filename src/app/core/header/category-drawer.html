@@ -21,7 +21,7 @@
      <header class="mega-heading">
       <button type="button" class="back-categories" (click)="back()">‹ Volver a categorías</button>
       <div class="mega-title">
-       <div class="category-banner">
+       <a class="category-banner" routerLink="/productos" [queryParams]="link(category.slug)" (click)="navigate()">
         <span class="category-icon" aria-hidden="true">
          <svg viewBox="0 0 24 24" focusable="false">
           @switch (category.slug) {
@@ -35,19 +35,17 @@
          </svg>
         </span>
         <h2>{{ category.name }}</h2>
-       </div>
+       </a>
        <button type="button" class="close-menu mega-close" aria-label="Cerrar menú" (click)="close()">×</button>
       </div>
-      <a class="category-all" [attr.aria-label]="'Ver todos los productos de ' + category.name" routerLink="/productos" [queryParams]="link(category.slug)" (click)="navigate()">Ver todo <span aria-hidden="true">→</span></a>
      </header>
      <nav class="mega-body" [attr.aria-label]="'Subcategorías de ' + category.name">
       <ul class="subcategory-grid">
        @for (sub of category.subcategories; track sub.erpSubcategoryId) {
         <li class="subcategory-group">
          <h3><a class="subcategory-title" routerLink="/productos" [queryParams]="link(category.slug,sub.slug)" [attr.aria-current]="activeSubcategory()===sub.slug ? 'page' : null" (click)="navigate()">{{ sub.name }}</a></h3>
-         <a class="subcategory-all" [attr.aria-label]="'Ver todo en ' + sub.name" routerLink="/productos" [queryParams]="link(category.slug,sub.slug)" (click)="navigate()">Ver todo</a>
          @if (productGroups()[sub.slug]; as group) {
-          @if (group.error) { <p class="group-feedback">No pudimos cargar los productos. Puedes consultar Ver todo.</p> }
+          @if (group.error) { <p class="group-feedback">No pudimos cargar los productos. Selecciona el nombre de la subcategoría para consultar el catálogo.</p> }
           <ul class="product-links">
            @for (product of group.products; track product.id) {
             <li><a [routerLink]="['/productos',product.slug]" (click)="navigate()">{{ product.name }}</a></li>

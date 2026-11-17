@@ -43,9 +43,10 @@ describe('Commercial sidebar and mega menu',()=>{
   const f=await create();const option=f.nativeElement.querySelector('[data-category="acrilicos"]');
   const hover=new Event('pointerenter');Object.defineProperty(hover,'pointerType',{value:'mouse'});option.dispatchEvent(hover);await f.whenStable();
   expect(f.nativeElement.querySelector('.mega-title h2').textContent).toBe('Acrílicos');
+  expect(f.nativeElement.querySelector('.mega-panel').textContent).not.toContain('Ver todo');
   const links=f.nativeElement.querySelectorAll('.subcategory-title');expect(links).toHaveLength(1);
   expect(links[0].textContent).toBe('Productos acrílicos');expect(links[0].getAttribute('href')).toBe('/productos?commercialCategory=acrilicos&subcategory=subcategoria-49');
-  expect(f.nativeElement.querySelector('.category-all').getAttribute('href')).toBe('/productos?commercialCategory=acrilicos');
+  expect(f.nativeElement.querySelector('.category-banner').getAttribute('href')).toBe('/productos?commercialCategory=acrilicos');
  });
  it('renders every received child for large categories without fictional groups or empty columns',async()=>{
   const f=await create();for(const [slug,count] of [['merchandising',32],['papelería',40]] as const){
@@ -73,11 +74,11 @@ describe('Commercial sidebar and mega menu',()=>{
   dialog.dispatchEvent(new MouseEvent('click',{clientX:100,clientY:100}));expect(f.componentInstance.menuOpen()).toBe(true);
   dialog.dispatchEvent(new MouseEvent('click',{clientX:900,clientY:100}));await f.whenStable();expect(f.componentInstance.menuOpen()).toBe(false);
  });
- it('navigates commercial subcategories and Ver todos with search preserved, without touching the quote',async()=>{
+ it('navigates category banners and subcategory titles while preserving search and quote items',async()=>{
   const {list}=setup();const h=await RouterTestingHarness.create('/productos?buscar=tarjetas');await h.fixture.whenStable();
   const store=TestBed.inject(QuoteStore);store.addItem(PRODUCTS[2],{quantity:2});const saved=store.items();
   const open=async()=>{h.routeNativeElement!.querySelector<HTMLButtonElement>('.menu-toggle')!.click();await h.fixture.whenStable();h.routeNativeElement!.querySelector<HTMLButtonElement>('[data-category="acrilicos"]')!.click();await h.fixture.whenStable();};
-  await open();h.routeNativeElement!.querySelector<HTMLAnchorElement>('.category-all')!.click();await h.fixture.whenStable();
+  await open();h.routeNativeElement!.querySelector<HTMLAnchorElement>('.category-banner')!.querySelector('svg')!.dispatchEvent(new MouseEvent('click',{bubbles:true,cancelable:true,button:0}));await h.fixture.whenStable();
   expect(TestBed.inject(Router).url).toBe('/productos?commercialCategory=acrilicos&buscar=tarjetas');expect(h.routeNativeElement!.querySelector('app-category-drawer dialog')).toBeNull();
   await open();h.routeNativeElement!.querySelector<HTMLAnchorElement>('.subcategory-title')!.click();await h.fixture.whenStable();
   expect(TestBed.inject(Router).url).toBe('/productos?commercialCategory=acrilicos&subcategory=subcategoria-49&buscar=tarjetas');
@@ -95,7 +96,7 @@ describe('Commercial sidebar and mega menu',()=>{
   const {commercialCategories,categories}=setup();const pending=new Subject<readonly CommercialCategory[]>();commercialCategories.mockReturnValueOnce(pending);
   const f=TestBed.createComponent(Header);await f.whenStable();f.nativeElement.querySelector('.menu-toggle').click();await f.whenStable();
   pending.next([{...tree[0],erpCategoryId:'99',name:'Nueva desde API',slug:'categoria-especial',subcategories:[{...tree[0].subcategories[0],erpCategoryId:'99',erpSubcategoryId:'999',slug:'hija-personalizada'}]}]);await f.whenStable();
-  f.nativeElement.querySelector('.category-option').click();await f.whenStable();expect(f.nativeElement.querySelector('.subcategory-title').getAttribute('href')).toBe('/productos?commercialCategory=categoria-especial&subcategory=hija-personalizada');expect(categories).not.toHaveBeenCalled();
+  f.nativeElement.querySelector('.category-option').click();await f.whenStable();expect(f.nativeElement.querySelector('.subcategory-title').getAttribute('href')).toBe('/productos?commercialCategory=categoria-especial&subcategory=hija-personalizada');expect(f.nativeElement.querySelector('.category-banner').getAttribute('href')).toBe('/productos?commercialCategory=categoria-especial');expect(categories).not.toHaveBeenCalled();
  });
  it('restores scrolling on destruction even if the menu is still open',async()=>{const f=await create();f.destroy();expect(document.body.style.overflow).toBe('');});
  it('treats the transparent area above the desktop panel as outside the menu',async()=>{
