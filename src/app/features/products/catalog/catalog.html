@@ -1,46 +1,93 @@
 <section class="page-shell catalog" aria-labelledby="catalog-title">
-  <div class="catalog-heading" [class.category-editorial]="activeCategory()" [style.display]="handoff.visible() && !handoffReady() ? 'none' : null">
-    @if (categoryUnavailable()) {
-      <div><h1 id="catalog-title">Esta categoría no está disponible.</h1><p>Explora los productos públicos del catálogo.</p><a routerLink="/productos">Ver todos los productos</a></div>
-    } @else if (activeCategory(); as activeCategory) {
-      <div><p class="eyebrow">{{ activeCategory.name }}</p><h1 id="catalog-title">{{ activeCategory.catalogHeadline || activeCategory.name }}</h1>@if (activeCategory.catalogDescription) { <p class="intro">{{ activeCategory.catalogDescription }}</p> }</div>
-    } @else {
-      <div><p class="eyebrow">PRODUCTOS MIQA</p><h1 id="catalog-title">Encuentra lo que necesitas.</h1><p class="intro">Configura tus productos y reúne todo en una sola cotización.</p></div>
-    }
-  </div>
-  @if (categoryState().error) { <p class="status" role="alert">No pudimos cargar las categorías. <button type="button" (click)="retry()">Reintentar</button></p> }
-  <div class="catalog-layout" [class.has-quote]="quotePresentation.panelVisible()">
-    <div class="catalog-main">
-      @if (!categoryUnavailable() && state().loading) { <p class="status" role="status">Cargando productos…</p> }
-      @else if (!categoryUnavailable() && state().error) { <p class="status" role="alert">No pudimos cargar los productos. <button type="button" (click)="retry()">Reintentar</button></p> }
-      @else if (!categoryUnavailable()) {
-        <p class="results" role="status">{{ filtered().length }} productos</p>
-        <div class="product-grid" [style.display]="handoff.visible() && !handoffReady() ? 'none' : null">
-          @for (product of filtered(); track product.id; let index = $index) {
-            <article class="catalog-card" [attr.data-product]="product.slug">
-              <button type="button" class="product-image" (click)="imageViewer.open(product)" [attr.aria-label]="'Ampliar imagen de ' + product.name">
-                <app-product-image [src]="imageFor(product)?.url ?? ''" [alt]="imageFor(product)?.altText || product.name" [priority]="index < 6" sizes="(min-width: 1000px) 24vw, (min-width: 660px) 30vw, (min-width: 360px) 45vw, 90vw" />
-              </button>
-              <p class="category-name">{{ categoryName(product.categorySlug) }}</p>
-              <h2><a class="product-name-link" [routerLink]="['/productos', product.slug]" [queryParams]="{ regresar: catalogReturn() }">{{ product.name }}</a></h2>
-              <div class="quick-quote">
-                @if (product.configuration?.mode === 'UNAVAILABLE') {
-                  <p role="status">Temporalmente no disponible para configurar.</p>
+  <div class="catalog-sidebar"
+    [style.display]="handoff.visible() && !handoffReady() ? 'none' : null"
+    (keydown.escape)="closeFilters(categoryToggle, $event)">
+    <button #categoryToggle type="button" class="category-toggle" aria-controls="catalog-categories"
+      [attr.aria-expanded]="mobileFiltersOpen()" (click)="mobileFiltersOpen.set(!mobileFiltersOpen())">
+      Categorías
+      <svg viewBox="0 0 16 16" aria-hidden="true"><path d="m4 6 4 4 4-4"/></svg>
+    </button>
+    <nav id="catalog-categories" class="catalog-categories" aria-labelledby="catalog-categories-title"
+      [class.filters-open]="mobileFiltersOpen()">
+      <h2 id="catalog-categories-title">Categorías</h2>
+      <ul>
+        <li><a routerLink="/productos" [queryParams]="commercialQuery()"
+          [attr.aria-current]="allCategoriesSelected() ? 'page' : null"
+          (click)="closeFilters(categoryToggle, $event)">Todas</a></li>
+        @for (category of commercialState().categories; track category.slug) {
+          <li>
+            <a routerLink="/productos" [queryParams]="commercialQuery(category.slug)"
+              [class.active-category]="selectedCommercial()?.slug === category.slug"
+              [attr.aria-current]="selectedCommercial()?.slug === category.slug && !subcategory() ? 'page' : null">
+              <span>{{ category.name }}</span>
+              <svg viewBox="0 0 16 16" aria-hidden="true" [class.expanded]="selectedCommercial()?.slug === category.slug">
+                <path d="m6 4 4 4-4 4"/>
+              </svg>
+            </a>
+            @if (selectedCommercial()?.slug === category.slug && category.subcategories?.length) {
+              <ul class="catalog-subcategories">
+                @for (sub of category.subcategories; track sub.slug) {
+                  <li><a routerLink="/productos" [queryParams]="commercialQuery(category.slug, sub.slug)"
+                    [attr.aria-current]="subcategory() === sub.slug ? 'page' : null"
+                    (click)="closeFilters(categoryToggle, $event)">{{ sub.name }}</a></li>
                 }
-                  <button type="button" class="card-action configure" (click)="addFromCatalog(product)" [attr.aria-label]="'Agregar al carrito: ' + product.name">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M2 3h3l3 12h11l3-9H6M9 15l-1 3h12"/><circle cx="9" cy="21" r="1"/><circle cx="19" cy="21" r="1"/></svg>
-                    Agregar al carrito
-                  </button>
-              </div>
-            </article>
-          } @empty {
-            <div class="empty"><h2>No encontramos productos con esos filtros.</h2><p>Prueba otro nombre o explora todas las categorías.</p><button (click)="reset()">Ver todos los productos</button></div>
-          }
-        </div>
-        <p class="image-note">Imágenes referenciales. Los detalles de producción se confirman con nuestro equipo.</p>
+              </ul>
+            }
+          </li>
+        }
+      </ul>
+      @if (commercialState().loading) {
+        <p class="category-feedback" role="status">Cargando categorías…</p>
+      } @else if (commercialState().error) {
+        <p class="category-feedback" role="status">No pudimos cargar las categorías comerciales.</p>
+        <button type="button" class="category-retry" (click)="retryCommercial()">Reintentar</button>
+      }
+    </nav>
+  </div>
+  <div class="catalog-content">
+    <div class="catalog-heading" [class.category-editorial]="activeCategory()" [style.display]="handoff.visible() && !handoffReady() ? 'none' : null">
+      @if (categoryUnavailable()) {
+        <div><h1 id="catalog-title">Esta categoría no está disponible.</h1><p>Explora los productos públicos del catálogo.</p><a routerLink="/productos">Ver todos los productos</a></div>
+      } @else if (activeCategory(); as activeCategory) {
+        <div><p class="eyebrow">{{ activeCategory.name }}</p><h1 id="catalog-title">{{ activeCategory.catalogHeadline || activeCategory.name }}</h1>@if (activeCategory.catalogDescription) { <p class="intro">{{ activeCategory.catalogDescription }}</p> }</div>
+      } @else {
+        <div><p class="eyebrow">PRODUCTOS MIQA</p><h1 id="catalog-title">Encuentra lo que necesitas.</h1><p class="intro">Configura tus productos y reúne todo en una sola cotización.</p></div>
       }
     </div>
-    @if (quotePresentation.panelVisible()) { <app-quote-panel id="integrated-quote-panel" /> }
+    @if (categoryState().error) { <p class="status" role="alert">No pudimos cargar las categorías. <button type="button" (click)="retry()">Reintentar</button></p> }
+    <div class="catalog-layout" [class.has-quote]="quotePresentation.panelVisible()">
+      <div class="catalog-main">
+        @if (!categoryUnavailable() && state().loading) { <p class="status" role="status">Cargando productos…</p> }
+        @else if (!categoryUnavailable() && state().error) { <p class="status" role="alert">No pudimos cargar los productos. <button type="button" (click)="retry()">Reintentar</button></p> }
+        @else if (!categoryUnavailable()) {
+          <p class="results" role="status">{{ filtered().length }} productos</p>
+          <div class="product-grid" [style.display]="handoff.visible() && !handoffReady() ? 'none' : null">
+            @for (product of filtered(); track product.id; let index = $index) {
+              <article class="catalog-card" [attr.data-product]="product.slug">
+                <button type="button" class="product-image" (click)="imageViewer.open(product)" [attr.aria-label]="'Ampliar imagen de ' + product.name">
+                  <app-product-image [src]="imageFor(product)?.url ?? ''" [alt]="imageFor(product)?.altText || product.name" [priority]="index < 6" sizes="(min-width: 1280px) 21vw, (min-width: 660px) 30vw, (min-width: 360px) 45vw, 90vw" />
+                </button>
+                <p class="category-name">{{ categoryName(product.categorySlug) }}</p>
+                <h2><a class="product-name-link" [routerLink]="['/productos', product.slug]" [queryParams]="{ regresar: catalogReturn() }">{{ product.name }}</a></h2>
+                <div class="quick-quote">
+                  @if (product.configuration?.mode === 'UNAVAILABLE') {
+                    <p role="status">Temporalmente no disponible para configurar.</p>
+                  }
+                    <button type="button" class="card-action configure" (click)="addFromCatalog(product)" [attr.aria-label]="'Agregar al carrito: ' + product.name">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M2 3h3l3 12h11l3-9H6M9 15l-1 3h12"/><circle cx="9" cy="21" r="1"/><circle cx="19" cy="21" r="1"/></svg>
+                      Agregar al carrito
+                    </button>
+                </div>
+              </article>
+            } @empty {
+              <div class="empty"><h2>No encontramos productos con esos filtros.</h2><p>Prueba otro nombre o explora todas las categorías.</p><button (click)="reset()">Ver todos los productos</button></div>
+            }
+          </div>
+          <p class="image-note">Imágenes referenciales. Los detalles de producción se confirman con nuestro equipo.</p>
+        }
+      </div>
+      @if (quotePresentation.panelVisible()) { <app-quote-panel id="integrated-quote-panel" /> }
+    </div>
   </div>
 </section>
 

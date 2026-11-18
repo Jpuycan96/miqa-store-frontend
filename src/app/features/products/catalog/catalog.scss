@@ -1,4 +1,58 @@
-.catalog { max-width: 1240px; padding-block: 18px 30px; }
+.catalog {
+  display: grid;
+  width: min(1520px, calc(100% - 40px));
+  gap: 14px;
+  padding-block: 18px 30px;
+}
+.catalog-content, .catalog-sidebar { min-width: 0; }
+.catalog-categories { display: none; }
+.catalog-categories.filters-open { display: block; margin-top: 8px; }
+.catalog-categories h2 { margin: 0 8px 7px; color: var(--miqa-navy); font-size: 16px; font-weight: 700; }
+.catalog-categories ul { margin: 0; padding: 0; list-style: none; }
+.catalog-categories > ul > li + li { border-top: 1px solid #edf0f4; }
+.catalog-categories a {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  min-height: 38px;
+  padding: 7px 8px;
+  color: var(--miqa-navy);
+  font-size: 13px;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+.catalog-categories a:hover { background: var(--surface); }
+.catalog-categories a[aria-current], .catalog-categories .active-category {
+  background: #eaf3fc;
+  color: var(--miqa-blue);
+  font-weight: 650;
+}
+.catalog-categories .catalog-subcategories { padding: 3px 0 5px 10px; }
+.catalog-subcategories a { min-height: 34px; font-size: 12px; }
+.catalog-categories a:focus-visible, .category-toggle:focus-visible { outline-offset: -2px; }
+.catalog-sidebar svg { width: 14px; flex: 0 0 14px; fill: none; stroke: currentColor; stroke-width: 1.5; }
+.catalog-sidebar svg.expanded { transform: rotate(90deg); }
+.category-toggle, .category-retry {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 7px 12px;
+  border: 1px solid #dce3eb;
+  border-radius: 8px;
+  background: #fff;
+  color: var(--miqa-blue);
+  font-size: 14px;
+  font-weight: 650;
+}
+.category-toggle[aria-expanded=true] svg { transform: rotate(180deg); }
+.category-feedback { margin: 8px; color: var(--muted); font-size: 13px; }
+@media (min-width: 1024px) {
+  .catalog { grid-template-columns: 186px minmax(0, 1fr); align-items: start; column-gap: 22px; }
+  .catalog-categories, .catalog-categories.filters-open { display: block; margin-top: 0; }
+  .category-toggle { display: none; }
+}
 .catalog-heading { margin-bottom: 18px; }
 .eyebrow { color: var(--muted); font-size: 10px; }
 h1 { margin-top: 6px; color: var(--miqa-navy); font-size: clamp(27px, 2.7vw, 35px); font-weight: 500; letter-spacing: -.04em; line-height: 1.15; }

@@ -1,7 +1,7 @@
 import { ProductImageViewer } from '../../../shared/product-images/product-image-viewer';
 import { ProductImageView } from '../../../shared/product-images/product-image';
 import { productImages } from '../../../shared/product-images/product-images';
-import { afterRenderEffect, ChangeDetectionStrategy, Component, computed, effect, inject, DestroyRef } from '@angular/core';
+import { afterRenderEffect, ChangeDetectionStrategy, Component, computed, effect, inject, DestroyRef, signal } from '@angular/core';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { catchError, combineLatest, distinctUntilChanged, map, of, startWith, Subject, switchMap } from 'rxjs';
@@ -47,13 +47,44 @@ export class Catalog {
   readonly isCategoryPage = computed(() => this.routeData()['categoryRoute'] === true);
   readonly category = computed(() => this.isCategoryPage() ? this.routeParams().get('slug') ?? '' : this.params().get('categoria') ?? '');
   private readonly commercialCategory = computed(() => this.params().get('commercialCategory') ?? '');
-  private readonly subcategory = computed(() => this.params().get('subcategory') ?? '');
+  readonly subcategory = computed(() => this.params().get('subcategory') ?? '');
   private readonly filters = computed(() => ({
     category: this.category(),
     search: this.query().trim(),
     ...(this.commercialCategory() ? { commercialCategory: this.commercialCategory() } : {}),
     ...(this.subcategory() ? { subcategory: this.subcategory() } : {}),
   }));
+  private readonly refreshCommercial = new Subject<void>();
+  readonly commercialState = toSignal(this.refreshCommercial.pipe(
+    startWith(undefined),
+    switchMap(() => (this.source.commercialCategories?.() ?? of([])).pipe(
+      map(categories => ({ categories, loading: false, error: false })),
+      startWith({ categories: [], loading: true, error: false }),
+      catchError(() => of({ categories: [], loading: false, error: true })),
+    )),
+  ), { initialValue: { categories: [], loading: true, error: false } });
+  readonly selectedCommercial = computed(() => {
+    const categories = this.commercialState().categories;
+    const slug = this.commercialCategory();
+    if (slug) return categories.find(category => category.slug === slug);
+    const child = this.subcategory();
+    if (child) return categories.find(category => category.subcategories?.some(sub => sub.slug === child));
+    return categories.find(category => category.slug === this.category());
+  });
+  readonly allCategoriesSelected = computed(() => !this.category() && !this.commercialCategory() && !this.subcategory());
+  readonly mobileFiltersOpen = signal(false);
+
+  commercialQuery(category?: string, subcategory?: string) {
+    return { commercialCategory: category, subcategory, buscar: this.query().trim() || undefined };
+  }
+  retryCommercial() { this.refreshCommercial.next(); }
+  closeFilters(toggle: HTMLButtonElement, event: Event) {
+    if (event instanceof MouseEvent && (event.ctrlKey || event.metaKey || event.shiftKey || event.altKey)) return;
+    if (!this.mobileFiltersOpen()) return;
+    if (event instanceof KeyboardEvent) event.stopPropagation();
+    this.mobileFiltersOpen.set(false);
+    toggle.focus();
+  }
   readonly state = toSignal(combineLatest([
     toObservable(this.filters), this.refresh.pipe(startWith(undefined))
   ]).pipe(switchMap(([filters]) => this.source.list(filters, { fresh: this.handoff.visible() }).pipe(

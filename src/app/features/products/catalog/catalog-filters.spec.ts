@@ -1,4 +1,4 @@
-﻿import { TestBed } from '@angular/core/testing';
+import { TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
 import { of } from 'rxjs';
@@ -10,7 +10,12 @@ import { provideTestCatalog } from '../../../testing/catalog.fixture';
 describe('Catalog URL filters', () => {
   const source = provideTestCatalog().useValue;
   const list = vi.fn(() => of([PRODUCTS[1], { ...PRODUCTS[2], published: false }, PRODUCTS[0]]));
-  const commercialCategories = vi.fn(source.commercialCategories);
+  const commercialCategories = vi.fn(() => of([
+    { slug: 'commercial-parent', name: 'Categoría de prueba', subcategories: [
+      { slug: 'custom-sub', name: 'Subcategoría de prueba', erpSubcategoryId: '2', erpCategoryId: '9', displayOrder: 0 },
+    ] },
+    { slug: 'another-parent', name: 'Otra categoría' },
+  ]));
 
   beforeEach(() => {
     list.mockClear();
@@ -33,15 +38,22 @@ describe('Catalog URL filters', () => {
     const href = root.querySelector('.product-name-link')!.getAttribute('href')!;
     const router = TestBed.inject(Router);
     expect(router.parseUrl(href).queryParams['regresar']).toBe(url);
-    expect(root.querySelector('.catalog-sidebar, .category-toggle, #catalog-categories, .catalog-decoration')).toBeNull();
-    expect(commercialCategories).toHaveBeenCalledTimes(1);
+    expect(root.querySelector('.catalog-decoration')).toBeNull();
+    const sidebar = root.querySelector('#catalog-categories')!;
+    expect(sidebar.querySelector('.catalog-subcategories [aria-current=page]')?.textContent).toBe('Subcategoría de prueba');
+    expect(sidebar.querySelector('.active-category')?.textContent?.trim()).toBe('Categoría de prueba');
 
-    await harness.navigateByUrl('/productos?commercialCategory=another-parent&buscar=vinil');
+    const link = [...sidebar.querySelectorAll('a')].find(anchor => anchor.textContent?.trim() === 'Otra categoría')!;
+    link.click();
+    await harness.fixture.whenStable();
+    expect(router.url).toBe('/productos?commercialCategory=another-parent&buscar=vinil');
     expect(list).toHaveBeenLastCalledWith({
       category: '', search: 'vinil', commercialCategory: 'another-parent',
     }, { fresh: false });
 
-    await harness.navigateByUrl('/productos');
-    expect(list).toHaveBeenLastCalledWith({ category: '', search: '' }, { fresh: false });
+    sidebar.querySelector('a')!.click();
+    await harness.fixture.whenStable();
+    expect(router.url).toBe('/productos?buscar=vinil');
+    expect(list).toHaveBeenLastCalledWith({ category: '', search: 'vinil' }, { fresh: false });
   });
 });
