@@ -7,8 +7,8 @@
 .menu-toggle{display:flex;align-items:center;gap:10px;min-height:44px;padding:8px 4px;border:0;background:transparent;color:#102638;font:inherit;font-size:17px;font-weight:600;cursor:pointer}
 .menu-toggle svg,.quote-toggle svg,.search-toggle svg{width:24px;height:24px;flex-shrink:0;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .inline-search{position:relative;width:100%;max-width:640px;min-width:0;justify-self:center;color:#102638}
-.inline-search input{width:100%;min-width:0;min-height:46px;padding:10px 48px 10px 18px;border:1px solid #d4e2e8;border-radius:24px;background:#fff;color:#102638;font:inherit;font-size:15px}
-.search-toggle{position:absolute;right:3px;top:1px;display:grid;place-items:center;width:44px;height:44px;border:0;border-radius:50%;background:transparent;color:#102638;cursor:pointer}
+.inline-search .miqa-field{padding-right:48px}
+.search-toggle{position:absolute;right:3px;top:0;display:grid;place-items:center;width:44px;height:44px;border:0;border-radius:50%;background:transparent;color:#102638;cursor:pointer}
 .search-toggle:hover{background:#e5f6f8}
 .search-results{position:absolute;top:calc(100% + 8px);left:0;right:0;max-height:60dvh;overflow:auto;background:#fff;color:#102638;border:1px solid #d7e2e7;border-radius:12px;box-shadow:0 8px 28px #0003}
 .search-results a,.search-results p{display:block;padding:14px 18px;margin:0;font-size:15px;overflow-wrap:anywhere}
@@ -18,7 +18,6 @@
 .quote-toggle:hover,.menu-toggle:hover{background:#eaf7f8}
 .quote-count{position:absolute;top:0;right:0;display:grid;place-items:center;min-width:19px;height:19px;padding-inline:3px;border-radius:50%;background:#00d9e8;color:#102638;font-size:11px;font-weight:700}
 a:focus-visible,button:focus-visible{outline:3px solid #087e8a;outline-offset:2px}
-input:focus-visible{outline:3px solid #087e8a;outline-offset:2px}
 .search-toggle:focus-visible,.search-results a:focus-visible{outline-color:#087e8a;outline-offset:-3px}
 @media(max-width:767px){
  .header-shell{width:calc(100% - 24px)}

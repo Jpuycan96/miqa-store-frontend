@@ -2,6 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideRouter, Router } from '@angular/router';
+import { MaterialDraftCatalog } from './material-draft-catalog';
 import { AdminMaterialDrafts } from './material-drafts';
 import { AdminProductList } from './product-list';
 import { STORE_API_CONFIG } from '../../core/config/store-api';
@@ -27,7 +28,7 @@ const product:AdminProduct={id:'old',catalogMode:'ERP',name:'Servicio existente'
 
 describe('material publication admin panel',()=>{
   let http:HttpTestingController;let base:string;
-  beforeEach(()=>{TestBed.configureTestingModule({providers:[provideRouter([]),provideHttpClient(),provideHttpClientTesting()]});
+  beforeEach(()=>{TestBed.configureTestingModule({providers:[MaterialDraftCatalog,provideRouter([]),provideHttpClient(),provideHttpClientTesting()]});
     http=TestBed.inject(HttpTestingController);base=TestBed.inject(STORE_API_CONFIG).baseUrl+'/api/admin';});
   afterEach(()=>http.verify());
   function panel(services=[service()],publications:import('./erp-catalog.models').MaterialPublication[]=[],selectedService='17'){
@@ -54,7 +55,7 @@ describe('material publication admin panel',()=>{
     const boxes=Array.from(f.nativeElement.querySelectorAll('input[type=checkbox]')) as HTMLInputElement[];
     expect(boxes).toHaveLength(2);expect(boxes.every(box=>box.checked && box.disabled)).toBe(true);
     expect(f.nativeElement.textContent).toContain('Producto existente · Publicado');
-    expect(f.nativeElement.textContent).toContain('Producto existente · Borrador');
+    expect(f.nativeElement.textContent).toContain('Producto existente · No publicado');
     expect(c.selectedRows()).toHaveLength(0);expect(c.buildRequest()).toBeNull();
     c.rows.at(0).controls.selected.enable();expect(c.buildRequest()).toBeNull();
     c.submit();http.expectNone(req=>req.method==='POST');
@@ -121,12 +122,285 @@ describe('material publication admin panel',()=>{
     const f=panel([service(),service(1,'19')]);const c=f.componentInstance;selectFirst(c);c.rows.at(0).controls.erpModelId.setValue('201');
     c.form.controls.serviceId.setValue('19');expect(c.rows.length).toBe(1);expect(c.selectedRows().length).toBe(0);expect(c.rows.at(0).controls.erpModelId.value).toBe('');
   });
+  it('filters services without case or accents and supports keyboard and mouse selection', () => {
+    const other = service(1, '19');
+    const accented = { ...other, lastKnownErp: { ...other.lastKnownErp!, nombreReferencia: 'Señalética acrílica' } };
+    const f = panel([service(), accented], [], '');
+    const input = f.nativeElement.querySelector('[role=combobox]') as HTMLInputElement;
+    const options = () => [...f.nativeElement.querySelectorAll('[role=option]')] as HTMLElement[];
+    const type = (value: string) => {
+      input.value = value;
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+      f.detectChanges();
+    };
+    const key = (key: string) => {
+      input.dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true, cancelable: true }));
+      f.detectChanges();
+    };
+
+    input.dispatchEvent(new FocusEvent('focus'));
+    f.detectChanges();
+    expect(options()).toHaveLength(2);
+    type('SENALETICA ACRI');
+    expect(options().map(option => option.textContent?.trim())).toEqual(['Señalética acrílica']);
+    key('ArrowDown');
+    expect(input.getAttribute('aria-activedescendant')).toBe(options()[0].id);
+    key('Enter');
+    expect(input.value).toBe('Señalética acrílica');
+    expect(f.componentInstance.rows.length).toBe(1);
+    type('sin coincidencia');
+    expect(f.nativeElement.textContent).toContain('No hay servicios que coincidan.');
+    key('Escape');
+    expect(input.value).toBe('Señalética acrílica');
+    expect(input.getAttribute('aria-expanded')).toBe('false');
+
+    f.componentInstance.form.controls.categoryId.setValue(category.id);
+    type('IMPRESIÓN');
+    expect(options()).toHaveLength(1);
+    options()[0].click();
+    f.detectChanges();
+    expect(f.componentInstance.form.controls.serviceId.value).toBe('17');
+    expect(f.componentInstance.form.controls.categoryId.value).toBe('');
+    expect(f.componentInstance.rows.length).toBe(2);
+    http.expectNone(() => true);
+  });
+
+  it('confirms withdrawal and republishes through the existing endpoint with the same product ID', () => {
+    const f = TestBed.createComponent(AdminProductList);
+    const published = { ...product, published: true };
+    const refreshList = (item: AdminProduct) => {
+      http.expectOne(base + '/categories').flush([category]);
+      http.expectOne(base + '/products').flush([item]);
+      http.expectOne(base + '/erp-catalog/bindings/old').flush({ active: true, state: 'AVAILABLE', publicationScope: 'MATERIAL' });
+      f.detectChanges();
+    };
+    refreshList(published);
+    const action = () => f.nativeElement.querySelector('.product-list .actions button') as HTMLButtonElement;
+    const confirm = vi.spyOn(window, 'confirm').mockReturnValueOnce(false).mockReturnValueOnce(true);
+    try {
+      expect(action().textContent?.trim()).toBe('Ocultar');
+      action().click();
+      http.expectNone(req => req.method === 'PATCH');
+      action().click();
+      const withdraw = http.expectOne(base + '/products/old/published');
+      expect(withdraw.request.method).toBe('PATCH');
+      expect(withdraw.request.body).toEqual({ published: false });
+      const withdrawn = { ...product, retiredAt: '2026-11-19T16:00:00Z' };
+      withdraw.flush(withdrawn);
+      refreshList(withdrawn);
+      expect(f.nativeElement.textContent).toContain('Retirado');
+      expect(action().textContent?.trim()).toBe('Publicar');
+      action().click();
+      const publish = http.expectOne(base + '/products/old/published');
+      expect(publish.request.body).toEqual({ published: true });
+      publish.flush(published);
+      refreshList(published);
+      expect(confirm).toHaveBeenCalledTimes(2);
+    } finally {
+      confirm.mockRestore();
+    }
+  });
+
+  it('archives a published material only after confirmation and frees the open selector', () => {
+    const f = TestBed.createComponent(AdminProductList);
+    const published = { ...product, published: true };
+    http.expectOne(base+'/categories').flush([category]);
+    http.expectOne(base+'/products').flush([published]);
+    http.expectOne(base+'/erp-catalog/bindings/old').flush({active:true,state:'AVAILABLE',publicationScope:'MATERIAL'});
+    f.componentInstance.openDrafts();
+    f.detectChanges();
+    http.expectOne(base+'/erp-catalog/services').flush([service()]);
+    http.expectOne(base+'/categories').flush([category]);
+    http.expectOne(base+'/erp-catalog/material-publications').flush([
+      {productId:'old',erpServiceId:'17',erpMaterialId:'10',erpModelId:null,published:true,bindingActive:true},
+    ]);
+    const panel = f.debugElement.query(node => node.componentInstance instanceof AdminMaterialDrafts)
+      .componentInstance as AdminMaterialDrafts;
+    panel.form.controls.serviceId.setValue('17');
+    f.detectChanges();
+    expect(panel.rows.at(0).controls.selected.disabled).toBe(true);
+    const trash = f.nativeElement.querySelector('button[aria-label="Eliminar producto"]') as HTMLButtonElement;
+    expect(trash.title).toBe('Eliminar producto');
+    expect(trash.textContent?.trim()).toBe('');
+    const confirm = vi.spyOn(window, 'confirm').mockReturnValueOnce(false).mockReturnValueOnce(true);
+    try {
+      trash.click();
+      http.expectNone(req => req.method === 'DELETE');
+      trash.click();
+      expect(confirm).toHaveBeenLastCalledWith(expect.stringContaining('Dejará de estar disponible en la tienda.'));
+      const removal = http.expectOne(base+'/products/old');
+      expect(removal.request.method).toBe('DELETE');
+      removal.flush(null, {status:204,statusText:'No Content'});
+      http.expectOne(base+'/categories').flush([category]);
+      http.expectOne(base+'/products').flush([]);
+      f.detectChanges();
+      expect(f.componentInstance.visibleProducts()).toEqual([]);
+      expect(panel.rows.at(0).controls.selected.disabled).toBe(false);
+      expect(panel.existingFor(panel.rows.at(0))).toEqual([]);
+      selectFirst(panel);
+      expect(panel.buildRequest()?.materials[0].erpMaterialId).toBe('10');
+    } finally {
+      confirm.mockRestore();
+    }
+  });
+
+  it('searches active commercial categories and only commits an ERP category ID on selection', () => {
+    const f = TestBed.createComponent(AdminMaterialDrafts);
+    http.expectOne(base+'/erp-catalog/services').flush([service()]);
+    http.expectOne(base+'/erp-catalog/material-publications').flush([]);
+    http.expectOne(base+'/categories').flush([
+      {...category,name:'Señalética'}, {...category,id:'print',name:'Impresión'},
+      {...category,id:'inactive',name:'Inactiva',active:false},
+    ]);
+    const panel = f.componentInstance;
+    panel.form.controls.serviceId.setValue('17');
+    panel.rows.at(0).controls.selected.setValue(true);
+    f.detectChanges();
+    const field = f.nativeElement.querySelector('#draft-category') as HTMLInputElement;
+    const entries = () => Array.from(
+      f.nativeElement.querySelectorAll('#draft-category-options [role=option]') as NodeListOf<HTMLElement>,
+    );
+    const type = (value: string) => {
+      field.value = value;
+      field.dispatchEvent(new Event('input', {bubbles:true}));
+      f.detectChanges();
+    };
+    const key = (key: string) => {
+      field.dispatchEvent(new KeyboardEvent('keydown', {key,bubbles:true,cancelable:true}));
+      f.detectChanges();
+    };
+
+    field.dispatchEvent(new Event('focus'));
+    f.detectChanges();
+    expect(entries().map(option => option.textContent?.trim())).toEqual(['Señalética','Impresión']);
+    type('IMPRESION');
+    expect(panel.canSubmit()).toBe(false);
+    expect(entries()).toHaveLength(1);
+    key('ArrowDown');
+    expect(field.getAttribute('aria-activedescendant')).toBe(entries()[0].id);
+    key('Enter');
+    expect(field.value).toBe('Impresión');
+    expect(panel.buildRequest()?.categoryId).toBe('print');
+    type('sin coincidencia');
+    expect(f.nativeElement.textContent).toContain('No hay categorías que coincidan.');
+    key('Escape');
+    expect(field.value).toBe('Impresión');
+    expect(field.getAttribute('aria-expanded')).toBe('false');
+    type('SENALETICA');
+    entries()[0].click();
+    f.detectChanges();
+    expect(field.value).toBe('Señalética');
+    expect(panel.buildRequest()?.categoryId).toBe(category.id);
+  });
+
+  it('refreshes once from the header with the panel closed or open and preserves valid selections', () => {
+    const f = TestBed.createComponent(AdminProductList);
+    const root = f.nativeElement as HTMLElement;
+    http.expectOne(base+'/categories').flush([category]);
+    http.expectOne(base+'/products').flush([]);
+    f.detectChanges();
+    const refresh = root.querySelector<HTMLButtonElement>('.refresh-draft-catalog')!;
+    const toggle = root.querySelector<HTMLButtonElement>('.toggle-draft-panel')!;
+    const respond = () => {
+      http.expectOne(base+'/erp-catalog/services').flush([service()]);
+      http.expectOne(base+'/categories').flush([category]);
+      http.expectOne(base+'/erp-catalog/material-publications').flush([]);
+      f.detectChanges();
+    };
+    expect(toggle.textContent?.trim()).toBe('Productos');
+    expect(refresh.title).toBe('Actualizar servicios y categorías');
+    expect(refresh.textContent?.trim()).toBe('');
+    refresh.click();
+    refresh.click();
+    f.detectChanges();
+    expect(refresh.getAttribute('aria-busy')).toBe('true');
+    expect(refresh.disabled).toBe(true);
+    respond();
+    expect(root.textContent).toContain('Servicios y categorías actualizados.');
+    toggle.click();
+    f.detectChanges();
+    expect(toggle.getAttribute('aria-expanded')).toBe('true');
+    http.expectNone(base+'/erp-catalog/services');
+    const panel = f.debugElement.query(node => node.componentInstance instanceof AdminMaterialDrafts)
+      .componentInstance as AdminMaterialDrafts;
+    panel.form.controls.categoryId.setValue(category.id);
+    panel.form.controls.serviceId.setValue('17');
+    f.detectChanges();
+    refresh.click();
+    respond();
+    expect(panel.form.controls.categoryId.value).toBe(category.id);
+    expect(panel.form.controls.serviceId.value).toBe('17');
+    expect(root.querySelector<HTMLButtonElement>('.draft-footer button')?.disabled).toBe(true);
+    expect(root.querySelectorAll('[aria-label="Actualizar servicios y categorías"]')).toHaveLength(1);
+    toggle.click();
+    f.detectChanges();
+    expect(toggle.getAttribute('aria-expanded')).toBe('false');
+    expect(root.querySelector('app-admin-material-drafts')).toBeNull();
+  });
+
+  it('expires the refresh toast three seconds after the latest success and allows dismissal', async () => {
+    vi.useFakeTimers();
+    try {
+      const f = TestBed.createComponent(AdminProductList);
+      http.expectOne(base+'/categories').flush([category]);
+      http.expectOne(base+'/products').flush([]);
+      f.detectChanges();
+      const root = f.nativeElement as HTMLElement;
+      const refresh = root.querySelector<HTMLButtonElement>('.refresh-draft-catalog')!;
+      const visible = () => root.querySelector('.draft-refresh-toast.visible');
+      const succeed = () => {
+        refresh.click();
+        http.expectOne(base+'/erp-catalog/services').flush([service()]);
+        http.expectOne(base+'/categories').flush([category]);
+        http.expectOne(base+'/erp-catalog/material-publications').flush([]);
+        f.detectChanges();
+      };
+      succeed();
+      expect(visible()?.querySelector('[role=status]')?.textContent?.trim()).toBe('Servicios y categorías actualizados.');
+      await vi.advanceTimersByTimeAsync(2000);
+      succeed();
+      await vi.advanceTimersByTimeAsync(2999);
+      f.detectChanges();
+      expect(visible()).not.toBeNull();
+      await vi.advanceTimersByTimeAsync(1);
+      f.detectChanges();
+      expect(visible()).toBeNull();
+      succeed();
+      visible()!.querySelector('button')!.click();
+      f.detectChanges();
+      expect(visible()).toBeNull();
+
+      refresh.click();
+      http.expectOne(base+'/erp-catalog/services').flush({}, {status:503,statusText:'Unavailable'});
+      http.match(base+'/categories');
+      http.match(base+'/erp-catalog/material-publications');
+      await vi.advanceTimersByTimeAsync(3000);
+      f.detectChanges();
+      expect(visible()).toBeNull();
+      expect(root.querySelector('[role=alert]')?.textContent).toContain('No se pudo cargar el catálogo administrativo.');
+      const schedule = vi.spyOn(globalThis, 'setTimeout');
+      const cancel = vi.spyOn(globalThis, 'clearTimeout');
+      try {
+        succeed();
+        const timerIndex = schedule.mock.calls.findIndex(([, delay]) => delay === 3000);
+        expect(timerIndex).toBeGreaterThanOrEqual(0);
+        f.destroy();
+        expect(cancel).toHaveBeenCalledWith(schedule.mock.results[timerIndex].value);
+      } finally {
+        schedule.mockRestore();
+        cancel.mockRestore();
+      }
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it('keeps the panel read-only on catalog load failure with retry available',()=>{
     const f=TestBed.createComponent(AdminMaterialDrafts);
     http.expectOne(base+'/erp-catalog/services').flush({}, {status:503,statusText:'Unavailable'});
     http.match(base+'/erp-catalog/material-publications').forEach(req=>expect(req.cancelled).toBe(true));
     http.match(base+'/categories').forEach(req=>expect(req.cancelled).toBe(true));f.detectChanges();
-    expect(f.componentInstance.error()).toContain('No se pudo cargar');expect(f.componentInstance.canSubmit()).toBe(false);
+    expect(f.componentInstance.loadError()).toContain('No se pudo cargar');expect(f.componentInstance.canSubmit()).toBe(false);
   });
   it('refreshes admin products after creation and links each draft to the existing editor',()=>{
     const f=TestBed.createComponent(AdminProductList);

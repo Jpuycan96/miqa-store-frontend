@@ -1,0 +1,18 @@
+<label [for]="fieldId()" [id]="fieldId() + '-label'">{{label()}}</label>
+<input #field class="miqa-field miqa-select" type="text" role="combobox" autocomplete="off" aria-autocomplete="list"
+  [id]="fieldId()" [disabled]="disabled()" [attr.aria-required]="required() || null"
+  [attr.aria-invalid]="invalid() || null" [attr.aria-controls]="fieldId() + '-options'"
+  [attr.aria-expanded]="opened()" [attr.aria-activedescendant]="activeOption() ? optionId(activeOption()!) : null"
+  [value]="opened() ? query() : selectedLabel()" [placeholder]="opened() ? placeholder() : selectedLabel() || placeholder()"
+  (focus)="open()" (click)="open()" (input)="search(field.value)" (keydown)="onKey($event,field)" (blur)="onBlur()">
+<ul [id]="fieldId() + '-options'" role="listbox" [attr.aria-labelledby]="fieldId() + '-label'" [hidden]="!opened()">
+  @if(opened()){
+    @for(option of matches();track option.id;let index=$index){
+      <li [id]="optionId(option)" role="option" [attr.aria-selected]="option.id === value()"
+        [class.active]="activeIndex() === index" (mousedown)="$event.preventDefault()" (click)="select(option)">
+        {{option.label}}
+      </li>
+    }
+  }
+</ul>
+@if(opened() && !matches().length){<p role="status">{{emptyMessage()}}</p>}

@@ -3,14 +3,12 @@ form, .configuration-fields, .option-fields, .quantity-price { display: grid; ga
 .option-fields { gap: 8px; }
 .field { display: grid; align-content: start; gap: 6px; min-width: 0; }
 label, legend { font-weight: 600; font-size: 14px; line-height: 1.4; }
-input[type=number], select, textarea { box-sizing: border-box; width: 100%; min-width: 0; min-height: 44px; padding: 10px 12px; border: 1px solid #697386; border-radius: .4rem; background: #fff; color: #17243b; font: inherit; }
-textarea { resize: vertical; }
 fieldset { min-width: 0; margin: 0; padding: 0; border: 0; }
 legend { margin-bottom: 4px; }
 p { margin: 0; color: #455065; font-size: 13px; line-height: 1.5; }
 .measure-fields { display: grid; gap: 10px; }
 #erp-measures-help { margin-top: 8px; max-width: 300px; }
-:focus-visible { outline: 3px solid #175db3; outline-offset: 3px; }
+:focus-visible:not(:where(.miqa-field, .miqa-field-group input)) { outline: 3px solid #175db3; outline-offset: 3px; }
 button { min-height: 44px; }
 .choice-list { display: grid; grid-template-columns: minmax(0, 1fr); max-height: 176px; overflow-y: auto; overscroll-behavior: contain; padding: 4px; }
 .choice { display: flex; align-items: center; gap: 10px; min-height: 44px; padding: 4px 6px; box-sizing: border-box; cursor: pointer; border-radius: 4px; font-weight: 400; }
@@ -19,9 +17,9 @@ button { min-height: 44px; }
 .choice input { appearance: none; flex: 0 0 18px; width: 18px; height: 18px; margin: 0; border: 1px solid #697386; border-radius: 3px; display: grid; place-content: center; }
 .choice input:checked { background: var(--miqa-navy); border-color: var(--miqa-navy); }
 .choice input:checked::after { content: '✓'; color: white; font-size: 14px; font-weight: 700; }
-.quantity-stepper { display: flex; width: 184px; max-width: 100%; border: 1px solid #697386; border-radius: 8px; overflow: hidden; }
+.quantity-stepper { display: flex; width: 184px; max-width: 100%; overflow: hidden; }
 .quantity-stepper button { flex: 0 0 44px; border: 0; background: transparent; color: var(--miqa-navy); font-size: 20px; cursor: pointer; }
-.quantity-stepper input { border: 0; border-radius: 0; padding-inline: 4px; text-align: center; appearance: textfield; }
+.quantity-stepper input { width: 100%; min-width: 0; border: 0; padding-inline: 4px; text-align: center; appearance: textfield; color: inherit; background: transparent; }
 .quantity-stepper input::-webkit-inner-spin-button, .quantity-stepper input::-webkit-outer-spin-button { appearance: none; margin: 0; }
 .quantity-stepper :focus-visible { outline-offset: -3px; }
 button:disabled { opacity: .45; cursor: default; }
@@ -34,7 +32,6 @@ button:disabled { opacity: .45; cursor: default; }
   .option-fields:has(.material-options):has(.model-options) { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; align-items: start; position: relative; }
   .option-fields:has(.material-options):has(.model-options)::after { content: ""; position: absolute; top: 0; bottom: 0; left: 50%; width: 1px; background: #d8dee8; pointer-events: none; }
   .configuration-fields:has(.measures) { grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); gap: 16px; align-items: start; }
-  textarea { height: 56px; }
 }
 @media (forced-colors: active) {
   .choice input { appearance: auto; }
@@ -49,11 +46,9 @@ button:disabled { opacity: .45; cursor: default; }
   .price-amount { font-size: 1.6rem; }
 }
 @media (min-width: 1120px) and (pointer: fine) {
-  input[type=number], select { min-height: 36px; padding: 6px 10px; }
   .quantity-stepper { width: 160px; }
   .quantity-stepper button { width: 36px; min-height: 36px; }
   .choice { min-height: 36px; padding-block: 2px; }
-  textarea { min-height: 48px; height: 48px; padding: 6px 10px; }
   .primary-button { min-height: 40px; padding-block: 8px; }
 }
 

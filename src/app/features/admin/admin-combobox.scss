@@ -1,0 +1,8 @@
+:host { display: block; min-width: 0; color: #061b4f; }
+label { display: block; margin-bottom: 7px; font-size: 14px; font-weight: 600; }
+ul { max-height: 15rem; overflow: auto; margin: 4px 0 0; padding: 0; list-style: none; border: 1px solid var(--miqa-field-border); border-radius: var(--miqa-field-radius); }
+ul:empty { display: none; }
+li { margin: 0; padding: 8px 12px; cursor: pointer; overflow-wrap: anywhere; }
+li:is(:hover, .active, [aria-selected=true]) { background: #eaf3fc; color: #0b2559; }
+li.active { outline: 2px solid var(--miqa-field-focus); outline-offset: -2px; }
+p { margin: 6px 0 0; color: #536077; font-size: 14px; }

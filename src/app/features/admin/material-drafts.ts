@@ -2,10 +2,11 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { afterNextRender, ChangeDetectionStrategy, Component, computed, DestroyRef, ElementRef, inject, output, signal, viewChild } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { FormArray, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { finalize, forkJoin, TimeoutError } from 'rxjs';
+import { finalize, TimeoutError } from 'rxjs';
 import { AdminApi, adminError } from './admin-api';
-import type { AdminCategory } from './admin.models';
 import type { ErpServiceProjection, MaterialDraft, MaterialDraftBatch, MaterialPublication } from './erp-catalog.models';
+import { AdminCombobox } from './admin-combobox';
+import { MaterialDraftCatalog } from './material-draft-catalog';
 import type { ErpMaterial } from '../../shared/models/erp-configuration';
 
 type MaterialRow = FormGroup<{
@@ -13,7 +14,7 @@ type MaterialRow = FormGroup<{
   erpModelId: FormControl<string>; name: FormControl<string>;
 }>;
 @Component({
-  selector: 'app-admin-material-drafts', imports: [ReactiveFormsModule],
+  selector: 'app-admin-material-drafts', imports: [ReactiveFormsModule, AdminCombobox],
   templateUrl: './material-drafts.html', styleUrls: ['./admin.scss', './material-drafts.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -23,13 +24,15 @@ export class AdminMaterialDrafts {
   private readonly heading = viewChild<ElementRef<HTMLHeadingElement>>('heading');
   readonly closed = output<void>();
   readonly created = output<MaterialDraft[]>();
-  readonly loading = signal(false);
+  private readonly catalog = inject(MaterialDraftCatalog);
+  readonly loading = this.catalog.loading;
+  readonly loadError = this.catalog.error;
   readonly busy = signal(false);
   readonly completed = signal(false);
   readonly error = signal('');
-  readonly services = signal<ErpServiceProjection[]>([]);
-  readonly categories = signal<AdminCategory[]>([]);
-  readonly publications = signal<MaterialPublication[]>([]);
+  readonly services = this.catalog.services;
+  readonly categories = this.catalog.categories;
+  readonly publications = this.catalog.publications;
   readonly form = new FormGroup({
     serviceId: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
     categoryId: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
@@ -39,6 +42,12 @@ export class AdminMaterialDrafts {
   readonly rows = this.form.controls.materials;
   readonly selectedRows = computed(() => { this.values(); return this.rows.controls.filter(row => row.controls.selected.value && !row.controls.selected.disabled); });
   readonly selectedService = computed(() => this.services().find(service => service.erpServiceId === this.values().serviceId));
+  readonly serviceOptions = computed(() => this.services().map(service => ({
+    id: service.erpServiceId, label: service.lastKnownErp?.nombreReferencia ?? '',
+  })));
+  readonly categoryOptions = computed(() => this.categories().map(category => ({
+    id: category.id, label: category.name,
+  })));
   readonly summary = computed(() => this.selectedRows().map(row => {
     const material = this.materialFor(row);
     const model = material?.modelos.find(model => model.erpModelId === row.controls.erpModelId.value);
@@ -49,30 +58,32 @@ export class AdminMaterialDrafts {
   readonly categoryName = computed(() => this.categories().find(category => category.id === this.values().categoryId)?.name ?? 'Selecciona una categoría');
   readonly canSubmit = computed(() => {
     this.values();
-    return !this.loading() && !this.busy() && !this.completed() && this.buildRequest() !== null;
+    return !this.loading() && !this.loadError() && !this.busy() && !this.completed() && this.buildRequest() !== null;
   });
   constructor() {
     this.form.controls.serviceId.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => this.resetRows());
     afterNextRender(() => this.heading()?.nativeElement.focus());
-    this.load();
+    this.catalog.refreshed$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+      const { serviceId, categoryId } = this.form.getRawValue();
+      if (categoryId && !this.categories().some(category => category.id === categoryId)) {
+        this.form.controls.categoryId.setValue('');
+      }
+      if (serviceId && !this.services().some(service => service.erpServiceId === serviceId)) {
+        this.form.controls.serviceId.setValue('');
+      } else {
+        this.resetRows();
+      }
+    });
+    this.catalog.ensureLoaded();
   }
   load(): void {
-    if (this.busy()) return;
-    this.loading.set(true); this.error.set(''); this.services.set([]); this.categories.set([]);
-    this.rows.clear(); this.form.controls.serviceId.setValue(''); this.form.controls.categoryId.setValue('');
-    forkJoin({ services: this.api.erpServices(), categories: this.api.categories(), publications: this.api.materialPublications() })
-      .pipe(takeUntilDestroyed(this.destroyRef), finalize(() => this.loading.set(false)))
-      .subscribe({ next: result => {
-        this.publications.set(result.publications);
-        this.services.set(result.services.filter(service => this.available(service)));
-        this.categories.set(result.categories.filter(category => category.active));
-      }, error: error => this.error.set('No se pudo cargar el catálogo administrativo. ' + adminError(error)) });
+    if (!this.busy()) this.catalog.load();
   }
-  private available(service: ErpServiceProjection): boolean {
-    const source = service.lastKnownErp;
-    return service.available && service.syncState === 'AVAILABLE' && source?.erpServiceId === service.erpServiceId
-      && (source.contractVersion === 1 || source.contractVersion === 2) && source.elegible && source.disponible && source.estadoConfiguracion === 'CONFIGURADA'
-      && !!source.configuracion?.materiales.length;
+  selectService(serviceId: string): void {
+    const control = this.form.controls.serviceId;
+    if (control.value === serviceId) return;
+    if (control.value) this.form.controls.categoryId.setValue('');
+    control.setValue(serviceId);
   }
   private resetRows(): void {
     this.rows.clear(); this.error.set('');
@@ -84,6 +95,18 @@ export class AdminMaterialDrafts {
         erpModelId: new FormControl('', { nonNullable: true }),
         name: new FormControl('', { nonNullable: true, validators: [Validators.maxLength(200)] })
       }));
+    }
+  }
+  releasePublication(productId: string): void {
+    const previous = this.publications();
+    const removed = previous.find(publication => publication.productId === productId);
+    if (!removed) return;
+    this.catalog.removePublication(productId);
+    if (this.form.controls.serviceId.value !== removed.erpServiceId) return;
+    const row = this.rows.controls.find(item => item.controls.erpMaterialId.value === removed.erpMaterialId);
+    if (row && !this.existingFor(row).length) {
+      row.controls.selected.setValue(false);
+      row.controls.selected.enable();
     }
   }
   existingFor(row: MaterialRow): MaterialPublication[] {
@@ -103,7 +126,7 @@ export class AdminMaterialDrafts {
   buildRequest(): MaterialDraftBatch | null {
     const service = this.services().find(service => service.erpServiceId === this.form.controls.serviceId.value);
     const selected = this.rows.controls.filter(row => row.controls.selected.value && !row.controls.selected.disabled);
-    if (!service || !this.available(service) || selected.length < 1 || selected.length > 50
+    if (!service || selected.length < 1 || selected.length > 50
         || !this.categories().some(category => category.active && category.id === this.form.controls.categoryId.value)) return null;
     const ids = new Set<string>();
     for (const row of selected) {
@@ -118,7 +141,7 @@ export class AdminMaterialDrafts {
     })) };
   }
   submit(): void {
-    if (this.busy() || this.completed()) return;
+    if (this.loading() || this.loadError() || this.busy() || this.completed()) return;
     const request = this.buildRequest();
     if (!request) { this.form.markAllAsTouched(); this.error.set('Selecciona una categoría activa y entre 1 y 50 materiales con modelos válidos.'); return; }
     this.busy.set(true); this.error.set('');

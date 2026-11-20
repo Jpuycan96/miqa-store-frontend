@@ -8,5 +8,5 @@ export interface ProductInput {
  minQuantity: number | null; quantityStep: number | null; featured: boolean; published: boolean; displayOrder: number;
  seoTitle: string | null; seoDescription: string | null;
 }
-export interface AdminProduct extends ProductInput { catalogMode?: 'ERP' | 'LEGACY'; id: string; category: AdminCategory; image: string; materials: AdminOption[]; extras: AdminOption[]; images: AdminImage[]; }
+export interface AdminProduct extends ProductInput { retiredAt?: string | null; catalogMode?: 'ERP' | 'LEGACY'; id: string; category: AdminCategory; image: string; materials: AdminOption[]; extras: AdminOption[]; images: AdminImage[]; }
 export type ImageInput = Omit<AdminImage,'id' | 'publicUrl'>;

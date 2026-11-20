@@ -5,7 +5,7 @@ section { display: flex; flex-direction: column; max-height: none; overflow-y: v
 ul { list-style: none; margin: 0; padding: 0; } li { padding-block: 14px; border-top: 1px solid #e0e3e8; }
 h3 { font-size: 15px; font-weight: 600; } .configuration, .empty, .hint { font-size: 12px; color: var(--muted); line-height: 1.6; overflow-wrap: anywhere; margin-block: 8px 12px; }
 .item-controls { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
-.quantity-control { display: inline-flex; align-items: center; border: 1px solid #c4cbd4; border-radius: 99px; }
+.quantity-control { display: inline-flex; align-items: center; }
 .quantity-control button { width: 36px; height: 36px; border: 0; border-radius: 50%; background: none; font-size: 18px; } .quantity-control input { width: 48px; min-height: 36px; padding: 0; border: 0; background: transparent; color: inherit;  min-width: 24px; text-align: center; font-size: 12px; }
 button { cursor: pointer; color: inherit; } button:disabled { opacity: .45; cursor: default; } .remove, .clear { min-height: 36px; border: 0; background: none; font-size: 12px; text-decoration: underline; text-underline-offset: 4px; }
 .panel-actions { padding-top: 16px; border-top: 1px solid #e0e3e8; flex-shrink: 0; }
@@ -20,15 +20,10 @@ li.updated { background: #e9fafa; box-shadow: inset 3px 0 #16b8c4; }
 
 .quantity-control input[appQuantityInput] {
   border: 0;
-  outline: none;
   box-shadow: none;
   background: transparent;
   text-align: center;
   cursor: text;
-}
-.quantity-control input[appQuantityInput]:focus-visible {
-  text-decoration: underline;
-  text-underline-offset: 3px;
 }
 
 @media (min-width: 1280px) {
@@ -42,7 +37,7 @@ li.updated { background: #e9fafa; box-shadow: inset 3px 0 #16b8c4; }
   :host(.compact) h3 { margin: 0; font-size: 14px; }
   :host(.compact) .configuration { margin-block: 4px; line-height: 1.4; }
   :host(.compact) .panel-actions { padding-top: 8px; }
-  :host(.compact) :focus-visible { outline: 3px solid #075b87; outline-offset: -3px; }
+  :host(.compact) :focus-visible:not(:where(.miqa-field-group input)) { outline: 3px solid #075b87; outline-offset: -3px; }
 }
 @media (min-width: 1280px) and (pointer: coarse) {
   :host(.compact) .quantity-control button, :host(.compact) .quantity-control input, :host(.compact) .remove, :host(.compact) .clear { min-height: 44px; min-width: 44px; }

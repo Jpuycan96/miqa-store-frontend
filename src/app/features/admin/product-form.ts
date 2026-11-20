@@ -16,7 +16,7 @@ export class AdminProductForm {
   name:new FormControl('',{nonNullable:true,validators:[Validators.required,Validators.maxLength(200)]}),slug:new FormControl('',{nonNullable:true,validators:[Validators.required,Validators.maxLength(160),Validators.pattern('^[a-z0-9]+(-[a-z0-9]+)*$')]}),categoryId:new FormControl('',{nonNullable:true,validators:[Validators.required]}),
   shortDescription:new FormControl('',{nonNullable:true,validators:[Validators.maxLength(500)]}),displayOrder:new FormControl(0,{nonNullable:true,validators:[Validators.required,Validators.min(0),Validators.pattern('^[0-9]+$')]}),
   description:new FormControl('',{nonNullable:true,validators:[Validators.maxLength(20000)]}),saleType:new FormControl<ProductInput['saleType']>('QUANTITY',{nonNullable:true}),unitLabel:new FormControl('unidad',{nonNullable:true,validators:[Validators.required,Validators.maxLength(40)]}),
-  packSize:new FormControl<number|null>(null),packLabel:new FormControl('',{nonNullable:true}),minQuantity:new FormControl<number|null>(1,[Validators.min(1),Validators.pattern('^[0-9]+$')]),quantityStep:new FormControl<number|null>(1,[Validators.min(1),Validators.pattern('^[0-9]+$')]),published:new FormControl(false,{nonNullable:true}),featured:new FormControl(false,{nonNullable:true}),seoTitle:new FormControl('',{nonNullable:true,validators:[Validators.maxLength(200)]}),seoDescription:new FormControl('',{nonNullable:true,validators:[Validators.maxLength(500)]})
+  packSize:new FormControl<number|null>(null),packLabel:new FormControl('',{nonNullable:true}),minQuantity:new FormControl<number|null>(1,[Validators.min(1),Validators.pattern('^[0-9]+$')]),quantityStep:new FormControl<number|null>(1,[Validators.min(1),Validators.pattern('^[0-9]+$')]),featured:new FormControl(false,{nonNullable:true}),seoTitle:new FormControl('',{nonNullable:true,validators:[Validators.maxLength(200)]}),seoDescription:new FormControl('',{nonNullable:true,validators:[Validators.maxLength(500)]})
  });
  private readonly formValue=toSignal(this.form.valueChanges,{initialValue:this.form.getRawValue()});
  readonly generalSummary=computed(()=>{const value=this.formValue();const category=this.categories().find(item=>item.id===value.categoryId)?.name||'Sin categoría';return `${value.name?.trim()||'Sin nombre'} · ${category}`;});
@@ -36,17 +36,12 @@ export class AdminProductForm {
     this.categories.set(categories.filter(c=>this.isMaterial()?c.active:!!c.erpCategoryId));this.product.set(product);
     this.form.patchValue({...product,unitLabel:'',packLabel:'',seoTitle:product.seoTitle??'',seoDescription:product.seoDescription??''});
     for(const key of ['categoryId','saleType','unitLabel','packSize','packLabel','minQuantity','quantityStep'] as const)this.form.controls[key].disable();
-    if(this.isMaterial()){
-     this.form.controls.categoryId.enable();
-     this.form.controls.published.enable();
-    }else{
-     this.form.controls.published.enable();
-    }
+    if(this.isMaterial())this.form.controls.categoryId.enable();
     this.generalOpen.set(true);
    },error:e=>this.error.set(adminError(e))});
  }
  save(){if(!this.id||!this.isErp()||this.form.invalid||this.busy())return;
-  this.busy.set(true);this.error.set('');const input:ProductInput={...this.form.getRawValue(),categoryId:this.isMaterial()?this.form.controls.categoryId.value:this.product()!.categoryId,published:this.form.controls.published.value,saleType:null,unitLabel:null,packSize:null,packLabel:null,minQuantity:null,quantityStep:null};
+  this.busy.set(true);this.error.set('');const input:ProductInput={...this.form.getRawValue(),categoryId:this.isMaterial()?this.form.controls.categoryId.value:this.product()!.categoryId,published:this.product()!.published,saleType:null,unitLabel:null,packSize:null,packLabel:null,minQuantity:null,quantityStep:null};
   this.api.saveProduct(this.id,input).pipe(finalize(()=>this.busy.set(false))).subscribe({next:p=>{this.product.set(p);this.generalOpen.set(false);this.message.set('Producto guardado.');this.form.markAsPristine();},error:e=>this.error.set(adminError(e))});
  }
 }

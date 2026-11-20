@@ -35,7 +35,7 @@
             <p class="configuration">{{ describe(item) }}</p>
             <p class="quantity-minimum">Mínimo {{ quote.quantityRules(item).minimum }} {{ item.erp ? item.unitLabel : (item.saleType === 'PACK' ? 'presentaciones' : 'unidades') }}</p>
             <div class="item-controls">
-              <div class="quantity-control" role="group" [attr.aria-label]="'Cantidad de ' + item.productName">
+              <div class="quantity-control miqa-field-group" role="group" [attr.aria-label]="'Cantidad de ' + item.productName">
                 <button [attr.aria-label]="'Reducir cantidad de ' + item.productName" [disabled]="item.quantity <= quote.quantityRules(item).minimum" (click)="quote.changeQuantity(item, -quote.quantityRules(item).step)">−</button>
                 <input appQuantityInput [erpRules]="item.erp?.quantityRules" [quantity]="item.quantity" [minimum]="quote.quantityRules(item).minimum" (quantityChange)="quote.updateQuantity(item.id, $event)" [attr.aria-label]="'Cantidad de ' + item.productName">
                 <button [attr.aria-label]="'Aumentar cantidad de ' + item.productName" (click)="quote.changeQuantity(item, quote.quantityRules(item).step)">+</button>

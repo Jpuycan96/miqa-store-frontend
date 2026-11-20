@@ -17,6 +17,9 @@ export class AdminApi {
  products(filters:Record<string,string>={}){let params=new HttpParams();for(const [key,value] of Object.entries(filters))if(value.trim())params=params.set(key,value.trim());return this.http.get<AdminProduct[]>(this.base+'/products',{params}).pipe(timeout(10000));}
  product(id:string){return this.http.get<AdminProduct>(this.base+'/products/'+encodeURIComponent(id)).pipe(timeout(10000));}
  saveProduct(id:string,input:ProductInput){return this.http.put<AdminProduct>(this.base+'/products/'+encodeURIComponent(id),input);}
+ archiveProduct(id: string) {
+  return this.http.delete<void>(this.base+'/products/'+encodeURIComponent(id)).pipe(timeout(10000));
+ }
  flag(id:string,flag:'published'|'featured',value:boolean){return this.http.patch<AdminProduct>(this.base+'/products/'+encodeURIComponent(id)+'/'+flag,{[flag]:value});}
  images(pid:string){return this.http.get<AdminImage[]>(this.base+'/products/'+encodeURIComponent(pid)+'/images');}
  uploadImage(pid:string,file:File,altText:string,displayOrder:number|null,primaryImage:boolean){

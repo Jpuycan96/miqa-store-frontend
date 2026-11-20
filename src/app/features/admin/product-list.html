@@ -1,7 +1,97 @@
-<div class="heading"><div><p class="eyebrow">CATÁLOGO</p><h1>Productos</h1></div><button type="button" #draftAction (click)="openDrafts()" [attr.aria-expanded]="draftsOpen()" aria-controls="material-draft-panel">Crear productos por material</button></div>
+<div class="heading">
+  <div><p class="eyebrow">CATÁLOGO</p><h1>Productos</h1></div>
+  <div class="actions product-header-actions">
+    <button type="button" class="refresh-draft-catalog"
+      title="Actualizar servicios y categorías" aria-label="Actualizar servicios y categorías"
+      [attr.aria-busy]="draftCatalog.loading()" [disabled]="draftCatalog.loading() || !!pending() || !!draftPanelBusy()"
+      (click)="refreshDraftCatalog()">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/>
+        <path d="M21 3v5h-5M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16M8 16H3v5"/>
+      </svg>
+    </button>
+    <button type="button" class="toggle-draft-panel" #draftAction [disabled]="!!pending() || !!draftSubmissionBusy()"
+      (click)="toggleDrafts()" [attr.aria-expanded]="draftsOpen()" aria-controls="material-draft-panel">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+      Productos
+    </button>
+  </div>
+</div>
+@if(!draftsOpen() && draftCatalog.error()){
+  <p class="feedback error" role="alert">{{draftCatalog.error()}}</p>
+}
+<div class="draft-refresh-toast" [class.visible]="!!draftCatalog.status()">
+  <span class="draft-toast-message" role="status" aria-atomic="true">
+    @if(draftCatalog.status()){
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/>
+      </svg>
+    }
+    {{draftCatalog.status()}}
+  </span>
+  @if(draftCatalog.status()){
+    <button type="button" title="Cerrar notificación" aria-label="Cerrar notificación" (click)="draftCatalog.dismissStatus()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg>
+    </button>
+  }
+</div>
 <div id="material-draft-panel">@if(draftsOpen()){<app-admin-material-drafts (closed)="closeDrafts()" (created)="draftsCreated($event)" />}</div>
 @if(createdDrafts().length){<section class="section" aria-labelledby="created-drafts"><h2 id="created-drafts">Borradores creados</h2><ul>@for(draft of createdDrafts();track draft.productId){<li><a [routerLink]="['/admin/productos',draft.productId,'editar']">Editar {{draft.name}}</a></li>}</ul><p class="muted">Sin publicar. Completa las imágenes, descripción y SEO desde el editor comercial.</p></section>}
 <p class="muted">Cat&aacute;logo ERP. Edici&oacute;n comercial en MIQA.</p>
-<form class="filter" [formGroup]="filters"><label>Buscar<input type="search" maxlength="120" formControlName="search" placeholder="Nombre del producto"></label><label>Categoría<select formControlName="category"><option value="">Todas</option>@for(c of visibleCategories();track c.id){<option [value]="c.id">{{c.name}}</option>}</select></label><label>Publicación<select formControlName="published"><option value="">Todas</option><option value="true">Publicados</option><option value="false">Borradores</option></select></label><label>Destacado<select formControlName="featured"><option value="">Todos</option><option value="true">Sí</option><option value="false">No</option></select></label></form>
+<form class="filter" [formGroup]="filters">
+  <label>Buscar<input class="miqa-field" type="search" maxlength="120" formControlName="search" placeholder="Nombre del producto"></label>
+  <app-admin-combobox fieldId="product-filter-category" label="Categoría"
+    placeholder="Buscar categoría" emptyMessage="No hay categorías que coincidan."
+    [options]="filterCategoryOptions()" [value]="filters.controls.category.value"
+    (valueSelected)="filters.controls.category.setValue($event)" />
+  <label>Publicación<select class="miqa-field miqa-select" formControlName="published"><option value="">Todas</option><option value="true">Publicados</option><option value="false">No publicados</option></select></label>
+  <label>Destacado<select class="miqa-field miqa-select" formControlName="featured"><option value="">Todos</option><option value="true">Sí</option><option value="false">No</option></select></label>
+</form>
 @if(message()){<p class="feedback" role="status">{{message()}}</p>}@if(actionError()){<p class="feedback error" role="alert">{{actionError()}}</p>}
-@if(state().loading){<p role="status">Cargando productos…</p>}@else if(state().error){<p class="feedback error" role="alert">{{state().error}} <button (click)="retry()">Reintentar</button></p>}@else{<p class="muted" role="status">{{visibleProducts().length}} productos</p><ul class="list product-list">@for(p of visibleProducts();track p.id){<li class="row" [attr.data-product]="p.slug"><div>@if(p.image){<img [src]="p.image" [alt]="p.name" width="64" height="64">}</div><div><strong>{{p.name}}</strong><small>{{p.category.name}}</small></div><div>@if(p.catalogMode==='ERP'){@if(technical()[p.id];as status){<span class="tag">ERP · {{status.state}}</span><small>Última sincronización ERP: @if(status.lastSyncedAt){<time [attr.datetime]="status.lastSyncedAt">{{status.lastSyncedAt | date:'dd/MM/yyyy HH:mm':'UTC'}} UTC</time>}@else{Sin registro}</small>@if(status.error){<p class="feedback error" role="alert">{{status.error}}</p>}}}</div><span>{{p.published?'Publicado':'Borrador'}}</span><div class="actions"><button [disabled]="!!pending() || !canTogglePublished(p)" (click)="toggle(p,'published')">{{p.published?'Despublicar':'Publicar'}}</button><button class="star" [disabled]="!!pending()" [attr.aria-label]="(p.featured ? 'Quitar destacado: ' : 'Destacar: ') + p.name" [attr.aria-pressed]="p.featured" (click)="toggle(p,'featured')"><span aria-hidden="true">{{p.featured ? '★' : '☆'}}</span></button><a class="button" [routerLink]="['/admin/productos',p.id,'editar']">Editar</a></div></li>}@empty{<li class="section">No hay productos con esos filtros.</li>}</ul>}
+@if(state().loading){
+  <p role="status">Cargando productos…</p>
+}@else if(state().error){
+  <p class="feedback error" role="alert">{{state().error}} <button (click)="retry()">Reintentar</button></p>
+}@else{
+  <p class="muted" role="status">{{visibleProducts().length}} productos</p>
+  <ul class="list product-list">
+    @for(p of visibleProducts();track p.id){
+      <li class="row" [class.unpublished]="!p.published" [attr.data-product]="p.slug">
+        <div class="product-thumbnail">@if(p.image){<img [src]="p.image" [alt]="p.name" width="64" height="64">}</div>
+        <div class="product-identity">
+          <strong>{{p.name}}</strong>
+          <small>{{p.category.name}}</small>
+          @if(technical()[p.id]?.error; as error){<p class="feedback error" role="alert">{{error}}</p>}
+        </div>
+        <span class="publication-status">{{p.published ? 'Publicado' : p.retiredAt ? 'Retirado' : 'Borrador'}}</span>
+        <button type="button" class="star" [disabled]="!!pending()"
+          [attr.aria-label]="(p.featured ? 'Quitar destacado: ' : 'Destacar: ') + p.name"
+          [attr.aria-pressed]="p.featured" (click)="toggle(p,'featured')">
+          <span aria-hidden="true">{{p.featured ? '★' : '☆'}}</span>
+        </button>
+        <div class="actions">
+          <button type="button" class="publication-switch" role="switch" [attr.aria-checked]="p.published"
+            [attr.aria-label]="p.published ? 'Ocultar producto' : 'Publicar producto'"
+            [disabled]="!!pending() || !canTogglePublished(p)" (click)="toggle(p,'published')">
+            <span class="switch-track" aria-hidden="true"></span>
+            <span>{{p.published ? 'Ocultar' : 'Publicar'}}</span>
+          </button>
+          <a class="button edit-product" [routerLink]="['/admin/productos',p.id,'editar']"
+            title="Editar producto" aria-label="Editar producto">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M21.17 8.83a2.83 2.83 0 0 0-4-4L5 17l-1 4 4-1L21.17 8.83zM15 7l4 4"/>
+            </svg>
+          </a>
+          @if(canArchive(p)){<button type="button" class="trash" [disabled]="!!pending() || !!draftPanelBusy()" title="Eliminar producto" aria-label="Eliminar producto" (click)="archive(p)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><path d="M10 11v6m4-6v6"/></svg></button>}
+        </div>
+      </li>
+    }@empty{
+      <li class="section">No hay productos con esos filtros.</li>
+    }
+  </ul>
+}

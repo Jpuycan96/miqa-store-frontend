@@ -3,7 +3,7 @@
   <a routerLink="/" aria-label="MIQA Soluciones Gráficas, inicio" class="brand" (click)="navigate()"><img ngSrc="/images/brand/logo-tienda-2.png" fill priority alt="MIQA Soluciones Gráficas"></a>
   <button type="button" class="menu-toggle" #menuButton aria-label="Abrir menú de categorías" aria-haspopup="dialog" [attr.aria-controls]="menuOpen() ? 'category-drawer' : null" [attr.aria-expanded]="menuOpen()" (click)="openMenu(menuButton)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span>Menú</span></button>
   <div id="site-search" class="inline-search" [class.search-active]="searchOpen()" (keydown.escape)="closeSearch()" role="search">
-   <input #searchInput id="header-product-search" type="search" maxlength="120" aria-label="Buscar productos" placeholder="Buscar productos en MIQA" [formControl]="search" (focus)="searchOpen.set(true)">
+   <input class="miqa-field" #searchInput id="header-product-search" type="search" maxlength="120" aria-label="Buscar productos" placeholder="Buscar productos en MIQA" [formControl]="search" (focus)="searchOpen.set(true)">
    <button #searchToggle type="button" class="search-toggle" aria-label="Buscar productos" aria-controls="header-product-search" (click)="toggleSearch()"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg></button>
    @if(searchOpen() && !catalogMode() && search.value.trim()){
     <div class="search-results">

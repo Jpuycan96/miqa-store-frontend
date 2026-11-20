@@ -1,19 +1,25 @@
 <section class="draft-panel" aria-labelledby="material-drafts-title">
-  <div class="heading"><div><h2 id="material-drafts-title" #heading tabindex="-1">Crear productos por material</h2>
-    <p class="muted">Selecciona materiales de un servicio ERP sincronizado. Se crearán borradores, sin publicarlos.</p></div>
-    <button type="button" (click)="close()" [disabled]="busy()">Cerrar panel</button></div>
-  @if (error()) { <p class="feedback error" role="alert">{{ error() }}</p> }
+  <div class="heading draft-heading">
+    <h2 id="material-drafts-title" #heading tabindex="-1">Crear productos por material</h2>
+    <button type="button" (click)="close()" [disabled]="busy()">Cerrar panel</button>
+  </div>
+  <p class="muted draft-description">Selecciona materiales de un servicio ERP sincronizado. Se crearán borradores, sin publicarlos.</p>
+  @if (loadError() || error()) { <p class="feedback error" role="alert">{{ loadError() || error() }}</p> }
   @if (loading()) { <p role="status">Cargando servicios y categorías...</p> }
   @else {
     <form [formGroup]="form" (ngSubmit)="submit()">
       <fieldset [disabled]="busy()">
         <div class="fields">
-          <label>Servicio ERP<select formControlName="serviceId"><option value="">Selecciona un servicio</option>
-            @for (service of services(); track service.erpServiceId) { <option [value]="service.erpServiceId">{{ service.lastKnownErp?.nombreReferencia }}</option> }
-          </select></label>
-          <label>Categoría comercial<select formControlName="categoryId"><option value="">Selecciona una categoría activa</option>
-            @for (category of categories(); track category.id) { <option [value]="category.id">{{ category.name }}</option> }
-          </select></label>
+          <app-admin-combobox fieldId="draft-service" label="Servicio ERP"
+            placeholder="Buscar servicio ERP" emptyMessage="No hay servicios que coincidan."
+            [options]="serviceOptions()" [value]="values().serviceId ?? ''" [disabled]="busy()" [required]="true"
+            [invalid]="form.controls.serviceId.touched && form.controls.serviceId.invalid"
+            (valueSelected)="selectService($event)" (blurred)="form.controls.serviceId.markAsTouched()" />
+          <app-admin-combobox fieldId="draft-category" label="Categoría comercial"
+            placeholder="Buscar categoría comercial" emptyMessage="No hay categorías que coincidan."
+            [options]="categoryOptions()" [value]="values().categoryId ?? ''" [disabled]="busy()" [required]="true"
+            [invalid]="form.controls.categoryId.touched && form.controls.categoryId.invalid"
+            (valueSelected)="form.controls.categoryId.setValue($event)" (blurred)="form.controls.categoryId.markAsTouched()" />
         </div>
         @if (!services().length) { <p class="muted">No hay servicios sincronizados disponibles.</p> }
         @if (!categories().length) { <p class="muted">No hay categorías activas disponibles.</p> }
@@ -27,16 +33,16 @@
                     [disabled]="row.controls.selected.disabled || busy() || (!row.controls.selected.value && selectedRows().length >= 50)"
                     (change)="select(row, $event)" aria-describedby="draft-limit">{{ material.nombreReferencia }}</label>
                   @for (existing of existingFor(row); track existing.productId) {
-                    <p class="muted">Producto existente · {{ existing.published ? 'Publicado' : 'Borrador' }}{{ !existing.bindingActive ? ' · Vínculo deshabilitado' : '' }}</p>
+                    <p class="muted">Producto existente · {{ existing.published ? 'Publicado' : 'No publicado' }}{{ !existing.bindingActive ? ' · Vínculo deshabilitado' : '' }}</p>
                   }
                   @if (row.controls.selected.value && !row.controls.selected.disabled) {
                     <div class="fields row-fields">
                       @if (material.modelos.length) {
-                        <label>Modelo fijo (opcional)<select formControlName="erpModelId"><option value="">Sin fijar modelo</option>
+                        <label>Modelo fijo (opcional)<select class="miqa-field miqa-select" formControlName="erpModelId"><option value="">Sin fijar modelo</option>
                           @for (model of material.modelos; track model.erpModelId) { <option [value]="model.erpModelId">{{ model.nombreReferencia }}</option> }
                         </select></label>
                       }
-                      <label>Nombre comercial (opcional)<input type="text" maxlength="200" formControlName="name" [placeholder]="material.nombreReferencia"></label>
+                      <label>Nombre comercial (opcional)<input class="miqa-field" type="text" maxlength="200" formControlName="name" [placeholder]="material.nombreReferencia"></label>
                     </div>
                   }
                 </div>
@@ -51,8 +57,11 @@
           <p class="muted">Cada producto tendrá identidad, imágenes y contenido comercial propios. Los precios y reglas técnicas siguen perteneciendo al ERP.</p></section>
         }
       </fieldset>
-      <div class="actions"><button type="submit" class="primary" [disabled]="!canSubmit()">{{ busy() ? 'Creando borradores...' : 'Crear borradores' }}</button>
-        <button type="button" (click)="load()" [disabled]="busy()">Actualizar servicios y categorías</button></div>
+      <div class="actions draft-footer">
+        <button type="submit" class="primary" [disabled]="!canSubmit()">
+          {{ busy() ? 'Creando borradores...' : 'Crear borradores' }}
+        </button>
+      </div>
     </form>
   }
 </section>

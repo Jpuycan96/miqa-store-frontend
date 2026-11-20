@@ -7,7 +7,7 @@ import { adminError } from './admin-api';
 import { Seo } from '../../core/seo/seo';
 @Component({selector:'app-admin-login',imports:[ReactiveFormsModule,RouterLink],styleUrls:['./admin.scss','./login.scss'],template:
 `<main class="login"><a routerLink="/" class="brand">MIQA / Administración</a><p class="eyebrow">TU CATÁLOGO, EN ORDEN</p><h1>Inicia sesión</h1><p class="muted">Acceso exclusivo para administración de MIQA.</p>
-<form [formGroup]="form" (ngSubmit)="submit()"><label>Usuario<input formControlName="username" autocomplete="username" maxlength="100" required></label><label>Contraseña<input type="password" formControlName="password" autocomplete="current-password" maxlength="72" required></label>
+<form [formGroup]="form" (ngSubmit)="submit()"><label>Usuario<input class="miqa-field" formControlName="username" autocomplete="username" maxlength="100" required></label><label>Contraseña<input class="miqa-field" type="password" formControlName="password" autocomplete="current-password" maxlength="72" required></label>
 @if(error()){<p class="feedback error" role="alert">{{error()}}</p>}<button class="primary" [disabled]="busy()||form.invalid">{{busy()?'Ingresando…':'Iniciar sesión'}}</button></form></main>`,changeDetection:ChangeDetectionStrategy.OnPush})
 export class AdminLogin {
  private readonly auth=inject(AdminAuth);private readonly router=inject(Router);

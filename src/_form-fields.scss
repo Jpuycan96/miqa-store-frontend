@@ -1,0 +1,64 @@
+:root {
+  --miqa-field-height: 44px;
+  --miqa-field-border: #cbd5e1;
+  --miqa-field-radius: 8px;
+  --miqa-field-focus: #006ccf;
+  --miqa-field-placeholder: #536174;
+  --miqa-field-error: #a63029;
+}
+
+.miqa-field,
+.miqa-field-group {
+  border: 1px solid var(--miqa-field-border);
+  border-radius: var(--miqa-field-radius);
+  background-color: #fff;
+  color: var(--miqa-navy);
+}
+
+.miqa-field {
+  box-sizing: border-box;
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  height: var(--miqa-field-height);
+  padding: 0 12px;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 400;
+}
+
+textarea.miqa-field { height: auto; padding: 10px 12px; resize: vertical; }
+.miqa-field::placeholder { color: var(--miqa-field-placeholder); opacity: 1; }
+.miqa-field:not(:disabled, [readonly]):hover,
+.miqa-field-group:has(input:not(:disabled, [readonly]):hover) { border-color: #94a3b8; }
+.miqa-field:is([aria-invalid=true], .ng-invalid.ng-touched),
+.miqa-field-group:has(input:is([aria-invalid=true], .ng-invalid.ng-touched)) { border-color: var(--miqa-field-error); }
+.miqa-field:focus,
+.miqa-field-group:has(input:focus) {
+  outline: 2px solid var(--miqa-field-focus);
+  outline-offset: -1px;
+  box-shadow: none;
+}
+.miqa-field:disabled,
+.miqa-field-group:has(input:disabled) { background-color: #eef2f6; color: #536174; }
+.miqa-field:disabled { cursor: not-allowed; opacity: 1; }
+.miqa-field[readonly],
+.miqa-field-group:has(input[readonly]) { background-color: #f8fafc; }
+
+.miqa-field.miqa-select {
+  padding-right: 34px;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23061b4f' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-position: right 11px center;
+  background-size: 16px;
+  background-repeat: no-repeat;
+}
+
+/* Quantity steppers keep their existing button geometry. Only the enclosing field shows an input focus ring. */
+.miqa-field-group input:focus { outline: none; }
+
+@media (forced-colors: active) {
+  select.miqa-field.miqa-select { appearance: auto; background-image: none; }
+  .miqa-field:focus, .miqa-field-group:has(input:focus) { outline-color: Highlight; }
+}

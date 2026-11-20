@@ -3,7 +3,7 @@
     <ng-template #quantityField>
       <div class="field quantity-field">
         <label for="erp-quantity">Cantidad ({{ config.cantidad.unidad }})</label>
-        <div class="quantity-stepper">
+        <div class="quantity-stepper miqa-field-group">
           <button type="button" aria-label="Reducir cantidad" [disabled]="steppedQuantity(-1) === null" (click)="stepQuantity(-1)">−</button>
           <input id="erp-quantity" type="number" formControlName="quantity" [attr.inputmode]="config.cantidad.permiteDecimales ? 'decimal' : 'numeric'"
             [min]="number(config.cantidad.minimo)" [max]="number(config.cantidad.maximo)" step="any" aria-describedby="erp-quantity-help">
@@ -23,7 +23,7 @@
             @for (field of fields(); track field) {
               <div class="field">
                 <label [for]="'erp-' + field">{{ labels[field] }} ({{ config.medidas.unidad }})</label>
-                <input [id]="'erp-' + field" type="number" inputmode="decimal" min="0.01" max="1000" step="any" [formControlName]="field" aria-describedby="erp-measures-help">
+                <input class="miqa-field" [id]="'erp-' + field" type="number" inputmode="decimal" min="0.01" max="1000" step="any" [formControlName]="field" aria-describedby="erp-measures-help">
               </div>
             }
           </div>
@@ -93,7 +93,7 @@
     @if (!validSelection()) { <p role="status">Completa las opciones y revisa la cantidad y las medidas.</p> }
     <div class="field notes-field">
       <label for="erp-notes">Detalles de tu proyecto (opcional)</label>
-      <textarea id="erp-notes" formControlName="notes" rows="2" maxlength="1000" placeholder="Cuéntanos si necesitas algo especial."></textarea>
+      <textarea class="miqa-field" id="erp-notes" formControlName="notes" rows="2" maxlength="1000" placeholder="Cuéntanos si necesitas algo especial."></textarea>
     </div>
     <button class="primary-button" type="submit" [disabled]="!canAdd()">Agregar al carrito</button>
   </form>
